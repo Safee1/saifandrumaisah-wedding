@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Saif and Rumaisah are getting married. Date to be confirmed.">
+  <title>Saif &amp; Rumaisah</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    :root {
+      --bg: #faf6f0;
+      --ink: #2a2826;
+      --muted: #8a7e74;
+      --accent: #c9968a;
+    }
+
+    html, body { margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1.5rem;
+      text-align: center;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .pre {
+      font-size: 0.8rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 3rem;
+      font-weight: 500;
+    }
+
+    .names {
+      margin: 0;
+      font-weight: 300;
+      line-height: 1;
+    }
+
+    .name {
+      display: block;
+      font-size: clamp(3.5rem, 13vw, 7rem);
+      font-weight: 300;
+      letter-spacing: 0.01em;
+      color: var(--ink);
+    }
+
+    .amp {
+      display: block;
+      font-family: 'Pinyon Script', cursive;
+      color: var(--accent);
+      font-size: clamp(3rem, 11vw, 5.5rem);
+      font-weight: 400;
+      line-height: 1;
+      margin: 0.3rem 0;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin: 3rem 0 2rem;
+    }
+
+    .divider-line {
+      display: block;
+      width: 4rem;
+      height: 1px;
+      background: var(--accent);
+      opacity: 0.55;
+    }
+
+    .heart {
+      width: 12px;
+      height: 12px;
+      color: var(--accent);
+    }
+
+    .date {
+      font-size: 0.85rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--ink);
+      font-weight: 500;
+      margin: 0;
+    }
+
+    .footer {
+      font-size: 0.75rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 4rem;
+      font-weight: 400;
+    }
+
+    @media (max-width: 480px) {
+      .divider-line { width: 2.75rem; }
+      .pre { margin-bottom: 2rem; }
+      .footer { margin-top: 3rem; }
+    }
+  </style>
+</head>
+<body>
+  <p class="pre">We're getting married</p>
+  <h1 class="names" aria-label="Saif and Rumaisah">
+    <span class="name">Saif</span>
+    <span class="amp" aria-hidden="true">&amp;</span>
+    <span class="name">Rumaisah</span>
+  </h1>
+  <div class="divider" aria-hidden="true">
+    <span class="divider-line"></span>
+    <svg class="heart" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 21s-7-4.35-9.5-9.27C.92 8.36 2.5 4 6.5 4 9 4 10.5 5.5 12 7.5 13.5 5.5 15 4 17.5 4c4 0 5.58 4.36 4 7.73C19 16.65 12 21 12 21z"/>
+    </svg>
+    <span class="divider-line"></span>
+  </div>
+  <p class="date">Date to be confirmed</p>
+  <p class="footer">more details coming soon</p>
+</body>
+</html>
