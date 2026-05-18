@@ -8,7 +8,7 @@ Read this **before** making any change. If a change would break a rule here, sto
 A small wedding website for Saif & Rumaisah.
 - **Domain:** saifandrumaisah.com (registered with Namecheap)
 - **Repo:** github.com/Safee1/saifandrumaisah-wedding (private)
-- **Data source:** Google Sheet ID `1Ht9DFylitbIAfiZ-1MgjXbrFuBSR-FAOo3LOG3p3eZs`
+- **Data source:** Google Sheet (ID stored in `SHEET_ID` env var, not committed)
 - **Hosting:** Render (free tier)
 - **v1 scope:** public landing page, RSVP (unique link per guest), updates feed
 
