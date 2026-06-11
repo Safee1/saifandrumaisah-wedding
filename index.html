@@ -16,24 +16,31 @@
       --ink: #2a2826;
       --muted: #8a7e74;
       --accent: #c9968a;
+      --side: #a86b5d;
+      --line: rgba(201, 150, 138, 0.55);
     }
 
+    html { scroll-behavior: smooth; }
     html, body { margin: 0; padding: 0; }
 
     body {
       font-family: 'Cormorant Garamond', Georgia, serif;
       background: var(--bg);
       color: var(--ink);
+      text-align: center;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .hero {
       min-height: 100vh;
+      min-height: 100svh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       padding: 3rem 1.5rem;
-      text-align: center;
-      line-height: 1.4;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
     }
 
     .pre {
@@ -100,37 +107,256 @@
       margin: 0;
     }
 
+    .treelink {
+      display: inline-block;
+      margin-top: 2.4rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(201, 150, 138, 0.45);
+      padding-bottom: 3px;
+    }
+
+    .treelink:hover {
+      color: var(--ink);
+      border-color: var(--ink);
+    }
+
+    .family-section {
+      padding: 4.5rem 1.25rem 1rem;
+      scroll-margin-top: 0.5rem;
+    }
+
+    .eyebrow {
+      font-size: 0.75rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 1.6rem;
+      font-weight: 500;
+    }
+
+    .crown {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+      font-family: Georgia, serif;
+    }
+
+    .avatar.large { width: 60px; height: 60px; font-size: 1.2rem; }
+    .avatar.med { width: 46px; height: 46px; font-size: 0.95rem; }
+    .avatar.small { width: 36px; height: 36px; font-size: 0.8rem; }
+
+    .t1 { background: #f3ddd6; color: #8a4538; }
+    .t2 { background: #f0e6d0; color: #73602f; }
+    .t3 { background: #e4e9da; color: #52603f; }
+    .t4 { background: #e7e0ea; color: #5d4a66; }
+
+    .stub {
+      width: 1px;
+      height: 20px;
+      background: var(--line);
+      margin: 14px auto 0;
+    }
+
+    .bar {
+      width: 50%;
+      height: 20px;
+      margin: 0 auto;
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+    }
+
+    .columns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      justify-content: center;
+      align-items: flex-start;
+      margin: 0.8rem auto 0;
+      max-width: 880px;
+    }
+
+    .column { flex: 1 1 300px; max-width: 400px; }
+
+    .side-label {
+      font-family: Georgia, serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--side);
+      font-weight: 500;
+      margin: 0 0 1.6rem;
+    }
+
+    .family { margin-bottom: 2.2rem; }
+
+    .family-name {
+      font-size: 1.35rem;
+      font-weight: 500;
+      margin: 0 0 0.8rem;
+    }
+
+    .row {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 72px;
+    }
+
+    .node-name {
+      font-family: Georgia, serif;
+      font-size: 0.78rem;
+      margin-top: 5px;
+      line-height: 1.2;
+      color: var(--ink);
+      overflow-wrap: anywhere;
+    }
+
+    .node-rel {
+      font-family: Georgia, serif;
+      font-size: 0.7rem;
+      font-style: italic;
+      color: var(--muted);
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .kid-star {
+      color: var(--accent);
+      font-size: 0.7rem;
+      font-style: normal;
+      margin-left: 3px;
+    }
+
+    .fam-stub {
+      width: 1px;
+      height: 14px;
+      background: var(--line);
+      margin: 8px auto;
+    }
+
+    .fam-bar {
+      width: 55%;
+      height: 14px;
+      margin: 0 auto 8px;
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+    }
+
+    .status {
+      font-style: italic;
+      color: var(--muted);
+      font-size: 1rem;
+      margin: 1rem 0;
+    }
+
+    .legend {
+      font-family: Georgia, serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-top: 2.5rem;
+    }
+
+    .legend .kid-star { margin: 0 2px 0 0; }
+
     .footer {
       font-size: 0.75rem;
       letter-spacing: 0.25em;
       text-transform: uppercase;
       color: var(--muted);
-      margin-top: 4rem;
+      margin: 0;
+      padding: 3rem 1.5rem 3.5rem;
       font-weight: 400;
     }
 
     @media (max-width: 480px) {
       .divider-line { width: 2.75rem; }
       .pre { margin-bottom: 2rem; }
-      .footer { margin-top: 3rem; }
+      .bar { width: 1px; border: 0; background: var(--line); }
     }
   </style>
 </head>
 <body>
-  <p class="pre">We're getting married</p>
-  <h1 class="names" aria-label="Saif and Rumaisah">
-    <span class="name">Saif</span>
-    <span class="amp" aria-hidden="true">&amp;</span>
-    <span class="name">Rumaisah</span>
-  </h1>
-  <div class="divider" aria-hidden="true">
-    <span class="divider-line"></span>
-    <svg class="heart" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 21s-7-4.35-9.5-9.27C.92 8.36 2.5 4 6.5 4 9 4 10.5 5.5 12 7.5 13.5 5.5 15 4 17.5 4c4 0 5.58 4.36 4 7.73C19 16.65 12 21 12 21z"/>
-    </svg>
-    <span class="divider-line"></span>
-  </div>
-  <p class="date">Date to be confirmed</p>
+  <section class="hero">
+    <p class="pre">We're getting married</p>
+    <h1 class="names" aria-label="Saif and Rumaisah">
+      <span class="name">Saif</span>
+      <span class="amp" aria-hidden="true">&amp;</span>
+      <span class="name">Rumaisah</span>
+    </h1>
+    <div class="divider" aria-hidden="true">
+      <span class="divider-line"></span>
+      <svg class="heart" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 21s-7-4.35-9.5-9.27C.92 8.36 2.5 4 6.5 4 9 4 10.5 5.5 12 7.5 13.5 5.5 15 4 17.5 4c4 0 5.58 4.36 4 7.73C19 16.65 12 21 12 21z"/>
+      </svg>
+      <span class="divider-line"></span>
+    </div>
+    <p class="date">Date to be confirmed</p>
+    <a class="treelink" href="#family">our family tree</a>
+  </section>
+
+  <section class="family-section" id="family" aria-label="Our family tree">
+    <h2 class="eyebrow">our family tree</h2>
+    <div class="crown" aria-hidden="true">
+      <div class="avatar large t1">S</div>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="#c9968a" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 21s-7-4.35-9.5-9.27C.92 8.36 2.5 4 6.5 4 9 4 10.5 5.5 12 7.5 13.5 5.5 15 4 17.5 4c4 0 5.58 4.36 4 7.73C19 16.65 12 21 12 21z"/>
+      </svg>
+      <div class="avatar large t3">R</div>
+    </div>
+    <div class="stub" aria-hidden="true"></div>
+    <div class="bar" aria-hidden="true"></div>
+    <div class="columns">
+      <div class="column">
+        <p class="side-label">Saif's side</p>
+        <div id="side-saif"><p class="status">gathering the family&hellip;</p></div>
+      </div>
+      <div class="column">
+        <p class="side-label">Rumaisah's side</p>
+        <div id="side-ruru"><p class="status">gathering the family&hellip;</p></div>
+      </div>
+    </div>
+    <p class="legend"><span class="kid-star" aria-hidden="true">&#10022;</span> the little ones &nbsp;&middot;&nbsp; each colour is one family</p>
+    <noscript><p class="status">This page needs JavaScript turned on to show the family tree.</p></noscript>
+  </section>
+
   <p class="footer">more details coming soon</p>
+
+  <script src="js/family-data.js"></script>
+  <script src="js/family-render.js"></script>
+  <script>
+    FamilyRender.run(FamilyData, [
+      {
+        targetId: "side-saif",
+        url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSp2ImfP3YBdxg8O9B8rLuq_SQmnIPZ9g4oV2gXLaPFFIWSvXug0uj5s_UMxyC5B0SfjqV8RoF8jaBi/pub?gid=1635470567&single=true&output=csv"
+      },
+      {
+        targetId: "side-ruru",
+        url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSp2ImfP3YBdxg8O9B8rLuq_SQmnIPZ9g4oV2gXLaPFFIWSvXug0uj5s_UMxyC5B0SfjqV8RoF8jaBi/pub?gid=574900917&single=true&output=csv"
+      }
+    ]);
+  </script>
 </body>
 </html>
