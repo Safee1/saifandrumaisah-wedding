@@ -91,33 +91,54 @@
     animation: draw 2.4s ease 0.2s forwards;
   }
   .skyline .win {
-    fill: rgba(125,149,181,0.25);
+    fill: rgba(235,190,120,0.5);
     stroke: none;
     opacity: 0;
-    animation: fadeIn 1.2s ease 1.8s forwards;
+    animation: winLight 1.4s ease 0.8s forwards;
   }
+  @keyframes winLight { to { opacity: 1; } }
+  .skyline .door {
+    fill: rgba(235,190,120,0);
+    stroke: none;
+    animation: doorLight 1s ease 0.7s forwards;
+  }
+  @keyframes doorLight { to { fill: rgba(235,190,120,0.55); } }
   @keyframes draw { to { stroke-dashoffset: 0; } }
   @keyframes fadeIn { to { opacity: 1; } }
 
   /* ---------- the couple ---------- */
   .figure {
     position: absolute;
-    bottom: 12vh;
+    bottom: 4.6vh; /* feet on the skyline ground line */
     width: clamp(60px, 16vw, 92px);
     z-index: 3;
   }
   .figure svg { width: 100%; height: auto; overflow: visible; }
   .figure .sil { fill: var(--ink); opacity: 0.82; stroke: none; }
   .figure .thin { fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; opacity: 0.75; }
-  .fig-l { left: 50%; animation: walkL 3.4s cubic-bezier(.3,.05,.25,1) 0.8s both; }
-  .fig-r { left: 50%; animation: walkR 3.4s cubic-bezier(.3,.05,.25,1) 0.8s both; }
+  /* soft ground shadow that travels with each figure */
+  .fig-bob::after {
+    content: "";
+    position: absolute;
+    bottom: 2px; left: 50%;
+    transform: translateX(-50%);
+    width: 58%; height: 7px;
+    background: radial-gradient(ellipse, rgba(34,48,73,0.2), transparent 70%);
+    border-radius: 50%;
+  }
+  .fig-bob { position: relative; }
+  /* they step OUT of their front doors (door centres: 9.25vw and 87.5vw) and walk the line */
+  .fig-l { left: 50%; animation: walkL 3.4s cubic-bezier(.3,.05,.25,1) 0.9s both; }
+  .fig-r { left: 50%; animation: walkR 3.4s cubic-bezier(.3,.05,.25,1) 0.9s both; }
   @keyframes walkL {
-    from { transform: translateX(calc(-50% - 46vw)); }
-    to   { transform: translateX(calc(-50% - 3.2rem)); }
+    0%   { transform: translateX(calc(-50% - 40.75vw)); opacity: 0; }
+    10%  { transform: translateX(calc(-50% - 38.5vw)); opacity: 1; }
+    100% { transform: translateX(calc(-50% - 3.2rem)); opacity: 1; }
   }
   @keyframes walkR {
-    from { transform: translateX(calc(-50% + 46vw)) scaleX(-1); }
-    to   { transform: translateX(calc(-50% + 3.2rem)) scaleX(-1); }
+    0%   { transform: translateX(calc(-50% + 37.5vw)) scaleX(-1); opacity: 0; }
+    10%  { transform: translateX(calc(-50% + 35.3vw)) scaleX(-1); opacity: 1; }
+    100% { transform: translateX(calc(-50% + 3.2rem)) scaleX(-1); opacity: 1; }
   }
   /* gentle walking bob that stops when they meet */
   .fig-bob { animation: bob 0.55s ease-in-out 0.8s 6 alternate; }
@@ -126,7 +147,7 @@
   /* heart that blooms when they meet */
   .meet-heart {
     position: absolute;
-    bottom: calc(12vh + 130px);
+    bottom: calc(4.6vh + 130px);
     left: 50%;
     width: 22px; height: 22px;
     color: var(--seal);
@@ -231,6 +252,41 @@
     perspective: 1000px;
     filter: drop-shadow(0 22px 44px rgba(90,70,60,0.22));
   }
+  /* light trapped inside — spills out around the envelope while it waits */
+  .env-glow {
+    position: absolute;
+    inset: -20%;
+    background: radial-gradient(circle at 50% 55%, rgba(255,214,140,0.55) 0%, rgba(255,214,140,0.16) 45%, transparent 68%);
+    filter: blur(7px);
+    z-index: 0;
+    opacity: 0;
+    pointer-events: none;
+    animation: trappedGlow 2.6s ease-in-out 11.8s infinite;
+  }
+  @keyframes trappedGlow {
+    0%, 100% { opacity: 0.35; transform: scale(0.98); }
+    50%      { opacity: 0.95; transform: scale(1.05); }
+  }
+  /* …and seeps through the seam under the flap */
+  .env-seam {
+    position: absolute;
+    inset: 0;
+    clip-path: polygon(0 0, 50% 46%, 100% 0, 100% 3.5%, 50% 49.5%, 0 3.5%);
+    background: linear-gradient(180deg, rgba(255,224,160,0.95), rgba(255,214,140,0.35));
+    filter: blur(1.6px);
+    z-index: 5;
+    opacity: 0;
+    pointer-events: none;
+    animation: trappedGlow 2.6s ease-in-out 11.8s infinite;
+  }
+  /* the seal breaks: the light bursts free, then settles */
+  .opened .env-glow { animation: glowBurst 1.8s ease 0.5s forwards; }
+  @keyframes glowBurst {
+    0%   { opacity: 0.9;  transform: scale(1); }
+    35%  { opacity: 1;    transform: scale(1.22); }
+    100% { opacity: 0;    transform: scale(1.38); }
+  }
+  .opened .env-seam { animation: none; opacity: 0; transition: opacity 0.3s; }
   .mini-card {
     position: absolute;
     left: 7%; right: 7%;
@@ -244,8 +300,13 @@
     justify-content: center;
     gap: 0.4rem;
   }
-  .opened .mini-card { animation: cardRise 1.5s cubic-bezier(.3,.7,.3,1) 1.5s both; }
+  .opened .mini-card { animation: cardRise 1.5s cubic-bezier(.3,.7,.3,1) 1.5s both, cardHalo 2.6s ease 0.6s both; }
   @keyframes cardRise { from { transform: translateY(0); } to { transform: translateY(-80%); } }
+  @keyframes cardHalo {
+    0%   { box-shadow: 0 0 0 0 rgba(255,214,140,0); }
+    35%  { box-shadow: 0 0 46px 14px rgba(255,214,140,0.65); }
+    100% { box-shadow: 0 0 18px 4px rgba(255,214,140,0.22); }
+  }
   .mini-card > * { opacity: 0; }
   .opened .mini-card > * { animation: fadeIn 0.8s ease 1.9s forwards; }
   .mini-names { font-family: 'Pinyon Script', cursive; font-size: clamp(1.4rem, 6vw, 1.9rem); line-height: 1.15; }
@@ -319,8 +380,8 @@
   /* inviting pulse once delivered */
   .seal { animation: sealPulse 2.2s ease-in-out 12.4s infinite; }
   @keyframes sealPulse {
-    0%, 100% { transform: translate(-50%,-50%) scale(1);    box-shadow: 0 3px 10px rgba(20,35,60,0.35), 0 0 0 0 rgba(44,74,115,0.35), inset 0 2px 3px rgba(255,255,255,0.25), inset 0 -3px 5px rgba(12,25,45,0.35); }
-    50%      { transform: translate(-50%,-50%) scale(1.06); box-shadow: 0 3px 12px rgba(20,35,60,0.4),  0 0 0 14px rgba(44,74,115,0),   inset 0 2px 3px rgba(255,255,255,0.25), inset 0 -3px 5px rgba(12,25,45,0.35); }
+    0%, 100% { transform: translate(-50%,-50%) scale(1);    box-shadow: 0 3px 10px rgba(20,35,60,0.35), 0 0 0 0 rgba(44,74,115,0.35), 0 0 10px 2px rgba(255,214,140,0.15), inset 0 2px 3px rgba(255,255,255,0.25), inset 0 -3px 5px rgba(12,25,45,0.35); }
+    50%      { transform: translate(-50%,-50%) scale(1.06); box-shadow: 0 3px 12px rgba(20,35,60,0.4),  0 0 0 14px rgba(44,74,115,0),   0 0 26px 8px rgba(255,214,140,0.5),  inset 0 2px 3px rgba(255,255,255,0.25), inset 0 -3px 5px rgba(12,25,45,0.35); }
   }
   .opened .seal { animation: sealBreak 0.7s ease both; }
   @keyframes sealBreak {
@@ -491,6 +552,30 @@
   @keyframes beat { 0%, 100% { transform: scale(1); } 12% { transform: scale(1.22); } 24% { transform: scale(1); } }
   .where { font-size: 0.82rem; letter-spacing: 0.32em; text-transform: uppercase; font-weight: 500; margin: 0 0 0.55rem; }
   .when { font-family: 'Pinyon Script', cursive; font-size: 1.5rem; color: var(--gold); margin: 0; }
+  .countdown {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: clamp(0.7rem, 3.4vw, 1.2rem);
+    margin: 0.3rem 0 0;
+  }
+  .countdown[hidden] { display: none; }
+  .cd-cell { display: flex; flex-direction: column; align-items: center; min-width: 2.6rem; }
+  .cd-num {
+    font-size: clamp(1.5rem, 6.4vw, 1.9rem);
+    font-weight: 500;
+    line-height: 1.15;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .cd-lab {
+    font-size: 0.52rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-top: 0.15rem;
+  }
+  .cd-sep { width: 1px; height: 1.9rem; background: rgba(125,149,181,0.4); margin-top: 0.25rem; }
   .treelink { display: inline-block; margin-top: 2.3rem; font-size: 0.66rem; letter-spacing: 0.32em; text-transform: uppercase; color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(125,149,181,0.45); padding-bottom: 3px; }
 
 
@@ -557,6 +642,8 @@
         <path class="drawn" d="M330 100 L330 62 L352 46 L374 62 L374 100 M340 100 L340 80 L360 80 L360 100" pathLength="900"/>
         <rect class="win" x="31" y="68" width="9" height="8"/>
         <rect class="win" x="345" y="64" width="9" height="8"/>
+        <rect class="door" x="28.8" y="82.8" width="16.4" height="16.4"/>
+        <rect class="door" x="340.8" y="80.8" width="18.4" height="18.4"/>
       </svg>
     </div>
 
@@ -615,7 +702,9 @@
         <span class="ribbon rr"></span>
 
         <div class="env-wrap">
+          <div class="env-glow" aria-hidden="true"></div>
           <div class="env-back"></div>
+          <div class="env-seam" aria-hidden="true"></div>
           <div class="mini-card">
             <div class="mini-names">Saif &amp; Rumaisah</div>
             <div class="mini-sub">are getting married</div>
@@ -681,7 +770,16 @@
         <span class="divider-line"></span>
       </div>
       <p class="where st d5">United Kingdom</p>
-      <p class="when st d5">date to be confirmed</p>
+      <p class="when st d5" id="dateTbc">date to be confirmed</p>
+      <div class="countdown st d5" id="countdown" hidden aria-label="Countdown to the wedding">
+        <div class="cd-cell"><span class="cd-num" id="cd-days">0</span><span class="cd-lab">days</span></div>
+        <span class="cd-sep" aria-hidden="true"></span>
+        <div class="cd-cell"><span class="cd-num" id="cd-hours">00</span><span class="cd-lab">hours</span></div>
+        <span class="cd-sep" aria-hidden="true"></span>
+        <div class="cd-cell"><span class="cd-num" id="cd-mins">00</span><span class="cd-lab">minutes</span></div>
+        <span class="cd-sep" aria-hidden="true"></span>
+        <div class="cd-cell"><span class="cd-num" id="cd-secs">00</span><span class="cd-lab">seconds</span></div>
+      </div>
       <a class="treelink st d6" href="#family">our family tree ↓</a>
     </div>
   </section>
@@ -738,6 +836,25 @@
         root.className += " no-intro";
       });
     })();
+  </script>
+  <script src="js/countdown.js"></script>
+  <script>
+    // Set the wedding date here once it is confirmed, e.g. "2027-06-01T16:00:00+01:00".
+    // Empty string = the "date to be confirmed" line stays exactly as it is.
+    var WEDDING_DATE = "";
+    Countdown.attach(WEDDING_DATE, {
+      getNow: function () { return Date.now(); },
+      setIntervalFn: function (fn, ms) { return setInterval(fn, ms); },
+      pastText: "just married ✨",
+      elements: {
+        wrap: document.getElementById("countdown"),
+        fallback: document.getElementById("dateTbc"),
+        days: document.getElementById("cd-days"),
+        hours: document.getElementById("cd-hours"),
+        minutes: document.getElementById("cd-mins"),
+        seconds: document.getElementById("cd-secs")
+      }
+    });
   </script>
   <script src="js/family-data.js"></script>
   <script src="js/family-render.js"></script>
