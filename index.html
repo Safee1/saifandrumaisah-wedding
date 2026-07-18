@@ -71,38 +71,27 @@
   }
   @keyframes twinkle { 0%,100% { opacity: 0; } 50% { opacity: 0.55; } }
 
-  /* ---------- skyline ---------- */
-  .skyline {
-    position: absolute;
-    left: 0; right: 0; bottom: 0;
-    height: 30vh;
-  }
+  /* ---------- skyline: horizon + storybook cottages ---------- */
+  .skyline { position: absolute; left: 0; right: 0; bottom: 0; height: 30vh; }
   .skyline svg { width: 100%; height: 100%; }
-  .skyline path, .skyline rect, .skyline line {
-    fill: none;
-    stroke: var(--accent);
-    stroke-width: 1.6;
-    stroke-linecap: round;
-    opacity: 0.75;
-  }
-  .skyline .drawn {
-    stroke-dasharray: 900;
-    stroke-dashoffset: 900;
-    animation: draw 2.4s ease 0.2s forwards;
-  }
-  .skyline .win {
-    fill: rgba(235,190,120,0.5);
-    stroke: none;
-    opacity: 0;
-    animation: winLight 1.4s ease 0.8s forwards;
-  }
-  @keyframes winLight { to { opacity: 1; } }
-  .skyline .door {
-    fill: rgba(235,190,120,0);
-    stroke: none;
-    animation: doorLight 1s ease 0.7s forwards;
-  }
-  @keyframes doorLight { to { fill: rgba(235,190,120,0.55); } }
+  .skyline .ground { fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-linecap: round; opacity: 0.55; stroke-dasharray: 900; stroke-dashoffset: 900; animation: draw 2.4s ease 0.2s forwards; }
+
+  .cottage { position: absolute; bottom: 4.6vh; width: clamp(78px, 16vw, 104px); z-index: 1; opacity: 0; animation: cottageIn 1.2s ease 0.4s forwards; }
+  @keyframes cottageIn { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: none; } }
+  .cottage svg { width: 100%; height: auto; overflow: visible; }
+  .cottage-l { left: 1.5vw; }
+  .cottage-r { right: 1.5vw; }
+  .cottage .wall  { fill: #fffdf6; stroke: var(--accent); stroke-width: 1.6; stroke-linejoin: round; }
+  .cottage .roof  { fill: rgba(125,149,181,0.22); stroke: var(--accent); stroke-width: 1.7; stroke-linejoin: round; }
+  .cottage .chim  { fill: #fffdf6; stroke: var(--accent); stroke-width: 1.4; }
+  .cottage .line  { fill: none; stroke: var(--accent); stroke-width: 1.2; stroke-linecap: round; opacity: 0.75; }
+  .cottage .win   { fill: rgba(244,196,120,0); animation: winLight 1.6s ease 1.6s forwards; }
+  @keyframes winLight { to { fill: rgba(244,196,120,0.9); } }
+  .cottage .door  { fill: rgba(120,95,60,0.16); stroke: var(--gold); stroke-width: 1.1; }
+  .cottage .knob  { fill: var(--gold); }
+  .cottage .smoke { fill: none; stroke: rgba(125,149,181,0.55); stroke-width: 1.5; stroke-linecap: round; opacity: 0; transform-box: fill-box; transform-origin: bottom; animation: smokeIn 1s ease 2s forwards, smokeDrift 4.2s ease-in-out 3s infinite; }
+  @keyframes smokeIn { to { opacity: 1; } }
+  @keyframes smokeDrift { 0%,100% { transform: translateY(0) scaleY(1); } 50% { transform: translateY(-3px) scaleY(1.06); } }
   @keyframes draw { to { stroke-dashoffset: 0; } }
   @keyframes fadeIn { to { opacity: 1; } }
 
@@ -252,35 +241,35 @@
     perspective: 1000px;
     filter: drop-shadow(0 22px 44px rgba(90,70,60,0.22));
   }
-  /* light trapped inside — spills out around the envelope while it waits */
+  /* light trapped inside — warm gold spilling out while it waits (treasure sealed within) */
   .env-glow {
-    position: absolute;
-    inset: -20%;
-    background: radial-gradient(circle at 50% 55%, rgba(255,214,140,0.55) 0%, rgba(255,214,140,0.16) 45%, transparent 68%);
-    filter: blur(7px);
-    z-index: 0;
-    opacity: 0;
-    pointer-events: none;
-    animation: trappedGlow 2.6s ease-in-out 11.8s infinite;
+    position: absolute; inset: -32%;
+    background: radial-gradient(circle at 50% 52%, rgba(255,208,120,0.85) 0%, rgba(255,198,110,0.40) 38%, rgba(255,198,110,0.12) 60%, transparent 74%);
+    filter: blur(9px); z-index: 0; opacity: 0; pointer-events: none;
+    animation: trappedGlow 2.4s ease-in-out 9s infinite;
   }
-  @keyframes trappedGlow {
-    0%, 100% { opacity: 0.35; transform: scale(0.98); }
-    50%      { opacity: 0.95; transform: scale(1.05); }
+  .env-core {
+    position: absolute; inset: 10%; border-radius: 50%;
+    background: radial-gradient(circle at 50% 55%, rgba(255,238,185,0.92) 0%, rgba(255,216,145,0.38) 45%, transparent 70%);
+    filter: blur(6px); z-index: 0; opacity: 0; pointer-events: none;
+    animation: coreGlow 2.4s ease-in-out 9s infinite;
   }
-  /* …and seeps through the seam under the flap */
+  @keyframes trappedGlow { 0%, 100% { opacity: 0.55; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1.06); } }
+  @keyframes coreGlow    { 0%, 100% { opacity: 0.70; transform: scale(0.96); } 50% { opacity: 1; transform: scale(1.05); } }
+  /* …and seeps brightly through the seam under the flap */
   .env-seam {
     position: absolute;
     inset: 0;
     clip-path: polygon(0 0, 50% 46%, 100% 0, 100% 3.5%, 50% 49.5%, 0 3.5%);
-    background: linear-gradient(180deg, rgba(255,224,160,0.95), rgba(255,214,140,0.35));
-    filter: blur(1.6px);
+    background: linear-gradient(180deg, rgba(255,236,175,1), rgba(255,210,135,0.5));
+    filter: blur(1.4px);
     z-index: 5;
     opacity: 0;
     pointer-events: none;
-    animation: trappedGlow 2.6s ease-in-out 11.8s infinite;
+    animation: trappedGlow 2.4s ease-in-out 9s infinite;
   }
   /* the seal breaks: the light bursts free, then settles */
-  .opened .env-glow { animation: glowBurst 1.8s ease 0.5s forwards; }
+  .opened .env-glow, .opened .env-core { animation: glowBurst 1.8s ease 0.5s forwards; }
   @keyframes glowBurst {
     0%   { opacity: 0.9;  transform: scale(1); }
     35%  { opacity: 1;    transform: scale(1.22); }
@@ -634,18 +623,32 @@
     <span class="star" style="left:82%; top:15%; animation-delay:1.8s;"></span>
     <span class="star" style="left:47%; top:5%;  animation-delay:2.3s;"></span>
 
-    <!-- skyline: little houses either side -->
+    <!-- skyline: horizon line + storybook cottages either side -->
     <div class="skyline" aria-hidden="true">
-      <svg viewBox="0 0 400 120" preserveAspectRatio="none">
-        <path class="drawn" d="M0 100 L400 100" pathLength="900"/>
-        <path class="drawn" d="M18 100 L18 66 L38 50 L58 66 L58 100 M28 100 L28 82 L46 82 L46 100" pathLength="900"/>
-        <path class="drawn" d="M330 100 L330 62 L352 46 L374 62 L374 100 M340 100 L340 80 L360 80 L360 100" pathLength="900"/>
-        <rect class="win" x="31" y="68" width="9" height="8"/>
-        <rect class="win" x="345" y="64" width="9" height="8"/>
-        <rect class="door" x="28.8" y="82.8" width="16.4" height="16.4"/>
-        <rect class="door" x="340.8" y="80.8" width="18.4" height="18.4"/>
-      </svg>
+      <svg viewBox="0 0 400 120" preserveAspectRatio="none"><path class="ground" d="M0 100 L400 100" pathLength="900"/></svg>
     </div>
+    <div class="cottage cottage-l" aria-hidden="true"><svg viewBox="0 0 100 96">
+      <polygon class="roof" points="12,48 50,14 88,48"/>
+      <rect class="chim" x="64" y="22" width="10" height="20"/>
+      <path class="smoke" d="M69 22 C 64 16, 74 12, 69 6 C 66 2, 72 -2, 69 -7"/>
+      <rect class="wall" x="22" y="48" width="56" height="46" rx="1.5"/>
+      <path class="line" d="M12 48 L50 14 L88 48"/>
+      <rect class="win" x="29" y="56" width="15" height="15" rx="1"/>
+      <path class="line" d="M36.5 56 L36.5 71 M29 63.5 L44 63.5"/>
+      <rect class="door" x="52" y="64" width="16" height="30" rx="1"/>
+      <circle class="knob" cx="64.5" cy="80" r="1.4"/>
+    </svg></div>
+    <div class="cottage cottage-r" aria-hidden="true"><svg viewBox="0 0 100 96">
+      <polygon class="roof" points="12,48 50,14 88,48"/>
+      <rect class="chim" x="64" y="22" width="10" height="20"/>
+      <path class="smoke" d="M69 22 C 64 16, 74 12, 69 6 C 66 2, 72 -2, 69 -7"/>
+      <rect class="wall" x="22" y="48" width="56" height="46" rx="1.5"/>
+      <path class="line" d="M12 48 L50 14 L88 48"/>
+      <rect class="win" x="29" y="56" width="15" height="15" rx="1"/>
+      <path class="line" d="M36.5 56 L36.5 71 M29 63.5 L44 63.5"/>
+      <rect class="door" x="52" y="64" width="16" height="30" rx="1"/>
+      <circle class="knob" cx="64.5" cy="80" r="1.4"/>
+    </svg></div>
 
     <!-- the couple -->
     <div class="figure fig-l"><div class="fig-bob"><svg viewBox="0 0 60 100">
@@ -703,6 +706,7 @@
 
         <div class="env-wrap">
           <div class="env-glow" aria-hidden="true"></div>
+          <div class="env-core" aria-hidden="true"></div>
           <div class="env-back"></div>
           <div class="env-seam" aria-hidden="true"></div>
           <div class="mini-card">
