@@ -569,36 +569,58 @@
 
 
   /* ============================================================
-     Family tree (unchanged behaviour)
+     Family tree — static, mobile-first
+     two families flowing into the couple at the centre
      ============================================================ */
   :root { --side: #40587a; --line: rgba(125,149,181,0.55); }
   .family-section { padding: 4.5rem 1.25rem 1rem; scroll-margin-top: 0.5rem; }
-  .eyebrow { font-size: 0.75rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--muted); margin: 0 0 1.6rem; font-weight: 500; }
-  .crown { display: flex; align-items: center; justify-content: center; gap: 12px; }
-  .avatar { border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; font-family: Georgia, serif; }
-  .avatar.large { width: 60px; height: 60px; font-size: 1.2rem; }
-  .avatar.med { width: 46px; height: 46px; font-size: 0.95rem; }
-  .avatar.small { width: 36px; height: 36px; font-size: 0.8rem; }
+  .eyebrow { font-size: 0.75rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--muted); margin: 0 0 2.2rem; font-weight: 500; }
+
+  /* the couple, heart of the tree */
+  .couple-node { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center; gap: clamp(14px, 4vw, 26px); }
+  .cn-person { display: flex; flex-direction: column; align-items: center; gap: 0.45rem; }
+  .cn-name { font-family: 'Pinyon Script', cursive; font-size: clamp(1.15rem, 5vw, 1.5rem); color: var(--ink); margin: 0; white-space: nowrap; }
+  .cn-heart { width: clamp(14px, 3.6vw, 18px); height: clamp(14px, 3.6vw, 18px); color: var(--accent); flex-shrink: 0; margin-top: clamp(17px, 5.2vw, 21px); }
+
+  /* soft curve flowing from the couple down into both families */
+  .flow-link { display: block; width: clamp(150px, 42vw, 220px); height: auto; margin: 0.4rem auto 0; overflow: visible; }
+  .flow-link path { fill: none; stroke: var(--line); stroke-width: 1.6; stroke-linecap: round; }
+
+  /* avatars */
+  .avatar { border-radius: 50%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-weight: 500; font-family: Georgia, serif; flex-shrink: 0; }
+  .avatar.large { width: clamp(50px, 13vw, 62px); font-size: clamp(1rem, 4vw, 1.25rem); }
+  .avatar.med   { width: clamp(38px, 9vw, 46px);  font-size: clamp(0.85rem, 3.2vw, 0.95rem); }
+  .avatar.small { width: clamp(30px, 7vw, 36px);  font-size: clamp(0.72rem, 2.8vw, 0.8rem); }
   .t1 { background: #dde6f0; color: #2c4a73; }
-  .t2 { background: #f0e6d0; color: #73602f; }
-  .t3 { background: #e4e9da; color: #52603f; }
-  .t4 { background: #e7e0ea; color: #5d4a66; }
-  .stub { width: 1px; height: 20px; background: var(--line); margin: 14px auto 0; }
-  .bar { width: 50%; height: 20px; margin: 0 auto; border-top: 1px solid var(--line); border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
-  .columns { display: flex; flex-wrap: wrap; gap: 2rem; justify-content: center; align-items: flex-start; margin: 0.8rem auto 0; max-width: 880px; }
-  .column { flex: 1 1 300px; max-width: 400px; }
-  .side-label { font-family: Georgia, serif; font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--side); font-weight: 500; margin: 0 0 1.6rem; }
-  .family { margin-bottom: 2.2rem; }
-  .family-name { font-size: 1.35rem; font-weight: 500; margin: 0 0 0.8rem; }
-  .row { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
-  .node { display: flex; flex-direction: column; align-items: center; width: 72px; }
-  .node-name { font-family: Georgia, serif; font-size: 0.78rem; margin-top: 5px; line-height: 1.2; color: var(--ink); overflow-wrap: anywhere; }
-  .node-rel { font-family: Georgia, serif; font-size: 0.7rem; font-style: italic; color: var(--muted); line-height: 1.2; overflow-wrap: anywhere; }
-  .kid-star { color: var(--accent); font-size: 0.7rem; font-style: normal; margin-left: 3px; }
-  .fam-stub { width: 1px; height: 14px; background: var(--line); margin: 8px auto; }
-  .fam-bar { width: 55%; height: 14px; margin: 0 auto 8px; border-top: 1px solid var(--line); border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
-  .status { font-style: italic; color: var(--muted); font-size: 1rem; margin: 1rem 0; }
-  .legend { font-family: Georgia, serif; font-size: 0.7rem; letter-spacing: 0.12em; color: var(--muted); margin-top: 2.5rem; }
+  .t2 { background: #f0e6d0; color: #8a6a2f; }
+
+  /* two sides — stacked on narrow screens, flanking the couple from tablet up */
+  .sides { display: flex; flex-direction: column; align-items: center; gap: 3rem; max-width: 900px; margin: 1.8rem auto 0; }
+  .side { width: 100%; max-width: 380px; }
+  @media (min-width: 640px) {
+    .sides { flex-direction: row; align-items: flex-start; justify-content: center; gap: clamp(2rem, 5vw, 4rem); }
+    .side { flex: 1 1 0; }
+  }
+  .side-label { font-family: Georgia, serif; font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--side); font-weight: 500; margin: 0 0 1.5rem; }
+
+  .stem { width: 1px; height: 20px; background: var(--line); margin: 0.7rem auto; border-radius: 1px; }
+  .stem.sm { height: 14px; margin: 0.4rem auto 0.5rem; }
+
+  .parents-row, .kids-row { display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(10px, 3vw, 18px); }
+  .kids-row { row-gap: 1.3rem; }
+
+  .p-node, .k-node { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; }
+  .node-name { font-family: Georgia, serif; font-size: clamp(0.72rem, 2.6vw, 0.82rem); color: var(--ink); white-space: nowrap; line-height: 1.2; }
+  .kid-star { color: var(--accent); font-size: 0.7rem; font-style: normal; margin-left: 2px; }
+  .tag { display: block; font-size: 0.5rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--side); margin-top: 0.2rem; }
+
+  .grp-cap { font-family: Georgia, serif; font-style: italic; color: var(--side); font-size: 0.8rem; margin: 0 0 1rem; }
+  .grp-cap.sm { font-size: 0.74rem; margin: 0 0 0.75rem; }
+
+  /* Tayyibah & Amjid nest inside Rumaisah's side, as their own small family */
+  .nested { width: 100%; margin-top: 1.5rem; padding: 1.1rem 0.9rem 0.9rem; background: var(--env); border: 1px solid rgba(185,150,104,0.35); border-radius: 16px; }
+
+  .legend { font-family: Georgia, serif; font-size: 0.7rem; letter-spacing: 0.12em; color: var(--muted); margin-top: 2.8rem; }
   .legend .kid-star { margin: 0 2px 0 0; }
   .footer { font-size: 0.75rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); margin: 0; padding: 3rem 1.5rem 3.5rem; font-weight: 400; }
 
@@ -791,27 +813,75 @@
 
   <section class="family-section" id="family" aria-label="Our family tree">
     <h2 class="eyebrow">our family tree</h2>
-    <div class="crown" aria-hidden="true">
-      <div class="avatar large t1">S</div>
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="#7d95b5" xmlns="http://www.w3.org/2000/svg">
+
+    <div class="couple-node">
+      <div class="cn-person">
+        <div class="avatar large t1" aria-hidden="true">S</div>
+        <p class="cn-name">Saif</p>
+      </div>
+      <svg class="cn-heart" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
         <path d="M12 21s-7-4.35-9.5-9.27C.92 8.36 2.5 4 6.5 4 9 4 10.5 5.5 12 7.5 13.5 5.5 15 4 17.5 4c4 0 5.58 4.36 4 7.73C19 16.65 12 21 12 21z"/>
       </svg>
-      <div class="avatar large t3">R</div>
-    </div>
-    <div class="stub" aria-hidden="true"></div>
-    <div class="bar" aria-hidden="true"></div>
-    <div class="columns">
-      <div class="column">
-        <p class="side-label">Saif's side</p>
-        <div id="side-saif"><p class="status">gathering the family&hellip;</p></div>
-      </div>
-      <div class="column">
-        <p class="side-label">Rumaisah's side</p>
-        <div id="side-ruru"><p class="status">gathering the family&hellip;</p></div>
+      <div class="cn-person">
+        <div class="avatar large t2" aria-hidden="true">R</div>
+        <p class="cn-name">Rumaisah</p>
       </div>
     </div>
-    <p class="legend"><span class="kid-star" aria-hidden="true">&#10022;</span> the little ones &nbsp;&middot;&nbsp; each colour is one family</p>
-    <noscript><p class="status">This page needs JavaScript turned on to show the family tree.</p></noscript>
+
+    <svg class="flow-link" viewBox="0 0 120 56" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M60 2 C 60 20, 58 24, 40 32 C 22 40, 14 44, 6 54"/>
+      <path d="M60 2 C 60 20, 62 24, 80 32 C 98 40, 106 44, 114 54"/>
+    </svg>
+
+    <div class="sides">
+      <div class="side">
+        <h3 class="side-label">Saif's side</h3>
+        <div class="parents-row">
+          <div class="p-node"><div class="avatar med t1" aria-hidden="true">K</div><p class="node-name">Kashif</p></div>
+          <div class="p-node"><div class="avatar med t1" aria-hidden="true">S</div><p class="node-name">Sheine</p></div>
+        </div>
+        <div class="stem" aria-hidden="true"></div>
+        <p class="grp-cap">brothers &amp; sisters</p>
+        <div class="kids-row">
+          <div class="k-node"><div class="avatar small t1" aria-hidden="true">S</div><p class="node-name">Saif<span class="tag">groom</span></p></div>
+          <div class="k-node"><div class="avatar small t1" aria-hidden="true">A</div><p class="node-name">Armani</p></div>
+          <div class="k-node"><div class="avatar small t1" aria-hidden="true">H</div><p class="node-name">Haris</p></div>
+          <div class="k-node"><div class="avatar small t1" aria-hidden="true">S</div><p class="node-name">Syed</p></div>
+          <div class="k-node"><div class="avatar small t1" aria-hidden="true">A</div><p class="node-name">Amara</p></div>
+          <div class="k-node"><div class="avatar small t1" aria-hidden="true">A</div><p class="node-name">Arisha</p></div>
+          <div class="k-node"><div class="avatar small t1" aria-hidden="true">K</div><p class="node-name">Kinza<span class="kid-star" aria-hidden="true">&#10022;</span></p></div>
+        </div>
+      </div>
+
+      <div class="side">
+        <h3 class="side-label">Rumaisah's side</h3>
+        <div class="parents-row">
+          <div class="p-node"><div class="avatar med t2" aria-hidden="true">M</div><p class="node-name">Mum</p></div>
+          <div class="p-node"><div class="avatar med t2" aria-hidden="true">D</div><p class="node-name">Dad</p></div>
+        </div>
+        <div class="stem" aria-hidden="true"></div>
+        <p class="grp-cap">sisters</p>
+        <div class="kids-row">
+          <div class="k-node"><div class="avatar small t2" aria-hidden="true">R</div><p class="node-name">Rumaisah<span class="tag">bride</span></p></div>
+          <div class="k-node"><div class="avatar small t2" aria-hidden="true">U</div><p class="node-name">Umme</p></div>
+          <div class="k-node"><div class="avatar small t2" aria-hidden="true">T</div><p class="node-name">Tayyibah</p></div>
+        </div>
+
+        <div class="nested">
+          <div class="stem sm" aria-hidden="true"></div>
+          <p class="grp-cap sm">Tayyibah &amp; Amjid</p>
+          <div class="kids-row">
+            <div class="k-node"><div class="avatar small t2" aria-hidden="true">A</div><p class="node-name">Amjid</p></div>
+            <div class="k-node"><div class="avatar small t2" aria-hidden="true">Z</div><p class="node-name">Zaina<span class="kid-star" aria-hidden="true">&#10022;</span></p></div>
+            <div class="k-node"><div class="avatar small t2" aria-hidden="true">E</div><p class="node-name">Esa<span class="kid-star" aria-hidden="true">&#10022;</span></p></div>
+            <div class="k-node"><div class="avatar small t2" aria-hidden="true">K</div><p class="node-name">Keyaan<span class="kid-star" aria-hidden="true">&#10022;</span></p></div>
+            <div class="k-node"><div class="avatar small t2" aria-hidden="true">R</div><p class="node-name">Raess<span class="kid-star" aria-hidden="true">&#10022;</span></p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="legend"><span class="kid-star" aria-hidden="true">&#10022;</span> the little ones &nbsp;&middot;&nbsp; navy for Saif's side, gold for Rumaisah's</p>
   </section>
 
   <p class="footer">more details coming soon</p>
@@ -859,20 +929,6 @@
         seconds: document.getElementById("cd-secs")
       }
     });
-  </script>
-  <script src="js/family-data.js"></script>
-  <script src="js/family-render.js"></script>
-  <script>
-    FamilyRender.run(FamilyData, [
-      {
-        targetId: "side-saif",
-        url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSp2ImfP3YBdxg8O9B8rLuq_SQmnIPZ9g4oV2gXLaPFFIWSvXug0uj5s_UMxyC5B0SfjqV8RoF8jaBi/pub?gid=1635470567&single=true&output=csv"
-      },
-      {
-        targetId: "side-ruru",
-        url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSp2ImfP3YBdxg8O9B8rLuq_SQmnIPZ9g4oV2gXLaPFFIWSvXug0uj5s_UMxyC5B0SfjqV8RoF8jaBi/pub?gid=574900917&single=true&output=csv"
-      }
-    ]);
   </script>
 </body>
 </html>
