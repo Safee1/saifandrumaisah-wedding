@@ -23,6 +23,8 @@
     --sky1: #fbf8f1;
     --sky2: #e9edf3;
     --sky3: #d9e2ee;
+    --side: #40587a;
+    --line: rgba(125,149,181,0.55);
   }
   html, body { margin: 0; padding: 0; }
   body {
@@ -167,8 +169,8 @@
   }
   @keyframes flap { from { transform: rotate(16deg); } to { transform: rotate(-24deg); } }
 
-  .sdove-l { left: 6%; bottom: 26vh; animation: riseL 3s cubic-bezier(.4,.05,.3,1) 5.2s both; }
-  .sdove-r { right: 6%; bottom: 26vh; transform: scaleX(-1); animation: riseR 3s cubic-bezier(.4,.05,.3,1) 5.2s both; }
+  .sdove-l { left: 6%; bottom: 26vh; }
+  .sdove-r { right: 6%; bottom: 26vh; transform: scaleX(-1); }
   .sdove-l .swing, .sdove-r .swing { animation-delay: 5.2s; }
   @keyframes riseL {
     0%   { opacity: 0; transform: translate(0, 6vh) rotate(6deg) scale(0.9); }
@@ -184,7 +186,6 @@
   }
   /* they hold a beat at the top, then hand over to the carrier */
   .sdove { animation-fill-mode: both; }
-  .sdove.fade { animation: none; }
   .sdove-l, .sdove-r { animation-name: riseL, sdFade; animation-duration: 3s, 0.6s; animation-delay: 5.2s, 8.6s; animation-timing-function: cubic-bezier(.4,.05,.3,1), ease; animation-fill-mode: both, forwards; }
   .sdove-r { animation-name: riseR, sdFade; }
   @keyframes sdFade { to { opacity: 0; } }
@@ -225,7 +226,7 @@
   .ribbon.rl { left: 22%; transform: rotate(18deg); }
   .ribbon.rr { right: 22%; transform: rotate(-18deg); }
   /* doves let go once landed */
-  .opened .cdove, .carrier.landed .cdove { animation: letgo 1.2s ease forwards; }
+  .opened .cdove { animation: letgo 1.2s ease forwards; }
   .cdove-l { --lg-x: -60vw; }
   .cdove-r { --lg-x: 60vw; }
   @keyframes letgo {
@@ -569,36 +570,57 @@
 
 
   /* ============================================================
-     Family tree (unchanged behaviour)
+     Family tree — static, mobile-first
+     two families flowing into the couple at the centre
      ============================================================ */
-  :root { --side: #40587a; --line: rgba(125,149,181,0.55); }
   .family-section { padding: 4.5rem 1.25rem 1rem; scroll-margin-top: 0.5rem; }
-  .eyebrow { font-size: 0.75rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--muted); margin: 0 0 1.6rem; font-weight: 500; }
-  .crown { display: flex; align-items: center; justify-content: center; gap: 12px; }
-  .avatar { border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; font-family: Georgia, serif; }
-  .avatar.large { width: 60px; height: 60px; font-size: 1.2rem; }
-  .avatar.med { width: 46px; height: 46px; font-size: 0.95rem; }
-  .avatar.small { width: 36px; height: 36px; font-size: 0.8rem; }
+  .eyebrow { font-size: 0.75rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--muted); margin: 0 0 2.2rem; font-weight: 500; }
+
+  /* the couple, heart of the tree */
+  .couple-node { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center; gap: clamp(14px, 4vw, 26px); }
+  .cn-person { display: flex; flex-direction: column; align-items: center; gap: 0.45rem; }
+  .cn-name { font-family: 'Pinyon Script', cursive; font-size: clamp(1.15rem, 5vw, 1.5rem); color: var(--ink); margin: 0; white-space: nowrap; }
+  .cn-heart { width: clamp(14px, 3.6vw, 18px); height: clamp(14px, 3.6vw, 18px); color: var(--accent); flex-shrink: 0; margin-top: clamp(17px, 5.2vw, 21px); }
+
+  /* soft curve flowing from the couple down into both families */
+  .flow-link { display: block; width: clamp(150px, 42vw, 220px); height: auto; margin: 0.4rem auto 0; overflow: visible; }
+  .flow-link path { fill: none; stroke: var(--line); stroke-width: 1.6; stroke-linecap: round; }
+
+  /* avatars */
+  .avatar { border-radius: 50%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-weight: 500; font-family: Georgia, serif; flex-shrink: 0; }
+  .avatar.large { width: clamp(50px, 13vw, 62px); font-size: clamp(1rem, 4vw, 1.25rem); }
+  .avatar.med   { width: clamp(38px, 9vw, 46px);  font-size: clamp(0.85rem, 3.2vw, 0.95rem); }
+  .avatar.small { width: clamp(30px, 7vw, 36px);  font-size: clamp(0.72rem, 2.8vw, 0.8rem); }
   .t1 { background: #dde6f0; color: #2c4a73; }
-  .t2 { background: #f0e6d0; color: #73602f; }
-  .t3 { background: #e4e9da; color: #52603f; }
-  .t4 { background: #e7e0ea; color: #5d4a66; }
-  .stub { width: 1px; height: 20px; background: var(--line); margin: 14px auto 0; }
-  .bar { width: 50%; height: 20px; margin: 0 auto; border-top: 1px solid var(--line); border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
-  .columns { display: flex; flex-wrap: wrap; gap: 2rem; justify-content: center; align-items: flex-start; margin: 0.8rem auto 0; max-width: 880px; }
-  .column { flex: 1 1 300px; max-width: 400px; }
-  .side-label { font-family: Georgia, serif; font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--side); font-weight: 500; margin: 0 0 1.6rem; }
-  .family { margin-bottom: 2.2rem; }
-  .family-name { font-size: 1.35rem; font-weight: 500; margin: 0 0 0.8rem; }
-  .row { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
-  .node { display: flex; flex-direction: column; align-items: center; width: 72px; }
-  .node-name { font-family: Georgia, serif; font-size: 0.78rem; margin-top: 5px; line-height: 1.2; color: var(--ink); overflow-wrap: anywhere; }
-  .node-rel { font-family: Georgia, serif; font-size: 0.7rem; font-style: italic; color: var(--muted); line-height: 1.2; overflow-wrap: anywhere; }
-  .kid-star { color: var(--accent); font-size: 0.7rem; font-style: normal; margin-left: 3px; }
-  .fam-stub { width: 1px; height: 14px; background: var(--line); margin: 8px auto; }
-  .fam-bar { width: 55%; height: 14px; margin: 0 auto 8px; border-top: 1px solid var(--line); border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
-  .status { font-style: italic; color: var(--muted); font-size: 1rem; margin: 1rem 0; }
-  .legend { font-family: Georgia, serif; font-size: 0.7rem; letter-spacing: 0.12em; color: var(--muted); margin-top: 2.5rem; }
+  .t2 { background: #f0e6d0; color: #8a6a2f; }
+
+  /* two sides — stacked on narrow screens, flanking the couple from tablet up */
+  .sides { display: flex; flex-direction: column; align-items: center; gap: 3rem; max-width: 900px; margin: 1.8rem auto 0; }
+  .side { width: 100%; max-width: 380px; }
+  @media (min-width: 640px) {
+    .sides { flex-direction: row; align-items: flex-start; justify-content: center; gap: clamp(2rem, 5vw, 4rem); }
+    .side { flex: 1 1 0; }
+  }
+  .side-label { font-family: Georgia, serif; font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--side); font-weight: 500; margin: 0 0 1.5rem; }
+
+  .stem { width: 1px; height: 20px; background: var(--line); margin: 0.7rem auto; border-radius: 1px; }
+  .stem.sm { height: 14px; margin: 0.4rem auto 0.5rem; }
+
+  .parents-row, .kids-row { display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(10px, 3vw, 18px); }
+  .kids-row { row-gap: 1.3rem; }
+
+  .p-node, .k-node { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; }
+  .node-name { font-family: Georgia, serif; font-size: clamp(0.72rem, 2.6vw, 0.82rem); color: var(--ink); white-space: nowrap; line-height: 1.2; }
+  .kid-star { color: var(--accent); font-size: 0.7rem; font-style: normal; margin-left: 2px; }
+  .tag { display: block; font-size: 0.5rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--side); margin-top: 0.2rem; }
+
+  .grp-cap { font-family: Georgia, serif; font-style: italic; color: var(--side); font-size: 0.8rem; margin: 0 0 1rem; }
+  .grp-cap.sm { font-size: 0.74rem; margin: 0 0 0.75rem; }
+
+  /* Tayyibah & Amjid nest inside Rumaisah's side, as their own small family */
+  .nested { width: 100%; margin-top: 1.5rem; padding: 1.1rem 0.9rem 0.9rem; background: var(--env); border: 1px solid rgba(185,150,104,0.35); border-radius: 16px; }
+
+  .legend { font-family: Georgia, serif; font-size: 0.7rem; letter-spacing: 0.12em; color: var(--muted); margin-top: 2.8rem; }
   .legend .kid-star { margin: 0 2px 0 0; }
   .footer { font-size: 0.75rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); margin: 0; padding: 3rem 1.5rem 3.5rem; font-weight: 400; }
 
@@ -613,6 +635,25 @@
 </style>
 </head>
 <body>
+
+  <!-- shared SVG shapes, referenced below via <use> -->
+  <svg aria-hidden="true" style="position:absolute; width:0; height:0; overflow:hidden">
+    <defs>
+      <g id="dove-shape">
+        <path class="body-fill" d="M14 40 C 24 30, 40 26, 56 30 C 66 32, 74 30, 82 24 C 78 34, 70 42, 58 44 C 44 46, 28 46, 14 40 Z"/>
+        <g class="swing"><path d="M56 30 C 60 18, 70 10, 84 8 C 76 16, 72 24, 70 30"/><path d="M50 32 C 52 22, 60 14, 72 10"/></g>
+        <path d="M14 40 C 10 42, 6 44, 2 48 C 8 48, 12 46, 16 44"/>
+        <path d="M82 24 L 90 22 L 84 28"/>
+      </g>
+      <g id="floral-shape">
+        <path d="M6 68 C 14 46, 20 34, 40 22 C 50 16, 58 12, 68 10"/>
+        <path d="M22 46 C 28 40, 30 34, 30 26"/>
+        <path d="M34 34 C 42 32, 48 32, 54 36"/>
+        <circle class="bud" cx="30" cy="24" r="3.4"/><circle class="bud" cx="56" cy="37" r="2.8"/><circle class="bud" cx="68" cy="10" r="3.8"/>
+      </g>
+      <path id="heart-shape" d="M12 21s-7-4.35-9.5-9.27C.92 8.36 2.5 4 6.5 4 9 4 10.5 5.5 12 7.5 13.5 5.5 15 4 17.5 4c4 0 5.58 4.36 4 7.73C19 16.65 12 21 12 21z"/>
+    </defs>
+  </svg>
 
   <!-- ============ THE STORY ============ -->
   <div class="story" id="story" aria-hidden="true">
@@ -667,40 +708,20 @@
     </svg></div></div>
 
     <svg class="meet-heart" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M12 21s-7-4.35-9.5-9.27C.92 8.36 2.5 4 6.5 4 9 4 10.5 5.5 12 7.5 13.5 5.5 15 4 17.5 4c4 0 5.58 4.36 4 7.73C19 16.65 12 21 12 21z"/>
+      <use href="#heart-shape"></use>
     </svg>
 
     <!-- watching doves take off -->
-    <div class="sdove sdove-l"><svg viewBox="0 0 100 60">
-      <path class="body-fill" d="M14 40 C 24 30, 40 26, 56 30 C 66 32, 74 30, 82 24 C 78 34, 70 42, 58 44 C 44 46, 28 46, 14 40 Z"/>
-      <g class="swing"><path d="M56 30 C 60 18, 70 10, 84 8 C 76 16, 72 24, 70 30"/><path d="M50 32 C 52 22, 60 14, 72 10"/></g>
-      <path d="M14 40 C 10 42, 6 44, 2 48 C 8 48, 12 46, 16 44"/>
-      <path d="M82 24 L 90 22 L 84 28"/>
-    </svg></div>
-    <div class="sdove sdove-r"><svg viewBox="0 0 100 60">
-      <path class="body-fill" d="M14 40 C 24 30, 40 26, 56 30 C 66 32, 74 30, 82 24 C 78 34, 70 42, 58 44 C 44 46, 28 46, 14 40 Z"/>
-      <g class="swing"><path d="M56 30 C 60 18, 70 10, 84 8 C 76 16, 72 24, 70 30"/><path d="M50 32 C 52 22, 60 14, 72 10"/></g>
-      <path d="M14 40 C 10 42, 6 44, 2 48 C 8 48, 12 46, 16 44"/>
-      <path d="M82 24 L 90 22 L 84 28"/>
-    </svg></div>
+    <div class="sdove sdove-l"><svg viewBox="0 0 100 60"><use href="#dove-shape"></use></svg></div>
+    <div class="sdove sdove-r"><svg viewBox="0 0 100 60"><use href="#dove-shape"></use></svg></div>
 
     <div class="dim" aria-hidden="true"></div>
 
     <!-- doves deliver the envelope -->
     <div class="stage">
       <div class="carrier" id="carrier">
-        <div class="cdove cdove-l"><svg viewBox="0 0 100 60">
-          <path class="body-fill" d="M14 40 C 24 30, 40 26, 56 30 C 66 32, 74 30, 82 24 C 78 34, 70 42, 58 44 C 44 46, 28 46, 14 40 Z"/>
-          <g class="swing"><path d="M56 30 C 60 18, 70 10, 84 8 C 76 16, 72 24, 70 30"/><path d="M50 32 C 52 22, 60 14, 72 10"/></g>
-          <path d="M14 40 C 10 42, 6 44, 2 48 C 8 48, 12 46, 16 44"/>
-          <path d="M82 24 L 90 22 L 84 28"/>
-        </svg></div>
-        <div class="cdove cdove-r"><svg viewBox="0 0 100 60">
-          <path class="body-fill" d="M14 40 C 24 30, 40 26, 56 30 C 66 32, 74 30, 82 24 C 78 34, 70 42, 58 44 C 44 46, 28 46, 14 40 Z"/>
-          <g class="swing"><path d="M56 30 C 60 18, 70 10, 84 8 C 76 16, 72 24, 70 30"/><path d="M50 32 C 52 22, 60 14, 72 10"/></g>
-          <path d="M14 40 C 10 42, 6 44, 2 48 C 8 48, 12 46, 16 44"/>
-          <path d="M82 24 L 90 22 L 84 28"/>
-        </svg></div>
+        <div class="cdove cdove-l"><svg viewBox="0 0 100 60"><use href="#dove-shape"></use></svg></div>
+        <div class="cdove cdove-r"><svg viewBox="0 0 100 60"><use href="#dove-shape"></use></svg></div>
         <span class="ribbon rl"></span>
         <span class="ribbon rr"></span>
 
@@ -748,18 +769,8 @@
         <rect x="0.5" y="0.5" width="99" height="99" stroke-width="1.4" pathLength="400"/>
         <rect class="inner" x="2.2" y="2.2" width="95.6" height="95.6" stroke-width="0.8" pathLength="400"/>
       </svg>
-      <svg class="floral fl-tl" viewBox="0 0 74 74" aria-hidden="true">
-        <path d="M6 68 C 14 46, 20 34, 40 22 C 50 16, 58 12, 68 10"/>
-        <path d="M22 46 C 28 40, 30 34, 30 26"/>
-        <path d="M34 34 C 42 32, 48 32, 54 36"/>
-        <circle class="bud" cx="30" cy="24" r="3.4"/><circle class="bud" cx="56" cy="37" r="2.8"/><circle class="bud" cx="68" cy="10" r="3.8"/>
-      </svg>
-      <svg class="floral fl-br" viewBox="0 0 74 74" aria-hidden="true">
-        <path d="M6 68 C 14 46, 20 34, 40 22 C 50 16, 58 12, 68 10"/>
-        <path d="M22 46 C 28 40, 30 34, 30 26"/>
-        <path d="M34 34 C 42 32, 48 32, 54 36"/>
-        <circle class="bud" cx="30" cy="24" r="3.4"/><circle class="bud" cx="56" cy="37" r="2.8"/><circle class="bud" cx="68" cy="10" r="3.8"/>
-      </svg>
+      <svg class="floral fl-tl" viewBox="0 0 74 74" aria-hidden="true"><use href="#floral-shape"></use></svg>
+      <svg class="floral fl-br" viewBox="0 0 74 74" aria-hidden="true"><use href="#floral-shape"></use></svg>
 
       <p class="pre st d1">Together with their families</p>
       <h1 class="names" aria-label="Saif and Rumaisah">
@@ -770,7 +781,7 @@
       <p class="invite-line st d4">request the pleasure of your company<br>at the celebration of their marriage</p>
       <div class="divider" aria-hidden="true">
         <span class="divider-line"></span>
-        <svg class="heart" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.35-9.5-9.27C.92 8.36 2.5 4 6.5 4 9 4 10.5 5.5 12 7.5 13.5 5.5 15 4 17.5 4c4 0 5.58 4.36 4 7.73C19 16.65 12 21 12 21z"/></svg>
+        <svg class="heart" viewBox="0 0 24 24" fill="currentColor"><use href="#heart-shape"></use></svg>
         <span class="divider-line"></span>
       </div>
       <p class="where st d5">United Kingdom</p>
@@ -791,27 +802,75 @@
 
   <section class="family-section" id="family" aria-label="Our family tree">
     <h2 class="eyebrow">our family tree</h2>
-    <div class="crown" aria-hidden="true">
-      <div class="avatar large t1">S</div>
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="#7d95b5" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 21s-7-4.35-9.5-9.27C.92 8.36 2.5 4 6.5 4 9 4 10.5 5.5 12 7.5 13.5 5.5 15 4 17.5 4c4 0 5.58 4.36 4 7.73C19 16.65 12 21 12 21z"/>
+
+    <div class="couple-node">
+      <div class="cn-person">
+        <div class="avatar large t1" aria-hidden="true">S</div>
+        <p class="cn-name">Saif</p>
+      </div>
+      <svg class="cn-heart" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <use href="#heart-shape"></use>
       </svg>
-      <div class="avatar large t3">R</div>
-    </div>
-    <div class="stub" aria-hidden="true"></div>
-    <div class="bar" aria-hidden="true"></div>
-    <div class="columns">
-      <div class="column">
-        <p class="side-label">Saif's side</p>
-        <div id="side-saif"><p class="status">gathering the family&hellip;</p></div>
-      </div>
-      <div class="column">
-        <p class="side-label">Rumaisah's side</p>
-        <div id="side-ruru"><p class="status">gathering the family&hellip;</p></div>
+      <div class="cn-person">
+        <div class="avatar large t2" aria-hidden="true">R</div>
+        <p class="cn-name">Rumaisah</p>
       </div>
     </div>
-    <p class="legend"><span class="kid-star" aria-hidden="true">&#10022;</span> the little ones &nbsp;&middot;&nbsp; each colour is one family</p>
-    <noscript><p class="status">This page needs JavaScript turned on to show the family tree.</p></noscript>
+
+    <svg class="flow-link" viewBox="0 0 120 56" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M60 2 C 60 20, 58 24, 40 32 C 22 40, 14 44, 6 54"/>
+      <path d="M60 2 C 60 20, 62 24, 80 32 C 98 40, 106 44, 114 54"/>
+    </svg>
+
+    <div class="sides">
+      <div class="side">
+        <h3 class="side-label">Saif's side</h3>
+        <div class="parents-row">
+          <div class="p-node"><div class="avatar med t1" aria-hidden="true">K</div><p class="node-name">Kashif</p></div>
+          <div class="p-node"><div class="avatar med t1" aria-hidden="true">S</div><p class="node-name">Sheine</p></div>
+        </div>
+        <div class="stem" aria-hidden="true"></div>
+        <p class="grp-cap">brothers &amp; sisters</p>
+        <div class="kids-row">
+          <div class="k-node"><div class="avatar small t1" aria-hidden="true">S</div><p class="node-name">Saif<span class="tag">groom</span></p></div>
+          <div class="k-node"><div class="avatar small t1" aria-hidden="true">A</div><p class="node-name">Armani</p></div>
+          <div class="k-node"><div class="avatar small t1" aria-hidden="true">H</div><p class="node-name">Haris</p></div>
+          <div class="k-node"><div class="avatar small t1" aria-hidden="true">S</div><p class="node-name">Syed</p></div>
+          <div class="k-node"><div class="avatar small t1" aria-hidden="true">A</div><p class="node-name">Amara</p></div>
+          <div class="k-node"><div class="avatar small t1" aria-hidden="true">A</div><p class="node-name">Arisha</p></div>
+          <div class="k-node"><div class="avatar small t1" aria-hidden="true">K</div><p class="node-name">Kinza<span class="kid-star" aria-hidden="true">&#10022;</span></p></div>
+        </div>
+      </div>
+
+      <div class="side">
+        <h3 class="side-label">Rumaisah's side</h3>
+        <div class="parents-row">
+          <div class="p-node"><div class="avatar med t2" aria-hidden="true">M</div><p class="node-name">Mum</p></div>
+          <div class="p-node"><div class="avatar med t2" aria-hidden="true">D</div><p class="node-name">Dad</p></div>
+        </div>
+        <div class="stem" aria-hidden="true"></div>
+        <p class="grp-cap">sisters</p>
+        <div class="kids-row">
+          <div class="k-node"><div class="avatar small t2" aria-hidden="true">R</div><p class="node-name">Rumaisah<span class="tag">bride</span></p></div>
+          <div class="k-node"><div class="avatar small t2" aria-hidden="true">U</div><p class="node-name">Umme</p></div>
+          <div class="k-node"><div class="avatar small t2" aria-hidden="true">T</div><p class="node-name">Tayyibah</p></div>
+        </div>
+
+        <div class="nested">
+          <div class="stem sm" aria-hidden="true"></div>
+          <p class="grp-cap sm">Tayyibah &amp; Amjid</p>
+          <div class="kids-row">
+            <div class="k-node"><div class="avatar small t2" aria-hidden="true">A</div><p class="node-name">Amjid</p></div>
+            <div class="k-node"><div class="avatar small t2" aria-hidden="true">Z</div><p class="node-name">Zaina<span class="kid-star" aria-hidden="true">&#10022;</span></p></div>
+            <div class="k-node"><div class="avatar small t2" aria-hidden="true">E</div><p class="node-name">Esa<span class="kid-star" aria-hidden="true">&#10022;</span></p></div>
+            <div class="k-node"><div class="avatar small t2" aria-hidden="true">K</div><p class="node-name">Keyaan<span class="kid-star" aria-hidden="true">&#10022;</span></p></div>
+            <div class="k-node"><div class="avatar small t2" aria-hidden="true">R</div><p class="node-name">Raess<span class="kid-star" aria-hidden="true">&#10022;</span></p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="legend"><span class="kid-star" aria-hidden="true">&#10022;</span> the little ones &nbsp;&middot;&nbsp; navy for Saif's side, gold for Rumaisah's</p>
   </section>
 
   <p class="footer">more details coming soon</p>
@@ -829,15 +888,19 @@
       var seen = false;
       try { seen = sessionStorage.getItem("introSeen") === "1"; } catch (e) {}
       if (seen || location.hash === "#family") {
-        root.className += " no-intro";
+        root.classList.add("no-intro");
         return;
       }
-      try { sessionStorage.setItem("introSeen", "1"); } catch (e) {}
+      function markIntroSeen() {
+        try { sessionStorage.setItem("introSeen", "1"); } catch (e) {}
+      }
       document.getElementById("seal").addEventListener("click", function () {
-        root.className += " opened";
+        root.classList.add("opened");
+        markIntroSeen();
       });
       document.getElementById("skip").addEventListener("click", function () {
-        root.className += " no-intro";
+        root.classList.add("no-intro");
+        markIntroSeen();
       });
     })();
   </script>
@@ -859,20 +922,6 @@
         seconds: document.getElementById("cd-secs")
       }
     });
-  </script>
-  <script src="js/family-data.js"></script>
-  <script src="js/family-render.js"></script>
-  <script>
-    FamilyRender.run(FamilyData, [
-      {
-        targetId: "side-saif",
-        url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSp2ImfP3YBdxg8O9B8rLuq_SQmnIPZ9g4oV2gXLaPFFIWSvXug0uj5s_UMxyC5B0SfjqV8RoF8jaBi/pub?gid=1635470567&single=true&output=csv"
-      },
-      {
-        targetId: "side-ruru",
-        url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSp2ImfP3YBdxg8O9B8rLuq_SQmnIPZ9g4oV2gXLaPFFIWSvXug0uj5s_UMxyC5B0SfjqV8RoF8jaBi/pub?gid=574900917&single=true&output=csv"
-      }
-    ]);
   </script>
 </body>
 </html>
