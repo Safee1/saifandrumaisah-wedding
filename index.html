@@ -23,6 +23,8 @@
     --sky1: #fbf8f1;
     --sky2: #e9edf3;
     --sky3: #d9e2ee;
+    --side: #40587a;
+    --line: rgba(125,149,181,0.55);
   }
   html, body { margin: 0; padding: 0; }
   body {
@@ -167,8 +169,8 @@
   }
   @keyframes flap { from { transform: rotate(16deg); } to { transform: rotate(-24deg); } }
 
-  .sdove-l { left: 6%; bottom: 26vh; animation: riseL 3s cubic-bezier(.4,.05,.3,1) 5.2s both; }
-  .sdove-r { right: 6%; bottom: 26vh; transform: scaleX(-1); animation: riseR 3s cubic-bezier(.4,.05,.3,1) 5.2s both; }
+  .sdove-l { left: 6%; bottom: 26vh; }
+  .sdove-r { right: 6%; bottom: 26vh; transform: scaleX(-1); }
   .sdove-l .swing, .sdove-r .swing { animation-delay: 5.2s; }
   @keyframes riseL {
     0%   { opacity: 0; transform: translate(0, 6vh) rotate(6deg) scale(0.9); }
@@ -184,7 +186,6 @@
   }
   /* they hold a beat at the top, then hand over to the carrier */
   .sdove { animation-fill-mode: both; }
-  .sdove.fade { animation: none; }
   .sdove-l, .sdove-r { animation-name: riseL, sdFade; animation-duration: 3s, 0.6s; animation-delay: 5.2s, 8.6s; animation-timing-function: cubic-bezier(.4,.05,.3,1), ease; animation-fill-mode: both, forwards; }
   .sdove-r { animation-name: riseR, sdFade; }
   @keyframes sdFade { to { opacity: 0; } }
@@ -225,7 +226,7 @@
   .ribbon.rl { left: 22%; transform: rotate(18deg); }
   .ribbon.rr { right: 22%; transform: rotate(-18deg); }
   /* doves let go once landed */
-  .opened .cdove, .carrier.landed .cdove { animation: letgo 1.2s ease forwards; }
+  .opened .cdove { animation: letgo 1.2s ease forwards; }
   .cdove-l { --lg-x: -60vw; }
   .cdove-r { --lg-x: 60vw; }
   @keyframes letgo {
@@ -572,7 +573,6 @@
      Family tree — static, mobile-first
      two families flowing into the couple at the centre
      ============================================================ */
-  :root { --side: #40587a; --line: rgba(125,149,181,0.55); }
   .family-section { padding: 4.5rem 1.25rem 1rem; scroll-margin-top: 0.5rem; }
   .eyebrow { font-size: 0.75rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--muted); margin: 0 0 2.2rem; font-weight: 500; }
 
@@ -636,6 +636,25 @@
 </head>
 <body>
 
+  <!-- shared SVG shapes, referenced below via <use> -->
+  <svg aria-hidden="true" style="position:absolute; width:0; height:0; overflow:hidden">
+    <defs>
+      <g id="dove-shape">
+        <path class="body-fill" d="M14 40 C 24 30, 40 26, 56 30 C 66 32, 74 30, 82 24 C 78 34, 70 42, 58 44 C 44 46, 28 46, 14 40 Z"/>
+        <g class="swing"><path d="M56 30 C 60 18, 70 10, 84 8 C 76 16, 72 24, 70 30"/><path d="M50 32 C 52 22, 60 14, 72 10"/></g>
+        <path d="M14 40 C 10 42, 6 44, 2 48 C 8 48, 12 46, 16 44"/>
+        <path d="M82 24 L 90 22 L 84 28"/>
+      </g>
+      <g id="floral-shape">
+        <path d="M6 68 C 14 46, 20 34, 40 22 C 50 16, 58 12, 68 10"/>
+        <path d="M22 46 C 28 40, 30 34, 30 26"/>
+        <path d="M34 34 C 42 32, 48 32, 54 36"/>
+        <circle class="bud" cx="30" cy="24" r="3.4"/><circle class="bud" cx="56" cy="37" r="2.8"/><circle class="bud" cx="68" cy="10" r="3.8"/>
+      </g>
+      <path id="heart-shape" d="M12 21s-7-4.35-9.5-9.27C.92 8.36 2.5 4 6.5 4 9 4 10.5 5.5 12 7.5 13.5 5.5 15 4 17.5 4c4 0 5.58 4.36 4 7.73C19 16.65 12 21 12 21z"/>
+    </defs>
+  </svg>
+
   <!-- ============ THE STORY ============ -->
   <div class="story" id="story" aria-hidden="true">
     <div class="sun"></div>
@@ -689,40 +708,20 @@
     </svg></div></div>
 
     <svg class="meet-heart" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M12 21s-7-4.35-9.5-9.27C.92 8.36 2.5 4 6.5 4 9 4 10.5 5.5 12 7.5 13.5 5.5 15 4 17.5 4c4 0 5.58 4.36 4 7.73C19 16.65 12 21 12 21z"/>
+      <use href="#heart-shape"></use>
     </svg>
 
     <!-- watching doves take off -->
-    <div class="sdove sdove-l"><svg viewBox="0 0 100 60">
-      <path class="body-fill" d="M14 40 C 24 30, 40 26, 56 30 C 66 32, 74 30, 82 24 C 78 34, 70 42, 58 44 C 44 46, 28 46, 14 40 Z"/>
-      <g class="swing"><path d="M56 30 C 60 18, 70 10, 84 8 C 76 16, 72 24, 70 30"/><path d="M50 32 C 52 22, 60 14, 72 10"/></g>
-      <path d="M14 40 C 10 42, 6 44, 2 48 C 8 48, 12 46, 16 44"/>
-      <path d="M82 24 L 90 22 L 84 28"/>
-    </svg></div>
-    <div class="sdove sdove-r"><svg viewBox="0 0 100 60">
-      <path class="body-fill" d="M14 40 C 24 30, 40 26, 56 30 C 66 32, 74 30, 82 24 C 78 34, 70 42, 58 44 C 44 46, 28 46, 14 40 Z"/>
-      <g class="swing"><path d="M56 30 C 60 18, 70 10, 84 8 C 76 16, 72 24, 70 30"/><path d="M50 32 C 52 22, 60 14, 72 10"/></g>
-      <path d="M14 40 C 10 42, 6 44, 2 48 C 8 48, 12 46, 16 44"/>
-      <path d="M82 24 L 90 22 L 84 28"/>
-    </svg></div>
+    <div class="sdove sdove-l"><svg viewBox="0 0 100 60"><use href="#dove-shape"></use></svg></div>
+    <div class="sdove sdove-r"><svg viewBox="0 0 100 60"><use href="#dove-shape"></use></svg></div>
 
     <div class="dim" aria-hidden="true"></div>
 
     <!-- doves deliver the envelope -->
     <div class="stage">
       <div class="carrier" id="carrier">
-        <div class="cdove cdove-l"><svg viewBox="0 0 100 60">
-          <path class="body-fill" d="M14 40 C 24 30, 40 26, 56 30 C 66 32, 74 30, 82 24 C 78 34, 70 42, 58 44 C 44 46, 28 46, 14 40 Z"/>
-          <g class="swing"><path d="M56 30 C 60 18, 70 10, 84 8 C 76 16, 72 24, 70 30"/><path d="M50 32 C 52 22, 60 14, 72 10"/></g>
-          <path d="M14 40 C 10 42, 6 44, 2 48 C 8 48, 12 46, 16 44"/>
-          <path d="M82 24 L 90 22 L 84 28"/>
-        </svg></div>
-        <div class="cdove cdove-r"><svg viewBox="0 0 100 60">
-          <path class="body-fill" d="M14 40 C 24 30, 40 26, 56 30 C 66 32, 74 30, 82 24 C 78 34, 70 42, 58 44 C 44 46, 28 46, 14 40 Z"/>
-          <g class="swing"><path d="M56 30 C 60 18, 70 10, 84 8 C 76 16, 72 24, 70 30"/><path d="M50 32 C 52 22, 60 14, 72 10"/></g>
-          <path d="M14 40 C 10 42, 6 44, 2 48 C 8 48, 12 46, 16 44"/>
-          <path d="M82 24 L 90 22 L 84 28"/>
-        </svg></div>
+        <div class="cdove cdove-l"><svg viewBox="0 0 100 60"><use href="#dove-shape"></use></svg></div>
+        <div class="cdove cdove-r"><svg viewBox="0 0 100 60"><use href="#dove-shape"></use></svg></div>
         <span class="ribbon rl"></span>
         <span class="ribbon rr"></span>
 
@@ -770,18 +769,8 @@
         <rect x="0.5" y="0.5" width="99" height="99" stroke-width="1.4" pathLength="400"/>
         <rect class="inner" x="2.2" y="2.2" width="95.6" height="95.6" stroke-width="0.8" pathLength="400"/>
       </svg>
-      <svg class="floral fl-tl" viewBox="0 0 74 74" aria-hidden="true">
-        <path d="M6 68 C 14 46, 20 34, 40 22 C 50 16, 58 12, 68 10"/>
-        <path d="M22 46 C 28 40, 30 34, 30 26"/>
-        <path d="M34 34 C 42 32, 48 32, 54 36"/>
-        <circle class="bud" cx="30" cy="24" r="3.4"/><circle class="bud" cx="56" cy="37" r="2.8"/><circle class="bud" cx="68" cy="10" r="3.8"/>
-      </svg>
-      <svg class="floral fl-br" viewBox="0 0 74 74" aria-hidden="true">
-        <path d="M6 68 C 14 46, 20 34, 40 22 C 50 16, 58 12, 68 10"/>
-        <path d="M22 46 C 28 40, 30 34, 30 26"/>
-        <path d="M34 34 C 42 32, 48 32, 54 36"/>
-        <circle class="bud" cx="30" cy="24" r="3.4"/><circle class="bud" cx="56" cy="37" r="2.8"/><circle class="bud" cx="68" cy="10" r="3.8"/>
-      </svg>
+      <svg class="floral fl-tl" viewBox="0 0 74 74" aria-hidden="true"><use href="#floral-shape"></use></svg>
+      <svg class="floral fl-br" viewBox="0 0 74 74" aria-hidden="true"><use href="#floral-shape"></use></svg>
 
       <p class="pre st d1">Together with their families</p>
       <h1 class="names" aria-label="Saif and Rumaisah">
@@ -792,7 +781,7 @@
       <p class="invite-line st d4">request the pleasure of your company<br>at the celebration of their marriage</p>
       <div class="divider" aria-hidden="true">
         <span class="divider-line"></span>
-        <svg class="heart" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.35-9.5-9.27C.92 8.36 2.5 4 6.5 4 9 4 10.5 5.5 12 7.5 13.5 5.5 15 4 17.5 4c4 0 5.58 4.36 4 7.73C19 16.65 12 21 12 21z"/></svg>
+        <svg class="heart" viewBox="0 0 24 24" fill="currentColor"><use href="#heart-shape"></use></svg>
         <span class="divider-line"></span>
       </div>
       <p class="where st d5">United Kingdom</p>
@@ -820,7 +809,7 @@
         <p class="cn-name">Saif</p>
       </div>
       <svg class="cn-heart" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M12 21s-7-4.35-9.5-9.27C.92 8.36 2.5 4 6.5 4 9 4 10.5 5.5 12 7.5 13.5 5.5 15 4 17.5 4c4 0 5.58 4.36 4 7.73C19 16.65 12 21 12 21z"/>
+        <use href="#heart-shape"></use>
       </svg>
       <div class="cn-person">
         <div class="avatar large t2" aria-hidden="true">R</div>
@@ -899,15 +888,19 @@
       var seen = false;
       try { seen = sessionStorage.getItem("introSeen") === "1"; } catch (e) {}
       if (seen || location.hash === "#family") {
-        root.className += " no-intro";
+        root.classList.add("no-intro");
         return;
       }
-      try { sessionStorage.setItem("introSeen", "1"); } catch (e) {}
+      function markIntroSeen() {
+        try { sessionStorage.setItem("introSeen", "1"); } catch (e) {}
+      }
       document.getElementById("seal").addEventListener("click", function () {
-        root.className += " opened";
+        root.classList.add("opened");
+        markIntroSeen();
       });
       document.getElementById("skip").addEventListener("click", function () {
-        root.className += " no-intro";
+        root.classList.add("no-intro");
+        markIntroSeen();
       });
     })();
   </script>
