@@ -155,6 +155,9 @@
       name.appendChild(t);
     }
     node.appendChild(name);
+    if (opts.caption) {
+      node.appendChild(makeEl("p", "tn-caption", opts.caption));
+    }
     node.dataset.personId = person.id;
     return node;
   }
@@ -292,36 +295,6 @@
         path.setAttribute("d", "M " + startX + " " + startY + " C " + startX + " " + midY + ", " + endX + " " + midY + ", " + endX + " " + endY);
         path.setAttribute("class", "tn-link");
         svg.appendChild(path);
-      });
-
-      // cross-family marriages (e.g. the couple themselves) get a dedicated
-      // link spanning the two columns, drawn distinct from parent-child curves
-      var seen = {};
-      data.people.forEach(function (a) {
-        var spouseId = fullGraph.spouseOf[a.id];
-        if (!spouseId || !householdEls[spouseId]) { return; }
-        var b = fullGraph.byId[spouseId];
-        if (a.side === b.side) { return; }
-        var key = [a.id, spouseId].sort().join("|");
-        if (seen[key]) { return; }
-        seen[key] = true;
-        var ra = rectOf(a.id), rb = rectOf(spouseId);
-        if (!ra || !rb) { return; }
-        var leftPt = ra.cx <= rb.cx ? ra : rb;
-        var rightPt = ra.cx <= rb.cx ? rb : ra;
-        var startX = leftPt.right, startY = (leftPt.top + leftPt.bottom) / 2;
-        var endX = rightPt.left, endY = (rightPt.top + rightPt.bottom) / 2;
-        var midX = (startX + endX) / 2;
-        var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("d", "M " + startX + " " + startY + " C " + midX + " " + startY + ", " + midX + " " + endY + ", " + endX + " " + endY);
-        path.setAttribute("class", "tn-link tn-link-marriage");
-        svg.appendChild(path);
-
-        var heartUse = document.createElementNS("http://www.w3.org/2000/svg", "use");
-        heartUse.setAttribute("href", "#heart-shape");
-        heartUse.setAttribute("class", "tn-marriage-heart");
-        heartUse.setAttribute("transform", "translate(" + (midX - 7) + " " + ((startY + endY) / 2 - 7) + ") scale(0.6)");
-        svg.appendChild(heartUse);
       });
     }
 
