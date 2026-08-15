@@ -22,10 +22,13 @@
       });
   }
 
+  // Pending rows aren't visible under the public SELECT policy, so an
+  // INSERT ... RETURNING (Prefer: return=representation) would itself get
+  // rejected by RLS. We generate the id client-side and skip RETURNING.
   function restInsert(table, row) {
     return fetch(SUPABASE_URL + "/rest/v1/" + table, {
       method: "POST",
-      headers: restHeaders({ "Prefer": "return=representation" }),
+      headers: restHeaders({ "Prefer": "return=minimal" }),
       body: JSON.stringify(row)
     }).then(function (r) {
       if (!r.ok) {
@@ -34,7 +37,7 @@
           throw new Error(msg);
         });
       }
-      return r.json();
+      return row;
     });
   }
 
@@ -50,7 +53,8 @@
           throw new Error(msg);
         });
       }
-      return r.json();
+      // void-returning functions (the approve/reject RPCs) send an empty body
+      return r.text().then(function (text) { return text ? JSON.parse(text) : null; });
     });
   }
 
@@ -63,22 +67,34 @@
     });
   }
 
+  function newId() {
+    if (root.crypto && root.crypto.randomUUID) { return root.crypto.randomUUID(); }
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+      var r = (Math.random() * 16) | 0, v = c === "x" ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  }
+
   function submitPerson(row) {
     // status is forced server-side by RLS regardless of what we send
+    var id = newId();
     return restInsert("people", {
+      id: id,
       name: row.name,
       side: row.side,
       is_kid: !!row.is_kid,
       submitted_note: row.note || null
-    }).then(function (rows) { return rows[0]; });
+    }).then(function () { return { id: id }; });
   }
 
   function submitRelationship(row) {
+    var id = newId();
     return restInsert("relationships", {
+      id: id,
       from_person: row.from_person,
       to_person: row.to_person,
       type: row.type
-    }).then(function (rows) { return rows[0]; });
+    }).then(function () { return { id: id }; });
   }
 
   root.TreeData = {
