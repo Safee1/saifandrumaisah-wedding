@@ -1,7 +1,17 @@
 (function (root) {
   "use strict";
 
+  // ---------------------------------------------------------------
+  // Renders the live database (people / relationships) into the
+  // approved static layout: a couple "crown" at the top, flowing
+  // down into two side-by-side family columns. No per-person SVG
+  // connectors — just stems, captions and nested cards, exactly
+  // like the approved design (see git show 7a42606:index.html).
+  // ---------------------------------------------------------------
+
   var TINTS = { saif: "t1", rumaisah: "t2" };
+  var SIDE_LABELS = { saif: "Saif's side", rumaisah: "Rumaisah's side" };
+  var SIDE_TAGS = { saif: "groom", rumaisah: "bride" };
 
   function makeEl(tag, className, text) {
     var el = document.createElement(tag);
@@ -42,129 +52,30 @@
     return { byId: byId, parentsOf: parentsOf, childrenOf: childrenOf, spouseOf: spouseOf };
   }
 
-  function assignGenerations(people, graph) {
-    var gen = {};
-    people.forEach(function (p) { gen[p.id] = 0; });
-
-    var changed = true;
-    var guard = 0;
-    var maxGuard = people.length * 4 + 10;
-    while (changed && guard < maxGuard) {
-      changed = false;
-      guard += 1;
-      people.forEach(function (p) {
-        graph.childrenOf[p.id].forEach(function (childId) {
-          if (graph.byId[childId] && gen[childId] < gen[p.id] + 1) {
-            gen[childId] = gen[p.id] + 1;
-            changed = true;
-          }
-        });
-        var spouseId = graph.spouseOf[p.id];
-        if (spouseId != null && graph.byId[spouseId] && gen[spouseId] !== gen[p.id]) {
-          var shared = Math.max(gen[spouseId], gen[p.id]);
-          if (gen[spouseId] !== shared) { gen[spouseId] = shared; changed = true; }
-          if (gen[p.id] !== shared) { gen[p.id] = shared; changed = true; }
-        }
-      });
-    }
-    return gen;
-  }
-
-  // Keeps each family branch visually clustered together within a generation
-  // row (rather than interleaved alphabetically), so a wide row wraps at a
-  // family boundary instead of splitting siblings apart.
-  function computeClusterKeys(people, graph) {
-    var key = {};
-    var visiting = {};
-
-    function keyFor(id) {
-      if (key[id] != null) { return key[id]; }
-      if (visiting[id]) { return graph.byId[id].name; }
-      visiting[id] = true;
-      var parents = graph.parentsOf[id].filter(function (pid) { return graph.byId[pid]; });
-      var result;
-      if (!parents.length) {
-        var spouseId = graph.spouseOf[id];
-        var names = [graph.byId[id].name];
-        if (spouseId && graph.byId[spouseId]) { names.push(graph.byId[spouseId].name); }
-        result = names.sort()[0];
-      } else {
-        var parentKeys = parents.map(keyFor).sort();
-        result = parentKeys[0];
-      }
-      visiting[id] = false;
-      key[id] = result;
-      return result;
-    }
-
-    people.forEach(function (p) { keyFor(p.id); });
-    return key;
-  }
-
-  function groupIntoHouseholds(people, gen, graph) {
-    var clusterKey = computeClusterKeys(people, graph);
-    var byGen = {};
-    people.forEach(function (p) {
-      var g = gen[p.id];
-      if (!byGen[g]) { byGen[g] = []; }
-      byGen[g].push(p);
+  // The crown couple is the one married pair that bridges both sides —
+  // they get the large avatars up top, and (per the approved design)
+  // ALSO appear as ordinary small avatars in their own side's sibling row.
+  function findCrownCouple(relationships, byId) {
+    var found = null;
+    relationships.some(function (r) {
+      if (r.type !== "spouse_of") { return false; }
+      var a = byId[r.from_person], b = byId[r.to_person];
+      if (!a || !b || a.side === b.side) { return false; }
+      found = a.side === "saif" ? { a: a, b: b } : { a: b, b: a };
+      return true;
     });
-
-    var placed = {};
-    var householdsByGen = {};
-
-    Object.keys(byGen).forEach(function (g) {
-      var rowPeople = byGen[g].slice().sort(function (a, b) {
-        var ck = clusterKey[a.id].localeCompare(clusterKey[b.id]);
-        return ck !== 0 ? ck : a.name.localeCompare(b.name);
-      });
-      var households = [];
-      rowPeople.forEach(function (p) {
-        if (placed[p.id]) { return; }
-        var spouseId = graph.spouseOf[p.id];
-        var spouse = spouseId && graph.byId[spouseId] && gen[spouseId] === gen[p.id] ? graph.byId[spouseId] : null;
-        placed[p.id] = true;
-        var members = [p];
-        if (spouse && !placed[spouse.id]) {
-          placed[spouse.id] = true;
-          members.push(spouse);
-        }
-        households.push({ members: members });
-      });
-      householdsByGen[g] = households;
-    });
-
-    return householdsByGen;
+    return found;
   }
 
-  function personNode(person, opts) {
-    opts = opts || {};
-    var node = makeEl("div", "tn-person" + (opts.hero ? " tn-hero" : ""));
-    var size = opts.hero ? "large" : (person.is_kid ? "small" : "med");
-    var avatar = makeEl("div", "avatar " + size + " " + TINTS[person.side], initialsFor(person.name));
+  function avatarNode(person, sizeClass) {
+    var avatar = makeEl("div", "avatar " + sizeClass + " " + (TINTS[person.side] || "t1"), initialsFor(person.name));
     avatar.setAttribute("aria-hidden", "true");
-    node.appendChild(avatar);
-    var name = makeEl("p", opts.hero ? "tn-name tn-name-hero" : "tn-name", person.name);
-    if (person.is_kid) {
-      var star = makeEl("span", "kid-star", "✦");
-      star.setAttribute("aria-hidden", "true");
-      name.appendChild(star);
-    }
-    if (opts.tag) {
-      var t = makeEl("span", "tag", opts.tag);
-      name.appendChild(t);
-    }
-    node.appendChild(name);
-    if (opts.caption) {
-      node.appendChild(makeEl("p", "tn-caption", opts.caption));
-    }
-    node.dataset.personId = person.id;
-    return node;
+    return avatar;
   }
 
-  function heartIcon(sizeClass) {
+  function heartIcon(className) {
     var heart = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    heart.setAttribute("class", "tn-heart" + (sizeClass ? " " + sizeClass : ""));
+    heart.setAttribute("class", className);
     heart.setAttribute("viewBox", "0 0 24 24");
     heart.setAttribute("fill", "currentColor");
     heart.setAttribute("aria-hidden", "true");
@@ -174,42 +85,171 @@
     return heart;
   }
 
-  function renderColumn(colEl, sidePeople, sideRelationships, personOpts, householdEls) {
-    var graph = buildGraph(sidePeople, sideRelationships);
-    var gen = assignGenerations(sidePeople, graph);
-    var householdsByGen = groupIntoHouseholds(sidePeople, gen, graph);
-    var gens = Object.keys(householdsByGen).map(Number).sort(function (a, b) { return a - b; });
-
-    var rowsWrap = makeEl("div", "tn-rows");
-    colEl.appendChild(rowsWrap);
-
-    gens.forEach(function (g) {
-      var row = makeEl("div", "tn-row");
-      householdsByGen[g].forEach(function (household) {
-        var isHero = household.members.some(function (p) {
-          return personOpts && personOpts[p.id] && personOpts[p.id].hero;
-        });
-        var hh = makeEl("div", "tn-household" + (isHero ? " tn-household-hero" : ""));
-        household.members.forEach(function (person) {
-          var opts = (personOpts && personOpts[person.id]) || {};
-          var node = personNode(person, opts);
-          hh.appendChild(node);
-          householdEls[person.id] = hh;
-        });
-        if (household.members.length === 2) {
-          var heartWrap = makeEl("span", "tn-heart-wrap");
-          heartWrap.appendChild(heartIcon());
-          hh.insertBefore(heartWrap, hh.children[1]);
-        }
-        row.appendChild(hh);
-      });
-      rowsWrap.appendChild(row);
-    });
-
-    return { graph: graph, people: sidePeople };
+  function buildCoupleNode(a, b) {
+    var wrap = makeEl("div", "couple-node");
+    var pa = makeEl("div", "cn-person");
+    pa.appendChild(avatarNode(a, "large"));
+    pa.appendChild(makeEl("p", "cn-name", a.name));
+    var pb = makeEl("div", "cn-person");
+    pb.appendChild(avatarNode(b, "large"));
+    pb.appendChild(makeEl("p", "cn-name", b.name));
+    wrap.appendChild(pa);
+    wrap.appendChild(heartIcon("cn-heart"));
+    wrap.appendChild(pb);
+    return wrap;
   }
 
-  function render(container, data, personOpts) {
+  function buildFlowLink() {
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "flow-link");
+    svg.setAttribute("viewBox", "0 0 120 56");
+    svg.setAttribute("preserveAspectRatio", "none");
+    svg.setAttribute("aria-hidden", "true");
+    [
+      "M60 2 C 60 20, 58 24, 40 32 C 22 40, 14 44, 6 54",
+      "M60 2 C 60 20, 62 24, 80 32 C 98 40, 106 44, 114 54"
+    ].forEach(function (d) {
+      var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", d);
+      svg.appendChild(path);
+    });
+    return svg;
+  }
+
+  function buildPNode(person) {
+    var node = makeEl("div", "p-node");
+    node.appendChild(avatarNode(person, "med"));
+    node.appendChild(makeEl("p", "node-name", person.name));
+    return node;
+  }
+
+  function buildKNode(person, crown) {
+    var node = makeEl("div", "k-node");
+    node.appendChild(avatarNode(person, "small"));
+    var name = makeEl("p", "node-name", person.name);
+    if (person.is_kid) {
+      var star = makeEl("span", "kid-star", "✦");
+      star.setAttribute("aria-hidden", "true");
+      name.appendChild(star);
+    }
+    if (crown && (person.id === crown.a.id || person.id === crown.b.id)) {
+      name.appendChild(makeEl("span", "tag", SIDE_TAGS[person.side] || ""));
+    }
+    node.appendChild(name);
+    return node;
+  }
+
+  function stemEl(sizeClass) {
+    var stem = makeEl("div", sizeClass ? "stem " + sizeClass : "stem");
+    stem.setAttribute("aria-hidden", "true");
+    return stem;
+  }
+
+  // Renders one side (a family column): every gen-0 household (parents
+  // with no parents of their own recorded) gets a parents-row + stem +
+  // caption + kids-row. A kid who has married in (same-side spouse)
+  // and/or has children of their own gets a nested cream card below the
+  // row, recursing for any further generations under them.
+  function renderSide(sideEl, sidePeople, graph, crown, captionText) {
+    var sideIds = {};
+    sidePeople.forEach(function (p) { sideIds[p.id] = true; });
+
+    function parentsOnSide(id) { return graph.parentsOf[id].filter(function (pid) { return sideIds[pid]; }); }
+    function childrenOnSide(id) { return graph.childrenOf[id].filter(function (cid) { return sideIds[cid]; }); }
+    function spouseOnSide(id) { var s = graph.spouseOf[id]; return (s != null && sideIds[s]) ? s : null; }
+    function hasAnyRelationship(id) {
+      return graph.parentsOf[id].length > 0 || graph.childrenOf[id].length > 0 || graph.spouseOf[id] != null;
+    }
+
+    // A root is a person with no recorded parents on this side, who isn't
+    // simply the married-in spouse of someone who does have parents here
+    // (that person belongs in a nested card under their spouse instead).
+    function isRoot(id) {
+      if (parentsOnSide(id).length) { return false; }
+      var s = spouseOnSide(id);
+      if (s && parentsOnSide(s).length) { return false; }
+      return true;
+    }
+
+    function appendNested(parentEl, personId, depth) {
+      if (depth > 6) { return; } // guard against unexpected cycles in the data
+      var spouseId = spouseOnSide(personId);
+      var kidIds = childrenOnSide(personId).slice();
+      if (spouseId) {
+        childrenOnSide(spouseId).forEach(function (cid) {
+          if (kidIds.indexOf(cid) === -1) { kidIds.push(cid); }
+        });
+      }
+      if (!spouseId && !kidIds.length) { return; }
+
+      var person = graph.byId[personId];
+      var nested = makeEl("div", "nested");
+      nested.appendChild(stemEl("sm"));
+      var capText = person.name + (spouseId ? " & " + graph.byId[spouseId].name : "");
+      nested.appendChild(makeEl("p", "grp-cap sm", capText));
+      var kidsRow = makeEl("div", "kids-row");
+      if (spouseId) { kidsRow.appendChild(buildKNode(graph.byId[spouseId], crown)); }
+      kidIds.forEach(function (cid) { kidsRow.appendChild(buildKNode(graph.byId[cid], crown)); });
+      nested.appendChild(kidsRow);
+      parentEl.appendChild(nested);
+
+      kidIds.forEach(function (cid) { appendNested(nested, cid, depth + 1); });
+    }
+
+    var loners = sidePeople.filter(function (p) { return !hasAnyRelationship(p.id); });
+    var rootPeople = sidePeople.filter(function (p) { return hasAnyRelationship(p.id) && isRoot(p.id); });
+
+    var placed = {};
+    var rootHouseholds = [];
+    rootPeople.forEach(function (p) {
+      if (placed[p.id]) { return; }
+      placed[p.id] = true;
+      var members = [p];
+      var s = spouseOnSide(p.id);
+      if (s && !placed[s] && isRoot(s)) {
+        placed[s] = true;
+        members.push(graph.byId[s]);
+      }
+      rootHouseholds.push(members);
+    });
+
+    rootHouseholds.forEach(function (members, i) {
+      var parentsRow = makeEl("div", "parents-row");
+      if (i > 0) { parentsRow.style.marginTop = "2rem"; }
+      members.forEach(function (m) { parentsRow.appendChild(buildPNode(m)); });
+      sideEl.appendChild(parentsRow);
+      sideEl.appendChild(stemEl());
+      if (captionText) { sideEl.appendChild(makeEl("p", "grp-cap", captionText)); }
+
+      var childIds = [];
+      var seenChild = {};
+      members.forEach(function (m) {
+        childrenOnSide(m.id).forEach(function (cid) {
+          if (!seenChild[cid]) { seenChild[cid] = true; childIds.push(cid); }
+        });
+      });
+
+      var kidsRow = makeEl("div", "kids-row");
+      childIds.forEach(function (cid) { kidsRow.appendChild(buildKNode(graph.byId[cid], crown)); });
+      sideEl.appendChild(kidsRow);
+
+      childIds.forEach(function (cid) { appendNested(sideEl, cid, 1); });
+    });
+
+    if (loners.length) {
+      var stem = stemEl();
+      if (rootHouseholds.length) { stem.style.marginTop = "2rem"; }
+      sideEl.appendChild(stem);
+      sideEl.appendChild(makeEl("p", "grp-cap", "family & friends"));
+      var lonersRow = makeEl("div", "kids-row");
+      loners.forEach(function (p) { lonersRow.appendChild(buildKNode(p, crown)); });
+      sideEl.appendChild(lonersRow);
+    }
+  }
+
+  function render(container, data, options) {
+    options = options || {};
+    var captions = options.captions || {};
     container.textContent = "";
 
     if (!data.people.length) {
@@ -217,99 +257,25 @@
       return;
     }
 
-    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("class", "tn-links");
-    svg.setAttribute("aria-hidden", "true");
-    container.appendChild(svg);
+    var graph = buildGraph(data.people, data.relationships);
+    var crown = findCrownCouple(data.relationships, graph.byId);
 
-    var cols = makeEl("div", "tn-cols");
-    container.appendChild(cols);
-
-    var saifPeople = data.people.filter(function (p) { return p.side === "saif"; });
-    var rumaisahPeople = data.people.filter(function (p) { return p.side === "rumaisah"; });
-
-    function sameSideRels(people) {
-      var ids = {};
-      people.forEach(function (p) { ids[p.id] = true; });
-      return data.relationships.filter(function (r) { return ids[r.from_person] && ids[r.to_person]; });
+    if (crown) {
+      container.appendChild(buildCoupleNode(crown.a, crown.b));
+      container.appendChild(buildFlowLink());
     }
 
-    var householdEls = {};
-
-    var saifCol = makeEl("div", "tn-col");
-    var saifLabel = makeEl("h3", "tn-col-label", "Saif's side");
-    saifCol.appendChild(saifLabel);
-    renderColumn(saifCol, saifPeople, sameSideRels(saifPeople), personOpts, householdEls);
-
-    var rumaisahCol = makeEl("div", "tn-col");
-    var rumaisahLabel = makeEl("h3", "tn-col-label", "Rumaisah's side");
-    rumaisahCol.appendChild(rumaisahLabel);
-    renderColumn(rumaisahCol, rumaisahPeople, sameSideRels(rumaisahPeople), personOpts, householdEls);
-
-    cols.appendChild(saifCol);
-    cols.appendChild(rumaisahCol);
-
-    var fullGraph = buildGraph(data.people, data.relationships);
-
-    function drawConnectors() {
-      var containerRect = container.getBoundingClientRect();
-      svg.setAttribute("width", containerRect.width);
-      svg.setAttribute("height", container.scrollHeight);
-      svg.setAttribute("viewBox", "0 0 " + containerRect.width + " " + container.scrollHeight);
-      while (svg.firstChild) { svg.removeChild(svg.firstChild); }
-
-      function rectOf(personId) {
-        var hh = householdEls[personId];
-        if (!hh) { return null; }
-        var r = hh.getBoundingClientRect();
-        return {
-          cx: r.left + r.width / 2 - containerRect.left,
-          top: r.top - containerRect.top,
-          bottom: r.bottom - containerRect.top,
-          left: r.left - containerRect.left,
-          right: r.right - containerRect.left
-        };
-      }
-
-      data.people.forEach(function (child) {
-        var parentIds = fullGraph.parentsOf[child.id].filter(function (id) { return householdEls[id]; });
-        if (!parentIds.length) { return; }
-        var childPt = rectOf(child.id);
-        if (!childPt) { return; }
-        var startX, startY;
-        if (parentIds.length >= 2) {
-          var a = rectOf(parentIds[0]);
-          var b = rectOf(parentIds[1]);
-          if (!a || !b) { return; }
-          startX = (a.cx + b.cx) / 2;
-          startY = Math.max(a.bottom, b.bottom);
-        } else {
-          var p = rectOf(parentIds[0]);
-          if (!p) { return; }
-          startX = p.cx;
-          startY = p.bottom;
-        }
-        var endX = childPt.cx, endY = childPt.top;
-        var midY = startY + (endY - startY) * 0.55;
-        var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("d", "M " + startX + " " + startY + " C " + startX + " " + midY + ", " + endX + " " + midY + ", " + endX + " " + endY);
-        path.setAttribute("class", "tn-link");
-        svg.appendChild(path);
-      });
-    }
-
-    requestAnimationFrame(function () { requestAnimationFrame(drawConnectors); });
-    window.addEventListener("resize", debounce(drawConnectors, 150));
+    var sides = makeEl("div", "sides");
+    ["saif", "rumaisah"].forEach(function (sideKey) {
+      var sidePeople = data.people.filter(function (p) { return p.side === sideKey; });
+      if (!sidePeople.length) { return; }
+      var sideEl = makeEl("div", "side");
+      sideEl.appendChild(makeEl("h3", "side-label", SIDE_LABELS[sideKey] || sideKey));
+      renderSide(sideEl, sidePeople, graph, crown, captions[sideKey]);
+      sides.appendChild(sideEl);
+    });
+    container.appendChild(sides);
   }
 
-  function debounce(fn, ms) {
-    var t;
-    return function () {
-      clearTimeout(t);
-      var args = arguments;
-      t = setTimeout(function () { fn.apply(null, args); }, ms);
-    };
-  }
-
-  root.FamilyTree = { render: render, buildGraph: buildGraph, assignGenerations: assignGenerations };
+  root.FamilyTree = { render: render, buildGraph: buildGraph, findCrownCouple: findCrownCouple };
 })(typeof self !== "undefined" ? self : this);
