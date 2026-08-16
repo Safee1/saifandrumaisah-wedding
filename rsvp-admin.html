@@ -73,7 +73,10 @@
       <div class="stat"><span class="stat-num" id="statDeclined">0</span><span class="stat-lab">declined</span></div>
     </div>
 
-    <button class="refresh" id="refreshBtn">Refresh</button>
+    <div style="display:flex; gap:0.6rem; justify-content:center; margin-bottom:1.5rem; flex-wrap:wrap;">
+      <button class="refresh" id="refreshBtn" style="margin-bottom:0">Refresh</button>
+      <button class="refresh" id="exportBtn" style="margin-bottom:0">Export CSV</button>
+    </div>
     <div id="list"></div>
   </div>
 
@@ -88,9 +91,11 @@
       var gateErr = document.getElementById("gateErr");
       var list = document.getElementById("list");
       var refreshBtn = document.getElementById("refreshBtn");
+      var exportBtn = document.getElementById("exportBtn");
       var statTotal = document.getElementById("statTotal");
       var statAttending = document.getElementById("statAttending");
       var statDeclined = document.getElementById("statDeclined");
+      var lastRows = [];
 
       function fmtDate(iso) {
         try {
@@ -129,7 +134,40 @@
 
       refreshBtn.addEventListener("click", loadList);
 
+      function csvField(value) {
+        var s = value == null ? "" : String(value);
+        if (/[",\n]/.test(s)) { s = '"' + s.replace(/"/g, '""') + '"'; }
+        return s;
+      }
+
+      function exportCsv() {
+        var header = ["Name", "Attending", "Guests", "Dietary", "Message", "Submitted"];
+        var lines = [header.join(",")];
+        lastRows.forEach(function (row) {
+          lines.push([
+            csvField(row.name),
+            csvField(row.attending ? "Yes" : "No"),
+            csvField(row.attending ? row.guest_count : ""),
+            csvField(row.dietary),
+            csvField(row.message),
+            csvField(fmtDate(row.created_at))
+          ].join(","));
+        });
+        var blob = new Blob([lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = "rsvps.csv";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      exportBtn.addEventListener("click", exportCsv);
+
       function render(rows) {
+        lastRows = rows;
         var totalResponses = rows.length;
         var totalAttendingGuests = 0;
         var totalDeclined = 0;

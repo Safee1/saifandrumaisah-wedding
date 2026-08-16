@@ -112,6 +112,11 @@
         <textarea id="message" maxlength="600" placeholder="Optional"></textarea>
       </div>
 
+      <div style="position:absolute; left:-9999px" aria-hidden="true">
+        <label for="website">Leave this field blank</label>
+        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+      </div>
+
       <button type="submit" id="submitBtn">Send RSVP</button>
       <p class="status" id="statusMsg" aria-live="polite"></p>
     </form>
@@ -145,8 +150,19 @@
       attendYes.addEventListener("change", syncGuestField);
       attendNo.addEventListener("change", syncGuestField);
 
+      var loadedAt = Date.now();
+
       form.addEventListener("submit", function (e) {
         e.preventDefault();
+
+        // silently swallow obvious bot submissions: honeypot filled, or
+        // submitted faster than a human could plausibly fill the form
+        if (document.getElementById("website").value || Date.now() - loadedAt < 2000) {
+          form.hidden = true;
+          confirmBox.hidden = false;
+          confirmText.textContent = "Thank you — the pleasure of your company means the world to us, and we can't wait to celebrate together.";
+          return;
+        }
 
         var name = document.getElementById("name").value.trim();
         var attending = attendYes.checked ? true : (attendNo.checked ? false : null);
