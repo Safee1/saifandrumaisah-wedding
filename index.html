@@ -588,10 +588,10 @@
   .flow-link path { fill: none; stroke: var(--line); stroke-width: 1.6; stroke-linecap: round; }
 
   /* avatars */
-  .avatar { border-radius: 50%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-weight: 500; font-family: Georgia, serif; flex-shrink: 0; }
-  .avatar.large { width: clamp(50px, 13vw, 62px); font-size: clamp(1rem, 4vw, 1.25rem); }
-  .avatar.med   { width: clamp(38px, 9vw, 46px);  font-size: clamp(0.85rem, 3.2vw, 0.95rem); }
-  .avatar.small { width: clamp(30px, 7vw, 36px);  font-size: clamp(0.72rem, 2.8vw, 0.8rem); }
+  .avatar { border-radius: 50%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-weight: 500; font-family: Georgia, serif; flex-shrink: 0; max-width: 100%; }
+  .avatar.large { width: clamp(50px, 13vw, 62px); height: clamp(50px, 13vw, 62px); font-size: clamp(1rem, 4vw, 1.25rem); }
+  .avatar.med   { width: clamp(38px, 9vw, 46px);  height: clamp(38px, 9vw, 46px);  font-size: clamp(0.85rem, 3.2vw, 0.95rem); }
+  .avatar.small { width: clamp(30px, 7vw, 36px);  height: clamp(30px, 7vw, 36px);  font-size: clamp(0.72rem, 2.8vw, 0.8rem); }
   .t1 { background: #dde6f0; color: #2c4a73; }
   .t2 { background: #f0e6d0; color: #8a6a2f; }
 
