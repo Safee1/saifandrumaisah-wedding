@@ -111,6 +111,11 @@
         <input type="text" id="note" maxlength="120" placeholder="So we know who to thank" autocomplete="off">
       </div>
 
+      <div style="position:absolute; left:-9999px" aria-hidden="true">
+        <label for="website">Leave this field blank</label>
+        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+      </div>
+
       <button type="submit" id="submitBtn" disabled>Send for approval</button>
       <p class="status" id="statusMsg" aria-live="polite"></p>
     </form>
@@ -163,8 +168,20 @@
         if (p) { side.value = p.side; }
       });
 
+      var loadedAt = Date.now();
+
       form.addEventListener("submit", function (e) {
         e.preventDefault();
+
+        // silently swallow obvious bot submissions: honeypot filled, or
+        // submitted faster than a human could plausibly fill the form
+        if (document.getElementById("website").value || Date.now() - loadedAt < 2000) {
+          statusMsg.className = "status ok";
+          statusMsg.textContent = "Thank you — sent for approval.";
+          form.reset();
+          return;
+        }
+
         submitBtn.disabled = true;
         statusMsg.className = "status";
         statusMsg.textContent = "Sending…";
