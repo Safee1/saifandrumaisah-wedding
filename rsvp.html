@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta http-equiv="Content-Security-Policy" content="base-uri 'self';">
+<title>RSVP — Saif &amp; Rumaisah</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :root {
+    --bg: #faf7f2; --card: #fffdf9; --ink: #223049; --muted: #6e7787;
+    --accent: #7d95b5; --gold: #b99668; --env: #f5efe4; --side: #40587a;
+    --line: rgba(125,149,181,0.55); --good: #4d7a5a; --bad: #a1503f;
+  }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 1.25rem;
+  }
+  .wrap { width: 100%; max-width: 460px; }
+  .eyebrow { text-align: center; font-size: 0.75rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--muted); margin: 0 0 0.6rem; font-weight: 500; }
+  h1 { text-align: center; font-family: 'Pinyon Script', cursive; font-weight: 400; font-size: clamp(2rem, 8vw, 2.6rem); margin: 0 0 0.3rem; color: var(--ink); }
+  .sub { text-align: center; font-style: italic; color: var(--muted); font-size: 0.95rem; margin: 0 0 2rem; line-height: 1.5; }
+
+  form { background: var(--card); border: 1px solid rgba(185,150,104,0.3); border-radius: 18px; padding: 1.75rem 1.5rem; }
+  .field { margin-bottom: 1.3rem; }
+  .field[hidden] { display: none; }
+  label { display: block; font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--side); font-weight: 500; margin-bottom: 0.45rem; }
+  input[type="text"], input[type="number"], select, textarea {
+    width: 100%; font-family: inherit; font-size: 1rem; color: var(--ink);
+    background: #fff; border: 1px solid rgba(64,88,122,0.25); border-radius: 10px;
+    padding: 0.65rem 0.8rem; outline: none;
+  }
+  input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(125,149,181,0.15); }
+  textarea { resize: vertical; min-height: 3.2rem; }
+  .hint { font-size: 0.78rem; color: var(--muted); margin-top: 0.35rem; line-height: 1.4; }
+
+  .choice-row { display: flex; gap: 0.7rem; }
+  .choice-row input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+  .choice-row label {
+    flex: 1; text-align: center; margin: 0; padding: 0.65rem 0.5rem;
+    border: 1px solid rgba(64,88,122,0.25); border-radius: 10px;
+    font-size: 0.95rem; text-transform: none; letter-spacing: normal; font-weight: 400;
+    color: var(--ink); cursor: pointer; background: #fff;
+  }
+  .choice-row input[type="radio"]:checked + label { background: var(--side); color: #fff; border-color: var(--side); }
+  .choice-row input[type="radio"]:focus-visible + label { box-shadow: 0 0 0 3px rgba(125,149,181,0.35); }
+
+  button[type="submit"] {
+    width: 100%; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.05rem; font-weight: 500;
+    letter-spacing: 0.08em; text-transform: uppercase; color: #fff; background: var(--side);
+    border: none; border-radius: 10px; padding: 0.85rem; cursor: pointer;
+  }
+  button[type="submit"]:disabled { opacity: 0.55; cursor: default; }
+  button[type="submit"]:not(:disabled):hover { background: #324567; }
+
+  .status { text-align: center; font-size: 0.9rem; margin-top: 1rem; min-height: 1.2em; }
+  .status.ok { color: var(--good); }
+  .status.err { color: var(--bad); }
+
+  .confirm { text-align: center; }
+  .confirm p { font-style: italic; color: var(--muted); font-size: 1.02rem; line-height: 1.6; margin: 0 0 0.5rem; }
+  .confirm .heart { width: 15px; height: 15px; color: var(--accent); margin: 0.2rem auto 1.1rem; display: block; }
+
+  .back { display: block; text-align: center; margin-top: 1.6rem; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-decoration: none; }
+  .back:hover { color: var(--side); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="eyebrow">our wedding</p>
+    <h1>rsvp</h1>
+    <p class="sub">We'd be so glad to know if you can join us. Let us know below.</p>
+
+    <form id="rsvpForm">
+      <div class="field">
+        <label for="name">Your name</label>
+        <input type="text" id="name" maxlength="80" required autocomplete="name">
+      </div>
+
+      <div class="field">
+        <label>Will you be attending?</label>
+        <div class="choice-row">
+          <input type="radio" name="attending" id="attendYes" value="yes">
+          <label for="attendYes">Yes, joyfully</label>
+          <input type="radio" name="attending" id="attendNo" value="no">
+          <label for="attendNo">Sadly, no</label>
+        </div>
+      </div>
+
+      <div class="field" id="guestField" hidden>
+        <label for="guestCount">Number of guests (including yourself)</label>
+        <input type="number" id="guestCount" min="1" max="10" value="1" inputmode="numeric">
+      </div>
+
+      <div class="field">
+        <label for="dietary">Dietary requirements / allergies</label>
+        <textarea id="dietary" maxlength="400" placeholder="Anything we should know — optional"></textarea>
+      </div>
+
+      <div class="field">
+        <label for="message">A message for the couple</label>
+        <textarea id="message" maxlength="600" placeholder="Optional"></textarea>
+      </div>
+
+      <div style="position:absolute; left:-9999px" aria-hidden="true">
+        <label for="website">Leave this field blank</label>
+        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+      </div>
+
+      <button type="submit" id="submitBtn">Send RSVP</button>
+      <p class="status" id="statusMsg" aria-live="polite"></p>
+    </form>
+
+    <div class="confirm" id="confirmBox" hidden>
+      <svg class="heart" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 21s-7-4.35-9.5-9.27C.92 8.36 2.5 4 6.5 4 9 4 10.5 5.5 12 7.5 13.5 5.5 15 4 17.5 4c4 0 5.58 4.36 4 7.73C19 16.65 12 21 12 21z"/>
+      </svg>
+      <p id="confirmText">Thank you — the pleasure of your company means the world to us, and we can't wait to celebrate together.</p>
+    </div>
+
+    <a class="back" href="index.html">&larr; back to the invitation</a>
+  </div>
+
+  <script src="js/rsvp-data.js"></script>
+  <script>
+    (function () {
+      var form = document.getElementById("rsvpForm");
+      var submitBtn = document.getElementById("submitBtn");
+      var statusMsg = document.getElementById("statusMsg");
+      var attendYes = document.getElementById("attendYes");
+      var attendNo = document.getElementById("attendNo");
+      var guestField = document.getElementById("guestField");
+      var guestCount = document.getElementById("guestCount");
+      var confirmBox = document.getElementById("confirmBox");
+      var confirmText = document.getElementById("confirmText");
+
+      function syncGuestField() {
+        guestField.hidden = !attendYes.checked;
+      }
+      attendYes.addEventListener("change", syncGuestField);
+      attendNo.addEventListener("change", syncGuestField);
+
+      var loadedAt = Date.now();
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        // silently swallow obvious bot submissions: honeypot filled, or
+        // submitted faster than a human could plausibly fill the form
+        if (document.getElementById("website").value || Date.now() - loadedAt < 2000) {
+          form.hidden = true;
+          confirmBox.hidden = false;
+          confirmText.textContent = "Thank you — the pleasure of your company means the world to us, and we can't wait to celebrate together.";
+          return;
+        }
+
+        var name = document.getElementById("name").value.trim();
+        var attending = attendYes.checked ? true : (attendNo.checked ? false : null);
+        var dietary = document.getElementById("dietary").value.trim();
+        var message = document.getElementById("message").value.trim();
+        var guests = parseInt(guestCount.value, 10);
+
+        if (!name) {
+          statusMsg.className = "status err";
+          statusMsg.textContent = "Please tell us your name.";
+          return;
+        }
+        if (attending === null) {
+          statusMsg.className = "status err";
+          statusMsg.textContent = "Please let us know if you'll be attending.";
+          return;
+        }
+        if (attending && (!Number.isFinite(guests) || guests < 1 || guests > 10)) {
+          statusMsg.className = "status err";
+          statusMsg.textContent = "Guest count should be between 1 and 10.";
+          return;
+        }
+
+        submitBtn.disabled = true;
+        statusMsg.className = "status";
+        statusMsg.textContent = "Sending…";
+
+        RsvpData.submitRsvp({
+          name: name,
+          attending: attending,
+          guest_count: attending ? guests : null,
+          dietary: dietary || null,
+          message: message || null
+        }).then(function () {
+          form.hidden = true;
+          confirmBox.hidden = false;
+          confirmText.textContent = attending
+            ? "Thank you — the pleasure of your company means the world to us, and we can't wait to celebrate together."
+            : "Thank you for letting us know — you'll be in our thoughts on the day, and we hope to see you again soon.";
+        }).catch(function () {
+          statusMsg.className = "status err";
+          statusMsg.textContent = "Something went wrong — please try again.";
+          submitBtn.disabled = false;
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
