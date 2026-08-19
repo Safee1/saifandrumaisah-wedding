@@ -60,7 +60,7 @@
 
   function fetchApprovedTree() {
     return Promise.all([
-      restGet("people?select=id,name,side,is_kid&status=eq.approved&order=name"),
+      restGet("people?select=id,name,side,is_kid&status=eq.approved&order=sort_order.asc,name.asc"),
       restGet("relationships?select=id,from_person,to_person,type&status=eq.approved")
     ]).then(function (results) {
       return { people: results[0], relationships: results[1] };

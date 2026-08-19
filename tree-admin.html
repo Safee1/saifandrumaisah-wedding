@@ -127,7 +127,8 @@
             main.textContent = row.name;
           } else {
             kind.textContent = "relationship";
-            var verb = row.rel_type === "spouse_of" ? "married to" : "parent of";
+            var verb = row.rel_type === "spouse_of" ? "married to"
+              : row.rel_type === "sibling_of" ? "sibling of" : "parent of";
             main.textContent = row.from_person_name + " — " + verb + " — " + row.to_person_name;
           }
           info.appendChild(kind);

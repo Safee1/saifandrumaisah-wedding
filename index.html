@@ -581,30 +581,56 @@
 
 
   /* ============================================================
-     Family tree — dynamic, mobile-first
-     renders from the live database into the approved static layout:
-     the couple's crown flowing down into two family columns
+     Family tree — one drawn tree: the couple's crown flowing down
+     into two family columns, with each parent's brothers & sisters
+     branching off as their own hand-set family cards
      ============================================================ */
-  .family-section { padding: 4.5rem 1.25rem 1rem; scroll-margin-top: 0.5rem; }
-  .eyebrow { font-size: 0.75rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--muted); margin: 0 0 2.2rem; font-weight: 500; }
+  .family-section {
+    position: relative;
+    padding: 5rem 1.25rem 1.5rem;
+    scroll-margin-top: 0.5rem;
+    background: radial-gradient(90% 36rem at 50% 0%, rgba(233,224,205,0.4), transparent 72%);
+  }
+  .tree-head { margin: 0 auto 2.8rem; }
+  .tree-title { font-family: 'Pinyon Script', cursive; font-weight: 400; font-size: clamp(2.3rem, 9vw, 3.1rem); line-height: 1.1; color: var(--ink); margin: 0; }
+  .tree-sub { font-style: italic; color: var(--muted); font-size: clamp(0.95rem, 3.8vw, 1.08rem); margin: 0.45rem 0 0; }
+  .tree-flourish { width: 130px; height: auto; display: block; margin: 1.05rem auto 0; color: var(--gold); }
+  .tree-flourish path { fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; }
+  .tree-flourish .bud { fill: currentColor; stroke: none; opacity: 0.85; }
+
+  .family-section .status { font-style: italic; color: var(--muted); font-size: 1rem; }
 
   /* the couple, heart of the tree */
   .couple-node { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center; gap: clamp(14px, 4vw, 26px); }
   .cn-person { display: flex; flex-direction: column; align-items: center; gap: 0.45rem; }
   .cn-name { font-family: 'Pinyon Script', cursive; font-size: clamp(1.15rem, 5vw, 1.5rem); color: var(--ink); margin: 0; white-space: nowrap; }
-  .cn-heart { width: clamp(14px, 3.6vw, 18px); height: clamp(14px, 3.6vw, 18px); color: var(--accent); flex-shrink: 0; margin-top: clamp(17px, 5.2vw, 21px); }
+  .cn-heart { width: clamp(14px, 3.6vw, 18px); height: clamp(14px, 3.6vw, 18px); color: var(--accent); flex-shrink: 0; margin-top: clamp(17px, 5.2vw, 21px); animation: beat 3.4s ease-in-out 1.5s infinite; }
 
   /* soft curve flowing from the couple down into both families */
   .flow-link { display: block; width: clamp(150px, 42vw, 220px); height: auto; margin: 0.4rem auto 0; overflow: visible; }
   .flow-link path { fill: none; stroke: var(--line); stroke-width: 1.6; stroke-linecap: round; }
 
-  /* avatars */
-  .avatar { border-radius: 50%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-weight: 500; font-family: Georgia, serif; flex-shrink: 0; max-width: 100%; }
+  /* avatars — soft pressed-seal discs with inked initials and a fine ring */
+  .avatar {
+    border-radius: 50%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    font-weight: 500; font-family: Georgia, serif; flex-shrink: 0; max-width: 100%;
+    box-shadow: var(--av-inset), var(--av-ring, 0 0 0 0 transparent);
+  }
   .avatar.large { width: clamp(50px, 13vw, 62px); height: clamp(50px, 13vw, 62px); font-size: clamp(1rem, 4vw, 1.25rem); }
   .avatar.med   { width: clamp(38px, 9vw, 46px);  height: clamp(38px, 9vw, 46px);  font-size: clamp(0.85rem, 3.2vw, 0.95rem); }
   .avatar.small { width: clamp(30px, 7vw, 36px);  height: clamp(30px, 7vw, 36px);  font-size: clamp(0.72rem, 2.8vw, 0.8rem); }
-  .t1 { background: #dde6f0; color: #2c4a73; }
-  .t2 { background: #f0e6d0; color: #8a6a2f; }
+  .t1 {
+    background: radial-gradient(115% 115% at 32% 26%, #eaf1f8 0%, #d7e2ef 58%, #c9d7e8 100%);
+    color: #2c4a73;
+    --av-inset: inset 0 0 0 1px rgba(44,74,115,0.22), inset 0 -2px 4px rgba(44,74,115,0.10);
+  }
+  .t2 {
+    background: radial-gradient(115% 115% at 32% 26%, #f8f1de 0%, #eee0c2 58%, #e6d5b0 100%);
+    color: #7d5f2a;
+    --av-inset: inset 0 0 0 1px rgba(158,124,68,0.30), inset 0 -2px 4px rgba(158,124,68,0.12);
+  }
+  /* the crown couple wear a double gold ring */
+  .avatar.large { --av-ring: 0 0 0 3px var(--card), 0 0 0 4.5px rgba(185,150,104,0.5), 0 8px 18px rgba(90,70,60,0.13); }
 
   /* two sides — stacked on narrow screens, flanking the couple from tablet up */
   .sides { display: flex; flex-direction: column; align-items: center; gap: 3rem; max-width: 900px; margin: 1.8rem auto 0; }
@@ -623,7 +649,7 @@
 
   .p-node, .k-node { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; }
   .node-name { font-family: Georgia, serif; font-size: clamp(0.72rem, 2.6vw, 0.82rem); color: var(--ink); white-space: nowrap; line-height: 1.2; }
-  .kid-star { color: var(--accent); font-size: 0.7rem; font-style: normal; margin-left: 2px; }
+  .kid-star { width: 0.85em; height: 0.85em; color: var(--gold); margin-left: 3px; margin-bottom: -0.06em; display: inline-block; }
   .tag { display: block; font-size: 0.5rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--side); margin-top: 0.2rem; }
 
   .grp-cap { font-family: Georgia, serif; font-style: italic; color: var(--side); font-size: 0.8rem; margin: 0 0 1rem; }
@@ -632,10 +658,48 @@
   /* a married child with their own family nests inside their side, as its own small family */
   .nested { width: 100%; margin-top: 1.5rem; padding: 1.1rem 0.9rem 0.9rem; background: var(--env); border: 1px solid rgba(185,150,104,0.35); border-radius: 16px; }
 
-  .add-link { display: block; width: fit-content; margin: 2.6rem auto 0; font-family: Georgia, serif; font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--side); text-decoration: none; border-bottom: 1px solid var(--line); padding-bottom: 2px; }
-  .add-link:hover { color: var(--seal); border-color: var(--seal); }
+  /* boughs — a parent's brothers & sisters branch off into family cards */
+  .boughs { margin-top: 2.4rem; }
+  .bough-link { display: block; width: 64px; height: 34px; margin: 0 auto; overflow: visible; }
+  .bough-link path { fill: none; stroke: rgba(158,124,68,0.55); stroke-width: 1.4; stroke-linecap: round; }
+  .bough-cap { font-family: Georgia, serif; font-style: italic; color: var(--side); font-size: 0.84rem; margin: 0.5rem 0 0; }
+  .branch {
+    position: relative;
+    margin: 1.5rem 0 0;
+    padding: 1.4rem 0.9rem 1.15rem;
+    background: var(--card);
+    border: 1px solid rgba(185,150,104,0.42);
+    border-radius: 18px;
+    box-shadow: 0 12px 28px rgba(90,70,60,0.09);
+  }
+  .branch .grp-cap { margin: 0 0 1.1rem; font-size: 0.84rem; }
+  .branch .nested { background: var(--env); }
+  .branch-sprig { position: absolute; top: 0.7rem; right: 0.75rem; width: 26px; height: 26px; color: var(--gold); opacity: 0.6; }
+  .branch-sprig .sprig-stem { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+  .branch-sprig .sprig-leaf { fill: currentColor; stroke: none; opacity: 0.55; }
 
-  .legend { font-family: Georgia, serif; font-size: 0.7rem; letter-spacing: 0.12em; color: var(--muted); margin-top: 2.8rem; }
+  /* the tree grows in as you reach it */
+  .rv { opacity: 0; transform: translateY(18px); transition: opacity 0.85s ease, transform 0.85s cubic-bezier(.22,.8,.36,1); }
+  .rv.in { opacity: 1; transform: none; }
+  .stem.rv { opacity: 1; transform: scaleY(0); transform-origin: top center; transition: transform 0.9s cubic-bezier(.22,.8,.36,1); }
+  .stem.rv.in { transform: scaleY(1); }
+  svg.rv-draw path { stroke-dasharray: 100; stroke-dashoffset: 100; transition: stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1) 0.1s; }
+  svg.rv-draw path:nth-child(2) { transition-delay: 0.35s; }
+  svg.rv-draw path:nth-child(3) { transition-delay: 0.5s; }
+  svg.rv-draw.in path { stroke-dashoffset: 0; }
+
+  .tree-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.7rem; margin: 2.9rem auto 0; }
+  .add-link {
+    display: inline-block; font-family: Georgia, serif; font-size: 0.72rem; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--side); text-decoration: none;
+    border: 1px solid rgba(185,150,104,0.5); border-radius: 999px; padding: 0.6rem 1.15rem;
+    background: var(--card); box-shadow: 0 4px 12px rgba(90,70,60,0.07);
+    transition: color 0.25s ease, border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .add-link:hover { color: var(--seal); border-color: var(--seal); transform: translateY(-2px); box-shadow: 0 8px 18px rgba(90,70,60,0.12); }
+  .add-link:focus-visible { outline: 2px solid var(--seal); outline-offset: 3px; }
+
+  .legend { font-family: Georgia, serif; font-size: 0.7rem; letter-spacing: 0.12em; color: var(--muted); margin-top: 3rem; }
   .legend .kid-star { margin: 0 2px 0 0; }
   .footer { font-size: 0.75rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); margin: 0; padding: 3rem 1.5rem 3.5rem; font-weight: 400; }
 
@@ -646,6 +710,8 @@
     .divider-line { transform: scaleX(1); }
     .border-svg rect { stroke-dashoffset: 0; }
     .floral path, .floral circle { stroke-dashoffset: 0; }
+    .rv, .stem.rv { opacity: 1 !important; transform: none !important; transition: none !important; }
+    svg.rv-draw path { stroke-dasharray: none !important; stroke-dashoffset: 0 !important; transition: none !important; }
   }
 </style>
 </head>
@@ -667,6 +733,12 @@
         <circle class="bud" cx="30" cy="24" r="3.4"/><circle class="bud" cx="56" cy="37" r="2.8"/><circle class="bud" cx="68" cy="10" r="3.8"/>
       </g>
       <path id="heart-shape" d="M12 21s-7-4.35-9.5-9.27C.92 8.36 2.5 4 6.5 4 9 4 10.5 5.5 12 7.5 13.5 5.5 15 4 17.5 4c4 0 5.58 4.36 4 7.73C19 16.65 12 21 12 21z"/>
+      <path id="star-shape" d="M12 3 C 12.7 8.2 13.8 9.3 19 10 C 13.8 10.7 12.7 11.8 12 17 C 11.3 11.8 10.2 10.7 5 10 C 10.2 9.3 11.3 8.2 12 3 Z"/>
+      <g id="sprig-shape">
+        <path class="sprig-stem" d="M5 27 C 11 21, 17 15, 27 5"/>
+        <path class="sprig-leaf" d="M12 20 C 10 15, 11 11, 16 8 C 16.5 13, 15 17, 12 20 Z"/>
+        <path class="sprig-leaf" d="M17 15 C 22 12.5, 26 12.5, 29.5 15.5 C 25 18.5, 20 17.5, 17 15 Z"/>
+      </g>
     </defs>
   </svg>
 
@@ -816,15 +888,25 @@
 
 
   <section class="family-section" id="family" aria-label="Our family tree">
-    <h2 class="eyebrow">our family tree</h2>
+    <header class="tree-head">
+      <h2 class="tree-title">Our Family Tree</h2>
+      <p class="tree-sub">two families, growing into one</p>
+      <svg class="tree-flourish" viewBox="0 0 120 22" aria-hidden="true">
+        <path d="M4 15 C 26 6, 44 6, 57 12.5"/>
+        <path d="M116 15 C 94 6, 76 6, 63 12.5"/>
+        <circle class="bud" cx="60" cy="13" r="1.8"/>
+      </svg>
+    </header>
 
     <div id="treeContainer">
       <p class="status">gathering the family&hellip;</p>
     </div>
 
-    <p class="legend"><span class="kid-star" aria-hidden="true">&#10022;</span> the little ones &nbsp;&middot;&nbsp; navy for Saif's side, gold for Rumaisah's</p>
-    <a class="add-link" href="add-to-tree.html">+ add someone to the tree</a>
-    <a class="add-link" href="rsvp.html">+ RSVP</a>
+    <p class="legend"><svg class="kid-star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><use href="#star-shape"></use></svg> the little ones &nbsp;&middot;&nbsp; navy for Saif's side, gold for Rumaisah's</p>
+    <div class="tree-actions">
+      <a class="add-link" href="add-to-tree.html">+ add someone to the tree</a>
+      <a class="add-link" href="rsvp.html">+ RSVP</a>
+    </div>
     <noscript><p class="status">This page needs JavaScript turned on to show the family tree.</p></noscript>
   </section>
 
@@ -864,9 +946,31 @@
   <script>
     (function () {
       var container = document.getElementById("treeContainer");
+
+      // the tree grows in as each part reaches the viewport
+      function reveal(scope) {
+        var els = scope.querySelectorAll(".rv, .rv-draw");
+        function showAll() {
+          for (var i = 0; i < els.length; i++) { els[i].classList.add("in"); }
+        }
+        if (!("IntersectionObserver" in window)) { showAll(); return; }
+        var io = new IntersectionObserver(function (entries) {
+          var shown = 0;
+          entries.forEach(function (entry) {
+            if (!entry.isIntersecting) { return; }
+            entry.target.style.transitionDelay = (shown * 90) + "ms";
+            entry.target.classList.add("in");
+            io.unobserve(entry.target);
+            shown++;
+          });
+        }, { threshold: 0.15, rootMargin: "0px 0px -8% 0px" });
+        for (var i = 0; i < els.length; i++) { io.observe(els[i]); }
+      }
+
       TreeData.fetchApprovedTree().then(function (data) {
         FamilyTree.render(container, data, {
-          captions: { saif: "brothers & sisters", rumaisah: "sisters" }
+          captions: { saif: "brothers & sisters", rumaisah: "sisters" },
+          onRendered: reveal
         });
       }).catch(function () {
         container.textContent = "";
