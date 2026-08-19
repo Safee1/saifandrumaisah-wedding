@@ -91,6 +91,7 @@
           <option value="child">Child</option>
           <option value="parent">Parent</option>
           <option value="spouse">Husband / wife</option>
+          <option value="sibling">Brother / sister</option>
         </select>
       </div>
 
@@ -207,6 +208,8 @@
               relArgs = { from_person: anchorId, to_person: person.id, type: "parent_of" };
             } else if (relType === "parent") {
               relArgs = { from_person: person.id, to_person: anchorId, type: "parent_of" };
+            } else if (relType === "sibling") {
+              relArgs = { from_person: anchorId, to_person: person.id, type: "sibling_of" };
             } else {
               relArgs = { from_person: anchorId, to_person: person.id, type: "spouse_of" };
             }
