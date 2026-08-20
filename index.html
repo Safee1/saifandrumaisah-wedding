@@ -675,8 +675,18 @@
   .branch .grp-cap { margin: 0 0 1.1rem; font-size: 0.84rem; }
   .branch .nested { background: var(--env); }
   .branch-sprig { position: absolute; top: 0.7rem; right: 0.75rem; width: 26px; height: 26px; color: var(--gold); opacity: 0.6; }
-  .branch-sprig .sprig-stem { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
-  .branch-sprig .sprig-leaf { fill: currentColor; stroke: none; opacity: 0.55; }
+  .sprig-stem { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+  .sprig-leaf { fill: currentColor; stroke: none; opacity: 0.55; }
+
+  /* the extended family waits quietly behind the anchor's name —
+     a small gold sprig marks that there is more to meet */
+  .boughs[hidden] { display: none; }
+  .p-node.has-boughs { cursor: pointer; transition: transform 0.25s ease; }
+  .p-node.has-boughs:hover { transform: translateY(-2px); }
+  .p-node.has-boughs:focus-visible { outline: 2px solid var(--seal); outline-offset: 4px; border-radius: 10px; }
+  .p-node.has-boughs .node-name { border-bottom: 1px dotted rgba(185,150,104,0.75); padding-bottom: 1px; }
+  .anchor-sprig { width: 0.9em; height: 0.9em; color: var(--gold); margin-left: 4px; margin-bottom: -0.08em; display: inline-block; transition: transform 0.3s ease; }
+  .p-node.has-boughs[aria-expanded="true"] .anchor-sprig { transform: rotate(-18deg) scale(1.08); }
 
   /* the tree grows in as you reach it */
   .rv { opacity: 0; transform: translateY(18px); transition: opacity 0.85s ease, transform 0.85s cubic-bezier(.22,.8,.36,1); }

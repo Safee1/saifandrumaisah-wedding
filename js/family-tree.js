@@ -277,6 +277,50 @@
     return stem;
   }
 
+  // The extended family stays out of the picture until someone asks for
+  // it: the anchor (e.g. Sheine) becomes a quiet toggle — hover, tap or
+  // keyboard — that lets her brothers & sisters bloom out below.
+  function attachBoughsToggle(node, wrap, anchorName) {
+    node.classList.add("has-boughs");
+    node.setAttribute("role", "button");
+    node.setAttribute("tabindex", "0");
+    node.setAttribute("aria-expanded", "false");
+    node.setAttribute("aria-controls", wrap.id);
+    node.setAttribute("aria-label", anchorName + "’s brothers & sisters — tap to show them");
+    node.setAttribute("title", "meet " + anchorName + "’s brothers & sisters");
+    var name = node.querySelector(".node-name");
+    if (name) { name.appendChild(svgUse("anchor-sprig", "0 0 32 32", "#sprig-shape")); }
+    function bloom() {
+      var parts = wrap.querySelectorAll(".rv, .rv-draw");
+      for (var i = 0; i < parts.length; i++) {
+        parts[i].style.transitionDelay = Math.min(i * 70, 600) + "ms";
+        parts[i].classList.add("in");
+      }
+    }
+    function setOpen(open) {
+      wrap.hidden = !open;
+      node.setAttribute("aria-expanded", open ? "true" : "false");
+      if (open && !wrap.getAttribute("data-bloomed")) {
+        wrap.setAttribute("data-bloomed", "1");
+        // double rAF so the browser paints the un-hidden state first,
+        // letting the grow-in transitions actually play
+        if (typeof requestAnimationFrame === "function") {
+          requestAnimationFrame(function () { requestAnimationFrame(bloom); });
+        } else {
+          bloom();
+        }
+      }
+    }
+    node.addEventListener("click", function () { setOpen(wrap.hidden); });
+    node.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+        e.preventDefault();
+        setOpen(wrap.hidden);
+      }
+    });
+    node.addEventListener("mouseenter", function () { if (wrap.hidden) { setOpen(true); } });
+  }
+
   function coupleCaption(members) {
     return members.map(function (m) { return m.name; }).join(" & ");
   }
@@ -324,10 +368,16 @@
       kidIds.forEach(function (cid) { appendNested(nested, cid, depth + 1); });
     }
 
+    var memberNodes = {};
+
     function renderHousehold(el, members, caption, first) {
       var parentsRow = makeEl("div", "parents-row rv");
       if (!first) { parentsRow.style.marginTop = "2rem"; }
-      members.forEach(function (m) { parentsRow.appendChild(buildPNode(m)); });
+      members.forEach(function (m) {
+        var node = buildPNode(m);
+        memberNodes[m.id] = node;
+        parentsRow.appendChild(node);
+      });
       el.appendChild(parentsRow);
       el.appendChild(stemEl());
       if (caption) { el.appendChild(makeEl("p", "grp-cap rv", caption)); }
@@ -352,6 +402,8 @@
 
     if (plan.boughs.length) {
       var boughsWrap = makeEl("div", "boughs");
+      boughsWrap.id = "boughs-" + (sidePeople[0] ? sidePeople[0].side : "side");
+      boughsWrap.hidden = true;
       boughsWrap.appendChild(buildBoughLink());
       boughsWrap.appendChild(makeEl("p", "bough-cap rv", plan.boughs[0].anchor.name + "’s brothers & sisters"));
       plan.boughs.forEach(function (bough) {
@@ -374,6 +426,10 @@
         boughsWrap.appendChild(branch);
       });
       sideEl.appendChild(boughsWrap);
+
+      var anchorNode = memberNodes[plan.boughs[0].anchor.id];
+      if (anchorNode) { attachBoughsToggle(anchorNode, boughsWrap, plan.boughs[0].anchor.name); }
+      else { boughsWrap.hidden = false; } // never strand them unreachable
     }
 
     if (plan.loners.length) {
