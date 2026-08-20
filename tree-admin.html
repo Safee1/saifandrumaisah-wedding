@@ -3,10 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#faf7f2">
 <meta name="robots" content="noindex,nofollow">
 <meta http-equiv="Content-Security-Policy" content="base-uri 'self';">
 <title>Review tree submissions — Saif &amp; Rumaisah</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
@@ -64,7 +66,7 @@
     <div id="list"></div>
   </div>
 
-  <script src="js/tree-data.js?v=23"></script>
+  <script src="js/tree-data.js?v=24"></script>
   <script>
     (function () {
       var pw = null;
@@ -87,7 +89,7 @@
             gate.style.display = "none";
             app.classList.add("show");
             try { sessionStorage.setItem("treeAdminPw", candidate); } catch (e) {}
-            render(rows);
+            renderAll(rows);
           })
           .catch(function () {
             gateErr.textContent = "Wrong password.";
@@ -100,78 +102,138 @@
 
       function loadPending() {
         list.innerHTML = "<p class=\"empty\">Loading…</p>";
-        TreeData.rpc("admin_list_pending", { pw: pw }).then(render).catch(function () {
+        TreeData.rpc("admin_list_pending", { pw: pw }).then(renderAll).catch(function () {
           list.innerHTML = "<p class=\"empty\">Couldn&rsquo;t load &mdash; tap Refresh to try again.</p>";
         });
       }
 
       refreshBtn.addEventListener("click", loadPending);
 
-      function render(rows) {
-        list.innerHTML = "";
-        if (!rows.length) {
-          list.innerHTML = "<p class=\"empty\">Nothing waiting &mdash; the tree is all caught up.</p>";
-          return;
+      function buildTreeItem(row) {
+        var el = document.createElement("div");
+        el.className = "item";
+
+        var info = document.createElement("div");
+        info.className = "item-info";
+        var kind = document.createElement("p");
+        kind.className = "item-kind";
+        var main = document.createElement("p");
+        main.className = "item-main";
+
+        if (row.kind === "person") {
+          kind.textContent = (row.side === "saif" ? "Saif's side" : "Rumaisah's side") + (row.is_kid ? " · little one" : "");
+          main.textContent = row.name;
+        } else {
+          kind.textContent = "relationship";
+          var verb = row.rel_type === "spouse_of" ? "married to"
+            : row.rel_type === "sibling_of" ? "sibling of" : "parent of";
+          main.textContent = row.from_person_name + " — " + verb + " — " + row.to_person_name;
         }
-        rows.forEach(function (row) {
-          var el = document.createElement("div");
-          el.className = "item";
+        info.appendChild(kind);
+        info.appendChild(main);
+        if (row.submitted_note) {
+          var note = document.createElement("p");
+          note.className = "item-note";
+          note.textContent = "From: " + row.submitted_note;
+          info.appendChild(note);
+        }
 
-          var info = document.createElement("div");
-          info.className = "item-info";
-          var kind = document.createElement("p");
-          kind.className = "item-kind";
-          var main = document.createElement("p");
-          main.className = "item-main";
+        var actions = document.createElement("div");
+        actions.className = "item-actions";
+        var approveBtn = document.createElement("button");
+        approveBtn.className = "btn-approve";
+        approveBtn.textContent = "Approve";
+        var rejectBtn = document.createElement("button");
+        rejectBtn.className = "btn-reject";
+        rejectBtn.textContent = "Reject";
 
-          if (row.kind === "person") {
-            kind.textContent = (row.side === "saif" ? "Saif's side" : "Rumaisah's side") + (row.is_kid ? " · little one" : "");
-            main.textContent = row.name;
-          } else {
-            kind.textContent = "relationship";
-            var verb = row.rel_type === "spouse_of" ? "married to"
-              : row.rel_type === "sibling_of" ? "sibling of" : "parent of";
-            main.textContent = row.from_person_name + " — " + verb + " — " + row.to_person_name;
-          }
-          info.appendChild(kind);
-          info.appendChild(main);
-          if (row.submitted_note) {
-            var note = document.createElement("p");
-            note.className = "item-note";
-            note.textContent = "From: " + row.submitted_note;
-            info.appendChild(note);
-          }
+        function act(status) {
+          approveBtn.disabled = true;
+          rejectBtn.disabled = true;
+          var fn = row.kind === "person" ? "admin_set_person_status" : "admin_set_relationship_status";
+          TreeData.rpc(fn, { pw: pw, target: row.id, new_status: status })
+            .then(function () { el.remove(); })
+            .catch(function () {
+              approveBtn.disabled = false;
+              rejectBtn.disabled = false;
+              alert("Something went wrong — please try again.");
+            });
+        }
+        approveBtn.addEventListener("click", function () { act("approved"); });
+        rejectBtn.addEventListener("click", function () { act("rejected"); });
 
-          var actions = document.createElement("div");
-          actions.className = "item-actions";
-          var approveBtn = document.createElement("button");
-          approveBtn.className = "btn-approve";
-          approveBtn.textContent = "Approve";
-          var rejectBtn = document.createElement("button");
-          rejectBtn.className = "btn-reject";
-          rejectBtn.textContent = "Reject";
+        actions.appendChild(approveBtn);
+        actions.appendChild(rejectBtn);
+        el.appendChild(info);
+        el.appendChild(actions);
+        return el;
+      }
 
-          function act(status) {
-            approveBtn.disabled = true;
-            rejectBtn.disabled = true;
-            var fn = row.kind === "person" ? "admin_set_person_status" : "admin_set_relationship_status";
-            TreeData.rpc(fn, { pw: pw, target: row.id, new_status: status })
-              .then(function () { el.remove(); })
-              .catch(function () {
-                approveBtn.disabled = false;
-                rejectBtn.disabled = false;
-                alert("Something went wrong — please try again.");
-              });
-          }
-          approveBtn.addEventListener("click", function () { act("approved"); });
-          rejectBtn.addEventListener("click", function () { act("rejected"); });
+      function buildBlessingItem(row) {
+        var el = document.createElement("div");
+        el.className = "item";
 
-          actions.appendChild(approveBtn);
-          actions.appendChild(rejectBtn);
-          el.appendChild(info);
-          el.appendChild(actions);
-          list.appendChild(el);
-        });
+        var info = document.createElement("div");
+        info.className = "item-info";
+        var kind = document.createElement("p");
+        kind.className = "item-kind";
+        kind.textContent = "blessing";
+        var main = document.createElement("p");
+        main.className = "item-main";
+        main.textContent = row.message;
+        var note = document.createElement("p");
+        note.className = "item-note";
+        note.textContent = "— " + row.name;
+        info.appendChild(kind);
+        info.appendChild(main);
+        info.appendChild(note);
+
+        var actions = document.createElement("div");
+        actions.className = "item-actions";
+        var approveBtn = document.createElement("button");
+        approveBtn.className = "btn-approve";
+        approveBtn.textContent = "Approve";
+        var rejectBtn = document.createElement("button");
+        rejectBtn.className = "btn-reject";
+        rejectBtn.textContent = "Reject";
+
+        function act(status) {
+          approveBtn.disabled = true;
+          rejectBtn.disabled = true;
+          TreeData.rpc("admin_set_blessing_status", { pw: pw, target: row.id, new_status: status })
+            .then(function () { el.remove(); })
+            .catch(function () {
+              approveBtn.disabled = false;
+              rejectBtn.disabled = false;
+              alert("Something went wrong — please try again.");
+            });
+        }
+        approveBtn.addEventListener("click", function () { act("approved"); });
+        rejectBtn.addEventListener("click", function () { act("rejected"); });
+
+        actions.appendChild(approveBtn);
+        actions.appendChild(rejectBtn);
+        el.appendChild(info);
+        el.appendChild(actions);
+        return el;
+      }
+
+      function renderAll(treeRows) {
+        list.innerHTML = "";
+        treeRows.forEach(function (row) { list.appendChild(buildTreeItem(row)); });
+        TreeData.rpc("admin_list_blessings", { pw: pw })
+          .then(function (blessingRows) {
+            blessingRows.forEach(function (row) { list.appendChild(buildBlessingItem(row)); });
+            if (!treeRows.length && !blessingRows.length) {
+              list.innerHTML = "<p class=\"empty\">Nothing waiting &mdash; all caught up.</p>";
+            }
+          })
+          .catch(function () {
+            var msg = document.createElement("p");
+            msg.className = "empty";
+            msg.textContent = "Blessings couldn't load — tap Refresh to try again.";
+            list.appendChild(msg);
+          });
       }
 
       try {
