@@ -179,7 +179,7 @@
       // as long as the person's own fields haven't changed since.
       var savedPerson = null;
       function personKey(name, sideVal, isKid, note) {
-        return [name, sideVal, isKid ? "1" : "0", note || ""].join(" ");
+        return [name, sideVal, isKid ? "1" : "0", note || ""].join("\x00");
       }
 
       form.addEventListener("submit", function (e) {

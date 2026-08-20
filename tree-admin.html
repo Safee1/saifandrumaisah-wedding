@@ -36,10 +36,10 @@
 
   .empty { text-align: center; color: var(--muted); font-style: italic; padding: 3rem 1rem; }
   .item { background: var(--card); border: 1px solid rgba(185,150,104,0.3); border-radius: 14px; padding: 1.1rem 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-  .item-info { flex: 1 1 240px; }
+  .item-info { flex: 1 1 240px; min-width: 0; }
   .item-kind { font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--side); margin: 0 0 0.25rem; }
-  .item-main { font-size: 1.1rem; margin: 0; }
-  .item-note { font-size: 0.85rem; color: var(--muted); font-style: italic; margin: 0.2rem 0 0; }
+  .item-main { font-size: 1.1rem; margin: 0; overflow-wrap: anywhere; }
+  .item-note { font-size: 0.85rem; color: var(--muted); font-style: italic; margin: 0.2rem 0 0; overflow-wrap: anywhere; }
   .item-actions { display: flex; gap: 0.5rem; }
   .item-actions button { font-family: inherit; font-size: 0.85rem; letter-spacing: 0.05em; border: none; border-radius: 8px; padding: 0.5rem 0.9rem; cursor: pointer; }
   .btn-approve { background: var(--good); color: #fff; }
@@ -78,6 +78,10 @@
       var list = document.getElementById("list");
       var refreshBtn = document.getElementById("refreshBtn");
 
+      // each load gets a generation number so a slow, stale response
+      // can never repaint (or duplicate) a newer list
+      var renderSeq = 0;
+
       function unlock() {
         var candidate = pwInput.value;
         if (!candidate) { return; }
@@ -89,7 +93,7 @@
             gate.style.display = "none";
             app.classList.add("show");
             try { sessionStorage.setItem("treeAdminPw", candidate); } catch (e) {}
-            renderAll(rows);
+            renderAll(rows, ++renderSeq);
           })
           .catch(function () {
             gateErr.textContent = "Wrong password.";
@@ -101,8 +105,13 @@
       pwInput.addEventListener("keydown", function (e) { if (e.key === "Enter") { unlock(); } });
 
       function loadPending() {
+        var seq = ++renderSeq;
         list.innerHTML = "<p class=\"empty\">Loading…</p>";
-        TreeData.rpc("admin_list_pending", { pw: pw }).then(renderAll).catch(function () {
+        TreeData.rpc("admin_list_pending", { pw: pw }).then(function (rows) {
+          if (seq !== renderSeq) { return; }
+          renderAll(rows, seq);
+        }).catch(function () {
+          if (seq !== renderSeq) { return; }
           list.innerHTML = "<p class=\"empty\">Couldn&rsquo;t load &mdash; tap Refresh to try again.</p>";
         });
       }
@@ -218,17 +227,19 @@
         return el;
       }
 
-      function renderAll(treeRows) {
+      function renderAll(treeRows, seq) {
         list.innerHTML = "";
         treeRows.forEach(function (row) { list.appendChild(buildTreeItem(row)); });
         TreeData.rpc("admin_list_blessings", { pw: pw })
           .then(function (blessingRows) {
+            if (seq !== renderSeq) { return; }
             blessingRows.forEach(function (row) { list.appendChild(buildBlessingItem(row)); });
             if (!treeRows.length && !blessingRows.length) {
               list.innerHTML = "<p class=\"empty\">Nothing waiting &mdash; all caught up.</p>";
             }
           })
           .catch(function () {
+            if (seq !== renderSeq) { return; }
             var msg = document.createElement("p");
             msg.className = "empty";
             msg.textContent = "Blessings couldn't load — tap Refresh to try again.";
