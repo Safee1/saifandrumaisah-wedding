@@ -610,15 +610,15 @@
   .flow-link { display: block; width: clamp(150px, 42vw, 220px); height: auto; margin: 0.4rem auto 0; overflow: visible; }
   .flow-link path { fill: none; stroke: var(--line); stroke-width: 1.6; stroke-linecap: round; }
 
-  /* avatars — soft pressed-seal discs with inked initials and a fine ring */
+  /* avatars — engraved seals: inked serif initials, a fine offset ring on card */
   .avatar {
     border-radius: 50%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-    font-weight: 500; font-family: Georgia, serif; flex-shrink: 0; max-width: 100%;
+    font-weight: 500; font-family: 'Cormorant Garamond', Georgia, serif; flex-shrink: 0; max-width: 100%;
     box-shadow: var(--av-inset), var(--av-ring, 0 0 0 0 transparent);
   }
-  .avatar.large { width: clamp(50px, 13vw, 62px); height: clamp(50px, 13vw, 62px); font-size: clamp(1rem, 4vw, 1.25rem); }
-  .avatar.med   { width: clamp(38px, 9vw, 46px);  height: clamp(38px, 9vw, 46px);  font-size: clamp(0.85rem, 3.2vw, 0.95rem); }
-  .avatar.small { width: clamp(30px, 7vw, 36px);  height: clamp(30px, 7vw, 36px);  font-size: clamp(0.72rem, 2.8vw, 0.8rem); }
+  .avatar.large { width: clamp(50px, 13vw, 62px); height: clamp(50px, 13vw, 62px); font-size: clamp(1.1rem, 4.4vw, 1.4rem); }
+  .avatar.med   { width: clamp(38px, 9vw, 46px);  height: clamp(38px, 9vw, 46px);  font-size: clamp(0.95rem, 3.6vw, 1.1rem); }
+  .avatar.small { width: clamp(30px, 7vw, 36px);  height: clamp(30px, 7vw, 36px);  font-size: clamp(0.8rem, 3vw, 0.92rem); }
   .t1 {
     background: radial-gradient(115% 115% at 32% 26%, #eaf1f8 0%, #d7e2ef 58%, #c9d7e8 100%);
     color: #2c4a73;
@@ -629,8 +629,16 @@
     color: #7d5f2a;
     --av-inset: inset 0 0 0 1px rgba(158,124,68,0.30), inset 0 -2px 4px rgba(158,124,68,0.12);
   }
-  /* the crown couple wear a double gold ring */
+  /* every seal sits on the page with its own fine ring; the crown couple's is gold and doubled */
+  .avatar.med, .avatar.small { --av-ring: 0 0 0 2px var(--bg), 0 0 0 2.8px rgba(185,150,104,0.32); }
+  .branch .avatar.med, .branch .avatar.small { --av-ring: 0 0 0 2px var(--card), 0 0 0 2.8px rgba(185,150,104,0.32); }
+  .nested .avatar.small { --av-ring: 0 0 0 2px var(--env), 0 0 0 2.8px rgba(185,150,104,0.32); }
   .avatar.large { --av-ring: 0 0 0 3px var(--card), 0 0 0 4.5px rgba(185,150,104,0.5), 0 8px 18px rgba(90,70,60,0.13); }
+  /* neighbouring seals take the light a little differently — kills the stamped-row look */
+  .k-node:nth-child(3n+2) .avatar.t1 { background: radial-gradient(115% 115% at 32% 26%, #eef4fa 0%, #dde8f2 58%, #d1deeb 100%); }
+  .k-node:nth-child(3n)   .avatar.t1 { background: radial-gradient(115% 115% at 32% 26%, #e4edf6 0%, #cfdcec 58%, #c0d1e5 100%); }
+  .k-node:nth-child(3n+2) .avatar.t2 { background: radial-gradient(115% 115% at 32% 26%, #fbf5e7 0%, #f2e7cf 58%, #ecdcbd 100%); }
+  .k-node:nth-child(3n)   .avatar.t2 { background: radial-gradient(115% 115% at 32% 26%, #f5edd5 0%, #e9d9b6 58%, #dfcda3 100%); }
 
   /* two sides — stacked on narrow screens, flanking the couple from tablet up */
   .sides { display: flex; flex-direction: column; align-items: center; gap: 3rem; max-width: 900px; margin: 1.8rem auto 0; }
@@ -639,41 +647,49 @@
     .sides { flex-direction: row; align-items: flex-start; justify-content: center; gap: clamp(2rem, 5vw, 4rem); }
     .side { flex: 1 1 0; }
   }
-  .side-label { font-family: Georgia, serif; font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--side); font-weight: 500; margin: 0 0 1.5rem; }
+  .side-label { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 0.78rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--side); font-weight: 500; margin: 0 0 1.4rem; }
+  .side-label::after { content: ""; display: block; width: 2.6rem; height: 1px; margin: 0.55rem auto 0; background: linear-gradient(90deg, transparent, rgba(185,150,104,0.65), transparent); }
 
-  .stem { width: 1px; height: 20px; background: var(--line); margin: 0.7rem auto; border-radius: 1px; }
-  .stem.sm { height: 14px; margin: 0.4rem auto 0.5rem; }
+  /* stems taper in and out of the paper, budding gold where they meet the next generation */
+  .stem { width: 1.5px; height: 22px; margin: 0.65rem auto; border-radius: 1px; position: relative;
+    background: linear-gradient(180deg, rgba(125,149,181,0.12), var(--line) 32%, var(--line) 72%, rgba(125,149,181,0.2)); }
+  .stem.sm { height: 15px; margin: 0.4rem auto 0.5rem; }
+  .stem::after { content: ""; position: absolute; bottom: -2.5px; left: 50%; transform: translateX(-50%);
+    width: 5px; height: 5px; border-radius: 50%; background: rgba(185,150,104,0.6); }
 
   .parents-row, .kids-row { display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(10px, 3vw, 18px); }
-  .kids-row { row-gap: 1.3rem; }
+  .kids-row { row-gap: 1.15rem; }
 
-  .p-node, .k-node { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; }
-  .node-name { font-family: Georgia, serif; font-size: clamp(0.72rem, 2.6vw, 0.82rem); color: var(--ink); white-space: nowrap; line-height: 1.2; }
+  .p-node, .k-node { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
+  .node-name { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: clamp(0.84rem, 3.1vw, 0.95rem); letter-spacing: 0.02em; color: var(--ink); white-space: nowrap; line-height: 1.2; }
   .kid-star { width: 0.85em; height: 0.85em; color: var(--gold); margin-left: 3px; margin-bottom: -0.06em; display: inline-block; }
   .tag { display: block; font-size: 0.5rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--side); margin-top: 0.2rem; }
 
-  .grp-cap { font-family: Georgia, serif; font-style: italic; color: var(--side); font-size: 0.8rem; margin: 0 0 1rem; }
-  .grp-cap.sm { font-size: 0.74rem; margin: 0 0 0.75rem; }
+  .grp-cap { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; color: var(--side); font-size: 0.95rem; margin: 0 0 0.95rem; }
+  .grp-cap.sm { font-size: 0.88rem; margin: 0 0 0.7rem; }
 
-  /* a married child with their own family nests inside their side, as its own small family */
-  .nested { width: 100%; margin-top: 1.5rem; padding: 1.1rem 0.9rem 0.9rem; background: var(--env); border: 1px solid rgba(185,150,104,0.35); border-radius: 16px; }
+  /* a married child with their own family nests inside their side, framed like the invitation card */
+  .nested { width: 100%; margin-top: 1.4rem; padding: 1.05rem 0.85rem 0.9rem; background: var(--env); border-radius: 14px;
+    box-shadow: inset 0 0 0 1px rgba(185,150,104,0.4), inset 0 0 0 4px var(--env), inset 0 0 0 5px rgba(185,150,104,0.22); }
+  /* …but inside a branch card it's a quiet partition, not a box within a box */
+  .branch .nested { background: transparent; box-shadow: none; border-radius: 0;
+    border-top: 1px solid rgba(185,150,104,0.32); margin-top: 1.2rem; padding: 1rem 0 0; }
+  .branch .nested .stem { display: none; }
 
   /* boughs — a parent's brothers & sisters branch off into family cards */
   .boughs { margin-top: 2.4rem; }
   .bough-link { display: block; width: 64px; height: 34px; margin: 0 auto; overflow: visible; }
   .bough-link path { fill: none; stroke: rgba(158,124,68,0.55); stroke-width: 1.4; stroke-linecap: round; }
-  .bough-cap { font-family: Georgia, serif; font-style: italic; color: var(--side); font-size: 0.84rem; margin: 0.5rem 0 0; }
+  .bough-cap { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; color: var(--side); font-size: 0.98rem; margin: 0.5rem 0 0; }
   .branch {
     position: relative;
-    margin: 1.5rem 0 0;
-    padding: 1.4rem 0.9rem 1.15rem;
+    margin: 1.35rem 0 0;
+    padding: 1.25rem 0.85rem 1.05rem;
     background: var(--card);
-    border: 1px solid rgba(185,150,104,0.42);
-    border-radius: 18px;
-    box-shadow: 0 12px 28px rgba(90,70,60,0.09);
+    border-radius: 14px;
+    box-shadow: inset 0 0 0 1px rgba(185,150,104,0.45), inset 0 0 0 4px var(--card), inset 0 0 0 5px rgba(185,150,104,0.22), 0 10px 24px rgba(90,70,60,0.08);
   }
-  .branch .grp-cap { margin: 0 0 1.1rem; font-size: 0.84rem; }
-  .branch .nested { background: var(--env); }
+  .branch .grp-cap { margin: 0 0 1rem; }
   .branch-sprig { position: absolute; top: 0.7rem; right: 0.75rem; width: 26px; height: 26px; color: var(--gold); opacity: 0.6; }
   .sprig-stem { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
   .sprig-leaf { fill: currentColor; stroke: none; opacity: 0.55; }
@@ -700,7 +716,7 @@
 
   .tree-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.7rem; margin: 2.9rem auto 0; }
   .add-link {
-    display: inline-block; font-family: Georgia, serif; font-size: 0.72rem; letter-spacing: 0.16em;
+    display: inline-block; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: 0.76rem; letter-spacing: 0.16em;
     text-transform: uppercase; color: var(--side); text-decoration: none;
     border: 1px solid rgba(185,150,104,0.5); border-radius: 999px; padding: 0.6rem 1.15rem;
     background: var(--card); box-shadow: 0 4px 12px rgba(90,70,60,0.07);
@@ -709,7 +725,7 @@
   .add-link:hover { color: var(--seal); border-color: var(--seal); transform: translateY(-2px); box-shadow: 0 8px 18px rgba(90,70,60,0.12); }
   .add-link:focus-visible { outline: 2px solid var(--seal); outline-offset: 3px; }
 
-  .legend { font-family: Georgia, serif; font-size: 0.7rem; letter-spacing: 0.12em; color: var(--muted); margin-top: 3rem; }
+  .legend { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 0.78rem; letter-spacing: 0.12em; color: var(--muted); margin-top: 3rem; }
   .legend .kid-star { margin: 0 2px 0 0; }
   .footer { font-size: 0.75rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); margin: 0; padding: 3rem 1.5rem 3.5rem; font-weight: 400; }
 
