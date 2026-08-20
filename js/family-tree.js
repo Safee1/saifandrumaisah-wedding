@@ -230,6 +230,18 @@
     node.addEventListener(leaveEv, mouseOnly(scheduleClose));
     wrap.addEventListener(enterEv, mouseOnly(cancelClose));
     wrap.addEventListener(leaveEv, mouseOnly(scheduleClose));
+
+    // the card floats over the tree, so it behaves like a popover:
+    // tapping anywhere else (or Escape) dismisses it
+    var downEv = hasPE ? "pointerdown" : "mousedown";
+    document.addEventListener(downEv, function (e) {
+      if (wrap.hidden) { return; }
+      if (node.contains(e.target) || wrap.contains(e.target)) { return; }
+      setOpen(false);
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && !wrap.hidden) { setOpen(false); }
+    });
     if (typeof window !== "undefined" && window.addEventListener) {
       window.addEventListener("resize", function () { if (!wrap.hidden) { placeCaret(); } });
     }

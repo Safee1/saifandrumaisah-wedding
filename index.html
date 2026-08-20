@@ -641,7 +641,7 @@
 
   /* two sides — stacked on narrow screens, flanking the couple from tablet up */
   .sides { display: flex; flex-direction: column; align-items: center; gap: 3rem; max-width: 900px; margin: 1.8rem auto 0; }
-  .side { width: 100%; max-width: 380px; }
+  .side { width: 100%; max-width: 380px; position: relative; }
   @media (min-width: 640px) {
     .sides { flex-direction: row; align-items: flex-start; justify-content: center; gap: clamp(2rem, 5vw, 4rem); }
     .side { flex: 1 1 0; }
@@ -669,8 +669,11 @@
   /* Everyone beyond the immediate family lives folded behind a small
      gold plus by a name — hover or tap and their card unfolds right
      there, then tucks away again. The main picture stays the couple's. */
-  .fold { margin: 1.15rem auto 0; width: fit-content; max-width: 100%; }
+  /* the fold floats OVER whatever follows — opening it never pushes
+     the rest of the family down the page */
+  .fold { position: absolute; left: 0; right: 0; margin-top: 0.55rem; z-index: 6; }
   .fold[hidden] { display: none; }
+  .mini-fam, .twig-list { width: fit-content; max-width: 100%; margin: 0 auto; }
   .has-fold { cursor: pointer; transition: transform 0.25s ease; }
   .has-fold:hover { transform: translateY(-2px); }
   .has-fold:focus-visible { outline: 2px solid var(--seal); outline-offset: 4px; border-radius: 10px; }
@@ -684,12 +687,12 @@
 
   /* a sibling's own little family — compact, framed like the invitation */
   .mini-fam { position: relative; padding: 0.95rem 1.15rem 0.85rem; background: var(--card); border-radius: 12px; text-align: center;
-    box-shadow: inset 0 0 0 1px rgba(185,150,104,0.45), 0 8px 20px rgba(90,70,60,0.08); }
+    box-shadow: inset 0 0 0 1px rgba(185,150,104,0.45), 0 14px 30px rgba(90,70,60,0.16); }
   .mini-fam .grp-cap { margin: 0 0 0.7rem; }
 
   /* the extended families — a quiet listing, kept out of the picture */
   .twig-list { position: relative; padding: 0.95rem 1.25rem 0.9rem; background: var(--card); border-radius: 12px; text-align: center;
-    box-shadow: inset 0 0 0 1px rgba(185,150,104,0.45), 0 8px 20px rgba(90,70,60,0.08); }
+    box-shadow: inset 0 0 0 1px rgba(185,150,104,0.45), 0 14px 30px rgba(90,70,60,0.16); }
   /* the inner frame line is painted as ::after so it stays unbroken
      above the caret (a real child would be painted over) */
   .mini-fam::after, .twig-list::after { content: ""; position: absolute; inset: 3px;
@@ -968,9 +971,9 @@
       });
     })();
   </script>
-  <script src="js/tree-data.js?v=22"></script>
-  <script src="js/family-plan.js?v=22"></script>
-  <script src="js/family-tree.js?v=22"></script>
+  <script src="js/tree-data.js?v=23"></script>
+  <script src="js/family-plan.js?v=23"></script>
+  <script src="js/family-tree.js?v=23"></script>
   <script>
     (function () {
       var container = document.getElementById("treeContainer");
@@ -1009,7 +1012,7 @@
       });
     })();
   </script>
-  <script src="js/countdown.js?v=22"></script>
+  <script src="js/countdown.js?v=23"></script>
   <script>
     // Set the wedding date here once it is confirmed, e.g. "2027-06-01T16:00:00+01:00".
     // Empty string = the "date to be confirmed" line stays exactly as it is.
