@@ -9,11 +9,14 @@
 
   // ---------------------------------------------------------------
   // Renders the live database (people / relationships) as one drawn
-  // family tree: the couple "crown" at the top flowing down into two
-  // side columns. Each side shows its immediate family first, then
-  // "boughs" — the households of a parent's brothers & sisters
-  // (sibling_of links) — as their own branch cards, with married
-  // children nesting recursively inside whichever card they grew in.
+  // family tree with the couple large at its heart. The main picture
+  // holds ONLY the two immediate families — each side's parents and
+  // the couple's brothers & sisters. Everyone beyond that stays
+  // folded away behind a small gold plus:
+  //   · a married sibling (Arisha, Tayyibah) unfolds a compact card
+  //     with their own little family
+  //   · a parent with siblings (Sheine) unfolds a quiet text listing
+  //     of those families — no seals, they stay out of the picture
   // Pure planning lives in planSide() so node tests can cover it.
   // ---------------------------------------------------------------
 
@@ -67,8 +70,8 @@
   }
 
   // The crown couple is the one married pair that bridges both sides —
-  // they get the large avatars up top, and (per the approved design)
-  // ALSO appear as ordinary small avatars in their own side's sibling row.
+  // they get the large avatars up top, and ALSO appear as ordinary
+  // small avatars in their own side's sibling row.
   function findCrownCouple(relationships, byId) {
     var found = null;
     relationships.some(function (r) {
@@ -108,7 +111,7 @@
 
     // A root is a person with no recorded parents on this side, who isn't
     // simply the married-in spouse of someone who does have parents here
-    // (that person belongs in a nested card under their spouse instead).
+    // (that person belongs folded under their spouse instead).
     function isRoot(id) {
       if (parentsOnSide(id).length) { return false; }
       var s = spouseOnSide(id);
@@ -218,35 +221,22 @@
     return wrap;
   }
 
-  function drawnPaths(className, viewBox, ds) {
+  function buildFlowLink() {
     var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("class", className);
-    svg.setAttribute("viewBox", viewBox);
+    svg.setAttribute("class", "flow-link rv-draw");
+    svg.setAttribute("viewBox", "0 0 120 56");
     svg.setAttribute("preserveAspectRatio", "none");
     svg.setAttribute("aria-hidden", "true");
-    ds.forEach(function (d) {
+    [
+      "M60 2 C 60 20, 58 24, 40 32 C 22 40, 14 44, 6 54",
+      "M60 2 C 60 20, 62 24, 80 32 C 98 40, 106 44, 114 54"
+    ].forEach(function (d) {
       var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
       path.setAttribute("d", d);
       path.setAttribute("pathLength", "100");
       svg.appendChild(path);
     });
     return svg;
-  }
-
-  function buildFlowLink() {
-    return drawnPaths("flow-link rv-draw", "0 0 120 56", [
-      "M60 2 C 60 20, 58 24, 40 32 C 22 40, 14 44, 6 54",
-      "M60 2 C 60 20, 62 24, 80 32 C 98 40, 106 44, 114 54"
-    ]);
-  }
-
-  // a small bough that carries the family column down into the branch cards
-  function buildBoughLink() {
-    return drawnPaths("bough-link rv-draw", "0 0 120 40", [
-      "M60 2 C 60 16, 60 26, 60 38",
-      "M60 13 C 53 14.5, 47 13.5, 41 9",
-      "M60 23 C 67 24.5, 73 23.5, 79 19"
-    ]);
   }
 
   function buildPNode(person) {
@@ -256,14 +246,15 @@
     return node;
   }
 
+  function kidStar() {
+    return svgUse("kid-star", "0 0 24 24", "#star-shape");
+  }
+
   function buildKNode(person, crown) {
     var node = makeEl("div", "k-node");
     node.appendChild(avatarNode(person, "small"));
     var name = makeEl("p", "node-name", person.name);
-    if (person.is_kid) {
-      var star = svgUse("kid-star", "0 0 24 24", "#star-shape");
-      name.appendChild(star);
-    }
+    if (person.is_kid) { name.appendChild(kidStar()); }
     if (crown && (person.id === crown.a.id || person.id === crown.b.id)) {
       name.appendChild(makeEl("span", "tag", SIDE_TAGS[person.side] || ""));
     }
@@ -277,23 +268,31 @@
     return stem;
   }
 
-  // The extended family stays out of the picture until someone asks for
-  // it: the anchor (e.g. Sheine) becomes a quiet toggle — hover, tap or
-  // keyboard — that lets her brothers & sisters bloom out below.
-  function attachBoughsToggle(node, wrap, anchorName) {
-    node.classList.add("has-boughs");
+  function coupleCaption(members) {
+    return members.map(function (m) { return m.name; }).join(" & ");
+  }
+
+  var foldSeq = 0;
+
+  // A small gold plus by someone's name that unfolds a tucked-away
+  // card just beneath their row — hover, tap or keyboard.
+  function attachFoldToggle(node, wrap, label) {
+    foldSeq++;
+    wrap.id = wrap.id || ("fold-" + foldSeq);
+    node.classList.add("has-fold");
     node.setAttribute("role", "button");
     node.setAttribute("tabindex", "0");
     node.setAttribute("aria-expanded", "false");
     node.setAttribute("aria-controls", wrap.id);
-    node.setAttribute("aria-label", anchorName + "’s brothers & sisters — tap to show them");
-    node.setAttribute("title", "meet " + anchorName + "’s brothers & sisters");
+    node.setAttribute("aria-label", label + " — tap to show");
+    node.setAttribute("title", label);
     var name = node.querySelector(".node-name");
-    if (name) { name.appendChild(svgUse("anchor-sprig", "0 0 32 32", "#sprig-shape")); }
+    if (name) { name.appendChild(svgUse("plus-mark", "0 0 24 24", "#plus-shape")); }
+
     function bloom() {
       var parts = wrap.querySelectorAll(".rv, .rv-draw");
       for (var i = 0; i < parts.length; i++) {
-        parts[i].style.transitionDelay = Math.min(i * 70, 600) + "ms";
+        parts[i].style.transitionDelay = Math.min(i * 70, 400) + "ms";
         parts[i].classList.add("in");
       }
     }
@@ -311,18 +310,22 @@
         }
       }
     }
-    node.addEventListener("click", function () { setOpen(wrap.hidden); });
+    // on desktop, hovering opens the fold; the click that naturally
+    // follows within a beat must not immediately close it again
+    var hoverOpenedAt = 0;
+    node.addEventListener("click", function () {
+      if (!wrap.hidden && Date.now() - hoverOpenedAt < 600) { return; }
+      setOpen(wrap.hidden);
+    });
     node.addEventListener("keydown", function (e) {
       if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
         e.preventDefault();
         setOpen(wrap.hidden);
       }
     });
-    node.addEventListener("mouseenter", function () { if (wrap.hidden) { setOpen(true); } });
-  }
-
-  function coupleCaption(members) {
-    return members.map(function (m) { return m.name; }).join(" & ");
+    node.addEventListener("mouseenter", function () {
+      if (wrap.hidden) { hoverOpenedAt = Date.now(); setOpen(true); }
+    });
   }
 
   function renderSide(sideEl, sidePeople, graph, crown, captionText) {
@@ -339,11 +342,7 @@
     function childrenOnSide(id) {
       return graph.childrenOf[id].filter(function (cid) { return sideIds[cid]; }).sort(plan.byOrder);
     }
-
-    // a married child (and/or one with children) sprouts their own
-    // little card below the row, recursing for further generations
-    function appendNested(parentEl, personId, depth) {
-      if (depth > 6) { return; } // guard against unexpected cycles in the data
+    function familyOf(personId) {
       var spouseId = spouseOnSide(personId);
       var kidIds = childrenOnSide(personId).slice();
       if (spouseId) {
@@ -352,20 +351,76 @@
         });
         kidIds.sort(plan.byOrder);
       }
-      if (!spouseId && !kidIds.length) { return; }
+      return { spouseId: spouseId, kidIds: kidIds };
+    }
 
+    // an italic one-line note for a further generation inside a fold:
+    // "Abu & Sabiha — Yana ✦"
+    function subLine(personId, depth) {
+      if (depth > 6) { return null; }
+      var fam = familyOf(personId);
+      if (!fam.spouseId && !fam.kidIds.length) { return null; }
       var person = graph.byId[personId];
-      var nested = makeEl("div", "nested rv");
-      nested.appendChild(stemEl("sm"));
-      var capText = person.name + (spouseId ? " & " + graph.byId[spouseId].name : "");
-      nested.appendChild(makeEl("p", "grp-cap sm", capText));
-      var kidsRow = makeEl("div", "kids-row");
-      if (spouseId) { kidsRow.appendChild(buildKNode(graph.byId[spouseId], crown)); }
-      kidIds.forEach(function (cid) { kidsRow.appendChild(buildKNode(graph.byId[cid], crown)); });
-      nested.appendChild(kidsRow);
-      parentEl.appendChild(nested);
+      var line = makeEl("p", "fold-sub rv");
+      var lead = person.name + (fam.spouseId ? " & " + graph.byId[fam.spouseId].name : "");
+      line.appendChild(document.createTextNode(lead + (fam.kidIds.length ? " — " : "")));
+      fam.kidIds.forEach(function (cid, i) {
+        if (i > 0) { line.appendChild(document.createTextNode(" · ")); }
+        line.appendChild(document.createTextNode(graph.byId[cid].name));
+        if (graph.byId[cid].is_kid) { line.appendChild(kidStar()); }
+      });
+      return line;
+    }
 
-      kidIds.forEach(function (cid) { appendNested(nested, cid, depth + 1); });
+    // compact card for a sibling's own family: "Arisha & Amar" and
+    // their little row of seals — matters to the couple, so it keeps seals
+    function buildMiniFam(personId) {
+      var fam = familyOf(personId);
+      if (!fam.spouseId && !fam.kidIds.length) { return null; }
+      var person = graph.byId[personId];
+      var wrap = makeEl("div", "fold");
+      wrap.hidden = true;
+      var card = makeEl("div", "mini-fam rv");
+      card.appendChild(makeEl("p", "grp-cap sm", person.name + (fam.spouseId ? " & " + graph.byId[fam.spouseId].name : "")));
+      var row = makeEl("div", "kids-row");
+      if (fam.spouseId) { row.appendChild(buildKNode(graph.byId[fam.spouseId], crown)); }
+      fam.kidIds.forEach(function (cid) { row.appendChild(buildKNode(graph.byId[cid], crown)); });
+      card.appendChild(row);
+      fam.kidIds.forEach(function (cid) {
+        var sub = subLine(cid, 2);
+        if (sub) { card.appendChild(sub); }
+      });
+      wrap.appendChild(card);
+      return wrap;
+    }
+
+    // quiet text listing of the extended families — deliberately no
+    // seals: they stay out of the picture
+    function buildTwigList(boughs) {
+      var wrap = makeEl("div", "fold");
+      wrap.hidden = true;
+      var card = makeEl("div", "twig-list rv");
+      boughs.forEach(function (bough) {
+        var twig = makeEl("div", "twig rv");
+        twig.appendChild(makeEl("p", "twig-cap", coupleCaption(bough.members)));
+        var kidIds = plan.childrenOfHousehold(bough.members);
+        if (kidIds.length) {
+          var names = makeEl("p", "twig-names");
+          kidIds.forEach(function (cid, i) {
+            if (i > 0) { names.appendChild(document.createTextNode(" · ")); }
+            names.appendChild(document.createTextNode(graph.byId[cid].name));
+            if (graph.byId[cid].is_kid) { names.appendChild(kidStar()); }
+          });
+          twig.appendChild(names);
+          kidIds.forEach(function (cid) {
+            var sub = subLine(cid, 2);
+            if (sub) { sub.className = "fold-sub"; twig.appendChild(sub); }
+          });
+        }
+        card.appendChild(twig);
+      });
+      wrap.appendChild(card);
+      return wrap;
     }
 
     var memberNodes = {};
@@ -384,10 +439,18 @@
 
       var childIds = plan.childrenOfHousehold(members);
       var kidsRow = makeEl("div", "kids-row rv");
-      childIds.forEach(function (cid) { kidsRow.appendChild(buildKNode(graph.byId[cid], crown)); });
+      var folds = [];
+      childIds.forEach(function (cid) {
+        var node = buildKNode(graph.byId[cid], crown);
+        var fold = buildMiniFam(cid);
+        if (fold) {
+          folds.push(fold);
+          attachFoldToggle(node, fold, graph.byId[cid].name + "’s own family");
+        }
+        kidsRow.appendChild(node);
+      });
       el.appendChild(kidsRow);
-
-      childIds.forEach(function (cid) { appendNested(el, cid, 1); });
+      folds.forEach(function (fold) { el.appendChild(fold); });
     }
 
     var first = true;
@@ -401,35 +464,19 @@
     });
 
     if (plan.boughs.length) {
-      var boughsWrap = makeEl("div", "boughs");
-      boughsWrap.id = "boughs-" + (sidePeople[0] ? sidePeople[0].side : "side");
-      boughsWrap.hidden = true;
-      boughsWrap.appendChild(buildBoughLink());
-      boughsWrap.appendChild(makeEl("p", "bough-cap rv", plan.boughs[0].anchor.name + "’s brothers & sisters"));
-      plan.boughs.forEach(function (bough) {
-        var branch = makeEl("div", "branch rv");
-        var sprig = svgUse("branch-sprig", "0 0 32 32", "#sprig-shape");
-        sprig.removeAttribute("fill");
-        branch.appendChild(sprig);
-        branch.appendChild(makeEl("p", "grp-cap", coupleCaption(bough.members)));
-        var parentsRow = makeEl("div", "parents-row");
-        bough.members.forEach(function (m) { parentsRow.appendChild(buildPNode(m)); });
-        branch.appendChild(parentsRow);
-        var childIds = plan.childrenOfHousehold(bough.members);
-        if (childIds.length) {
-          branch.appendChild(stemEl("sm"));
-          var kidsRow = makeEl("div", "kids-row");
-          childIds.forEach(function (cid) { kidsRow.appendChild(buildKNode(graph.byId[cid], crown)); });
-          branch.appendChild(kidsRow);
-          childIds.forEach(function (cid) { appendNested(branch, cid, 1); });
-        }
-        boughsWrap.appendChild(branch);
-      });
-      sideEl.appendChild(boughsWrap);
-
-      var anchorNode = memberNodes[plan.boughs[0].anchor.id];
-      if (anchorNode) { attachBoughsToggle(anchorNode, boughsWrap, plan.boughs[0].anchor.name); }
-      else { boughsWrap.hidden = false; } // never strand them unreachable
+      var anchor = plan.boughs[0].anchor;
+      var twigs = buildTwigList(plan.boughs);
+      var anchorNode = memberNodes[anchor.id];
+      if (anchorNode) {
+        // the listing unfolds right beneath the parents' row, not at the
+        // bottom of the column
+        var parentsRow = anchorNode.parentNode;
+        parentsRow.parentNode.insertBefore(twigs, parentsRow.nextSibling);
+        attachFoldToggle(anchorNode, twigs, anchor.name + "’s brothers & sisters");
+      } else {
+        sideEl.appendChild(twigs);
+        twigs.hidden = false; // never strand them unreachable
+      }
     }
 
     if (plan.loners.length) {
