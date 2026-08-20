@@ -1,23 +1,23 @@
 (function (root, factory) {
   if (typeof module === "object" && module.exports) {
-    module.exports = factory();
+    module.exports = factory(require("./family-plan.js"));
   } else {
-    root.FamilyTree = factory();
+    root.FamilyTree = factory(root.FamilyPlan);
   }
-})(typeof self !== "undefined" ? self : this, function () {
+})(typeof self !== "undefined" ? self : this, function (FamilyPlan) {
   "use strict";
 
   // ---------------------------------------------------------------
-  // Renders the live database (people / relationships) as one drawn
-  // family tree with the couple large at its heart. The main picture
-  // holds ONLY the two immediate families — each side's parents and
-  // the couple's brothers & sisters. Everyone beyond that stays
-  // folded away behind a small gold plus:
+  // Renders the live database as one drawn family tree with the
+  // couple large at its heart. The main picture holds ONLY the two
+  // immediate families — each side's parents and the couple's
+  // brothers & sisters. Everyone beyond that stays folded behind a
+  // small gold plus:
   //   · a married sibling (Arisha, Tayyibah) unfolds a compact card
   //     with their own little family
   //   · a parent with siblings (Sheine) unfolds a quiet text listing
   //     of those families — no seals, they stay out of the picture
-  // Pure planning lives in planSide() so node tests can cover it.
+  // Pure planning lives in js/family-plan.js (node-tested).
   // ---------------------------------------------------------------
 
   var TINTS = { saif: "t1", rumaisah: "t2" };
@@ -39,168 +39,21 @@
     return name.trim().charAt(0).toUpperCase();
   }
 
-  function buildGraph(people, relationships) {
-    var byId = {};
-    people.forEach(function (p) { byId[p.id] = p; });
-
-    var parentsOf = {};
-    var childrenOf = {};
-    var spouseOf = {};
-    var siblingsOf = {};
-
-    people.forEach(function (p) {
-      parentsOf[p.id] = []; childrenOf[p.id] = []; siblingsOf[p.id] = [];
-    });
-
-    relationships.forEach(function (r) {
-      if (!byId[r.from_person] || !byId[r.to_person]) { return; }
-      if (r.type === "parent_of") {
-        childrenOf[r.from_person].push(r.to_person);
-        parentsOf[r.to_person].push(r.from_person);
-      } else if (r.type === "spouse_of") {
-        spouseOf[r.from_person] = r.to_person;
-        spouseOf[r.to_person] = r.from_person;
-      } else if (r.type === "sibling_of") {
-        if (siblingsOf[r.from_person].indexOf(r.to_person) === -1) { siblingsOf[r.from_person].push(r.to_person); }
-        if (siblingsOf[r.to_person].indexOf(r.from_person) === -1) { siblingsOf[r.to_person].push(r.from_person); }
-      }
-    });
-
-    return { byId: byId, parentsOf: parentsOf, childrenOf: childrenOf, spouseOf: spouseOf, siblingsOf: siblingsOf };
-  }
-
-  // The crown couple is the one married pair that bridges both sides —
-  // they get the large avatars up top, and ALSO appear as ordinary
-  // small avatars in their own side's sibling row.
-  function findCrownCouple(relationships, byId) {
-    var found = null;
-    relationships.some(function (r) {
-      if (r.type !== "spouse_of") { return false; }
-      var a = byId[r.from_person], b = byId[r.to_person];
-      if (!a || !b || a.side === b.side) { return false; }
-      found = a.side === "saif" ? { a: a, b: b } : { a: b, b: a };
-      return true;
-    });
-    return found;
-  }
-
-  // ---------------------------------------------------------------
-  // planSide — pure layout planning for one side (no DOM).
-  // Returns:
-  //   primary : the household the crown person grew up in (or the
-  //             first household when that can't be determined)
-  //   boughs  : [{ anchor, members }] households whose head is a
-  //             brother/sister of someone in the primary household
-  //   extras  : any other root households (kept as stacked families)
-  //   loners  : people with no recorded relationships at all
-  // Members and children everywhere follow the people[] array order,
-  // so the database's sort_order flows through the whole layout.
-  // ---------------------------------------------------------------
-  function planSide(sidePeople, graph, crownPersonId) {
-    var sideIds = {};
-    var orderIndex = {};
-    sidePeople.forEach(function (p, i) { sideIds[p.id] = true; orderIndex[p.id] = i; });
-
-    function byOrder(a, b) { return orderIndex[a] - orderIndex[b]; }
-    function parentsOnSide(id) { return graph.parentsOf[id].filter(function (pid) { return sideIds[pid]; }); }
-    function spouseOnSide(id) { var s = graph.spouseOf[id]; return (s != null && sideIds[s]) ? s : null; }
-    function hasAnyRelationship(id) {
-      return graph.parentsOf[id].length > 0 || graph.childrenOf[id].length > 0 ||
-        graph.spouseOf[id] != null || graph.siblingsOf[id].length > 0;
-    }
-
-    // A root is a person with no recorded parents on this side, who isn't
-    // simply the married-in spouse of someone who does have parents here
-    // (that person belongs folded under their spouse instead).
-    function isRoot(id) {
-      if (parentsOnSide(id).length) { return false; }
-      var s = spouseOnSide(id);
-      if (s && parentsOnSide(s).length) { return false; }
-      return true;
-    }
-
-    var loners = sidePeople.filter(function (p) { return !hasAnyRelationship(p.id); });
-    var rootPeople = sidePeople.filter(function (p) { return hasAnyRelationship(p.id) && isRoot(p.id); });
-
-    var placed = {};
-    var households = [];
-    rootPeople.forEach(function (p) {
-      if (placed[p.id]) { return; }
-      placed[p.id] = true;
-      var memberIds = [p.id];
-      var s = spouseOnSide(p.id);
-      if (s && !placed[s] && isRoot(s)) {
-        placed[s] = true;
-        memberIds.push(s);
-      }
-      households.push(memberIds.sort(byOrder).map(function (id) { return graph.byId[id]; }));
-    });
-
-    // the crown person's own parents mark the primary household
-    var crownParents = {};
-    if (crownPersonId && sideIds[crownPersonId]) {
-      parentsOnSide(crownPersonId).forEach(function (pid) { crownParents[pid] = true; });
-    }
-    var primary = null;
-    households.some(function (members) {
-      if (members.some(function (m) { return crownParents[m.id]; })) { primary = members; return true; }
-      return false;
-    });
-    if (!primary && households.length) { primary = households[0]; }
-
-    var boughs = [];
-    var extras = [];
-    households.forEach(function (members) {
-      if (members === primary) { return; }
-      var anchor = null;
-      members.some(function (m) {
-        return graph.siblingsOf[m.id].some(function (sid) {
-          if (primary && primary.some(function (pm) { return pm.id === sid; })) {
-            anchor = graph.byId[sid];
-            return true;
-          }
-          return false;
-        });
-      });
-      if (anchor) { boughs.push({ anchor: anchor, members: members }); }
-      else { extras.push(members); }
-    });
-
-    function childrenOfHousehold(members) {
-      var ids = [];
-      var seen = {};
-      members.forEach(function (m) {
-        graph.childrenOf[m.id].forEach(function (cid) {
-          if (sideIds[cid] && !seen[cid]) { seen[cid] = true; ids.push(cid); }
-        });
-      });
-      return ids.sort(byOrder);
-    }
-
-    return {
-      primary: primary,
-      boughs: boughs,
-      extras: extras,
-      loners: loners,
-      childrenOfHousehold: childrenOfHousehold,
-      byOrder: byOrder
-    };
-  }
-
-  // ------------------------- DOM builders -------------------------
-
   function avatarNode(person, sizeClass) {
     var avatar = makeEl("div", "avatar " + sizeClass + " " + (TINTS[person.side] || "t1"), initialsFor(person.name));
     avatar.setAttribute("aria-hidden", "true");
     return avatar;
   }
 
-  function svgUse(className, viewBox, href) {
+  // size is a safety net: an explicit width/height attribute keeps the
+  // glyph sane even if the page's CSS hasn't caught up (stale cache)
+  function svgUse(className, viewBox, href, size) {
     var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("class", className);
     svg.setAttribute("viewBox", viewBox);
     svg.setAttribute("fill", "currentColor");
     svg.setAttribute("aria-hidden", "true");
+    if (size) { svg.setAttribute("width", size); svg.setAttribute("height", size); }
     var use = document.createElementNS("http://www.w3.org/2000/svg", "use");
     use.setAttribute("href", href);
     svg.appendChild(use);
@@ -216,7 +69,7 @@
     pb.appendChild(avatarNode(b, "large"));
     pb.appendChild(makeEl("p", "cn-name", b.name));
     wrap.appendChild(pa);
-    wrap.appendChild(svgUse("cn-heart", "0 0 24 24", "#heart-shape"));
+    wrap.appendChild(svgUse("cn-heart", "0 0 24 24", "#heart-shape", 18));
     wrap.appendChild(pb);
     return wrap;
   }
@@ -247,7 +100,7 @@
   }
 
   function kidStar() {
-    return svgUse("kid-star", "0 0 24 24", "#star-shape");
+    return svgUse("kid-star", "0 0 24 24", "#star-shape", 10);
   }
 
   function buildKNode(person, crown) {
@@ -262,8 +115,8 @@
     return node;
   }
 
-  function stemEl(sizeClass) {
-    var stem = makeEl("div", "stem rv" + (sizeClass ? " " + sizeClass : ""));
+  function stemEl() {
+    var stem = makeEl("div", "stem rv");
     stem.setAttribute("aria-hidden", "true");
     return stem;
   }
@@ -275,7 +128,12 @@
   var foldSeq = 0;
 
   // A small gold plus by someone's name that unfolds a tucked-away
-  // card just beneath their row — hover, tap or keyboard.
+  // card just beneath their row. A mouse hover peeks (it folds away
+  // again when the cursor moves on); a tap, click or Enter pins it
+  // open until the next tap. Touch devices skip the hover peek
+  // entirely — iOS cancels the tap's click when a hover handler
+  // mutates the page, which would leave the fold unpinned.
+  // A little caret on the card points back at its owner.
   function attachFoldToggle(node, wrap, label) {
     foldSeq++;
     wrap.id = wrap.id || ("fold-" + foldSeq);
@@ -284,10 +142,24 @@
     node.setAttribute("tabindex", "0");
     node.setAttribute("aria-expanded", "false");
     node.setAttribute("aria-controls", wrap.id);
-    node.setAttribute("aria-label", label + " — tap to show");
+    node.setAttribute("aria-label", label);
     node.setAttribute("title", label);
     var name = node.querySelector(".node-name");
-    if (name) { name.appendChild(svgUse("plus-mark", "0 0 24 24", "#plus-shape")); }
+    if (name) { name.appendChild(svgUse("plus-mark", "0 0 24 24", "#plus-shape", 13)); }
+
+    var card = wrap.firstChild;
+    var caret = makeEl("span", "fold-caret");
+    caret.setAttribute("aria-hidden", "true");
+    card.appendChild(caret);
+
+    function placeCaret() {
+      var nr = node.getBoundingClientRect();
+      var cr = card.getBoundingClientRect();
+      if (!cr.width) { return; }
+      var x = nr.left + nr.width / 2 - cr.left;
+      x = Math.max(16, Math.min(cr.width - 16, x));
+      card.style.setProperty("--caret-x", x + "px");
+    }
 
     function bloom() {
       var parts = wrap.querySelectorAll(".rv, .rv-draw");
@@ -296,36 +168,71 @@
         parts[i].classList.add("in");
       }
     }
-    function setOpen(open) {
-      wrap.hidden = !open;
-      node.setAttribute("aria-expanded", open ? "true" : "false");
-      if (open && !wrap.getAttribute("data-bloomed")) {
-        wrap.setAttribute("data-bloomed", "1");
-        // double rAF so the browser paints the un-hidden state first,
-        // letting the grow-in transitions actually play
-        if (typeof requestAnimationFrame === "function") {
-          requestAnimationFrame(function () { requestAnimationFrame(bloom); });
-        } else {
-          bloom();
-        }
+
+    var closeTimer = null;
+    function cancelClose() {
+      if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+    }
+    function afterPaint(fn) {
+      if (typeof requestAnimationFrame === "function") {
+        requestAnimationFrame(function () { requestAnimationFrame(fn); });
+      } else {
+        fn();
       }
     }
-    // on desktop, hovering opens the fold; the click that naturally
-    // follows within a beat must not immediately close it again
-    var hoverOpenedAt = 0;
-    node.addEventListener("click", function () {
-      if (!wrap.hidden && Date.now() - hoverOpenedAt < 600) { return; }
-      setOpen(wrap.hidden);
-    });
+    function setOpen(open, pinned) {
+      cancelClose();
+      wrap.hidden = !open;
+      node.setAttribute("aria-expanded", open ? "true" : "false");
+      if (!open) { wrap.removeAttribute("data-pinned"); return; }
+      if (pinned) { wrap.setAttribute("data-pinned", "1"); } else { wrap.removeAttribute("data-pinned"); }
+      // paint the un-hidden state first so the grow-in transitions play,
+      // then aim the caret at the owner
+      afterPaint(function () {
+        if (!wrap.getAttribute("data-bloomed")) { wrap.setAttribute("data-bloomed", "1"); bloom(); }
+        placeCaret();
+      });
+    }
+    function isPinned() { return wrap.getAttribute("data-pinned") === "1"; }
+    function scheduleClose() {
+      if (wrap.hidden || isPinned()) { return; }
+      cancelClose();
+      closeTimer = setTimeout(function () { setOpen(false); }, 380);
+    }
+    // activating an open-but-unpinned (hover-peeked) fold pins it;
+    // click and keyboard must agree on that
+    function activate() {
+      if (wrap.hidden || !isPinned()) { setOpen(true, true); } else { setOpen(false); }
+    }
+
+    node.addEventListener("click", activate);
     node.addEventListener("keydown", function (e) {
       if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
         e.preventDefault();
-        setOpen(wrap.hidden);
+        activate();
       }
     });
-    node.addEventListener("mouseenter", function () {
-      if (wrap.hidden) { hoverOpenedAt = Date.now(); setOpen(true); }
-    });
+
+    // hover peek is mouse-only: on touch the tap goes straight to click
+    var hasPE = typeof window !== "undefined" && "PointerEvent" in window;
+    var enterEv = hasPE ? "pointerenter" : "mouseenter";
+    var leaveEv = hasPE ? "pointerleave" : "mouseleave";
+    function mouseOnly(fn) {
+      return function (e) {
+        if (hasPE && e.pointerType !== "mouse") { return; }
+        fn();
+      };
+    }
+    node.addEventListener(enterEv, mouseOnly(function () {
+      cancelClose();
+      if (wrap.hidden) { setOpen(true, false); }
+    }));
+    node.addEventListener(leaveEv, mouseOnly(scheduleClose));
+    wrap.addEventListener(enterEv, mouseOnly(cancelClose));
+    wrap.addEventListener(leaveEv, mouseOnly(scheduleClose));
+    if (typeof window !== "undefined" && window.addEventListener) {
+      window.addEventListener("resize", function () { if (!wrap.hidden) { placeCaret(); } });
+    }
   }
 
   function renderSide(sideEl, sidePeople, graph, crown, captionText) {
@@ -334,7 +241,7 @@
       crownPersonId = sidePeople.some(function (p) { return p.id === crown.a.id; }) ? crown.a.id
         : sidePeople.some(function (p) { return p.id === crown.b.id; }) ? crown.b.id : null;
     }
-    var plan = planSide(sidePeople, graph, crownPersonId);
+    var plan = FamilyPlan.planSide(sidePeople, graph, crownPersonId);
     var sideIds = {};
     sidePeople.forEach(function (p) { sideIds[p.id] = true; });
 
@@ -434,10 +341,14 @@
         parentsRow.appendChild(node);
       });
       el.appendChild(parentsRow);
+
+      // no children on this side → no stem descending into nothing
+      var childIds = plan.childrenOfHousehold(members);
+      if (!childIds.length) { return; }
+
       el.appendChild(stemEl());
       if (caption) { el.appendChild(makeEl("p", "grp-cap rv", caption)); }
 
-      var childIds = plan.childrenOfHousehold(members);
       var kidsRow = makeEl("div", "kids-row rv");
       var folds = [];
       childIds.forEach(function (cid) {
@@ -463,20 +374,34 @@
       first = false;
     });
 
+    // each parent with sibling households gets their own fold,
+    // listing only their own brothers' & sisters' families
     if (plan.boughs.length) {
-      var anchor = plan.boughs[0].anchor;
-      var twigs = buildTwigList(plan.boughs);
-      var anchorNode = memberNodes[anchor.id];
-      if (anchorNode) {
-        // the listing unfolds right beneath the parents' row, not at the
-        // bottom of the column
-        var parentsRow = anchorNode.parentNode;
-        parentsRow.parentNode.insertBefore(twigs, parentsRow.nextSibling);
-        attachFoldToggle(anchorNode, twigs, anchor.name + "’s brothers & sisters");
-      } else {
-        sideEl.appendChild(twigs);
-        twigs.hidden = false; // never strand them unreachable
-      }
+      var groups = [];
+      var groupByAnchor = {};
+      plan.boughs.forEach(function (bough) {
+        var g = groupByAnchor[bough.anchor.id];
+        if (!g) {
+          g = { anchor: bough.anchor, boughs: [] };
+          groupByAnchor[bough.anchor.id] = g;
+          groups.push(g);
+        }
+        g.boughs.push(bough);
+      });
+      groups.forEach(function (g) {
+        var twigs = buildTwigList(g.boughs);
+        var anchorNode = memberNodes[g.anchor.id];
+        if (anchorNode) {
+          // the listing unfolds right beneath the parents' row, not at
+          // the bottom of the column
+          var parentsRow = anchorNode.parentNode;
+          parentsRow.parentNode.insertBefore(twigs, parentsRow.nextSibling);
+          attachFoldToggle(anchorNode, twigs, g.anchor.name + "’s brothers & sisters");
+        } else {
+          sideEl.appendChild(twigs);
+          twigs.hidden = false; // never strand them unreachable
+        }
+      });
     }
 
     if (plan.loners.length) {
@@ -500,8 +425,8 @@
       return;
     }
 
-    var graph = buildGraph(data.people, data.relationships);
-    var crown = findCrownCouple(data.relationships, graph.byId);
+    var graph = FamilyPlan.buildGraph(data.people, data.relationships);
+    var crown = FamilyPlan.findCrownCouple(data.relationships, graph.byId);
 
     if (crown) {
       container.appendChild(buildCoupleNode(crown.a, crown.b));
@@ -522,5 +447,10 @@
     if (typeof options.onRendered === "function") { options.onRendered(container); }
   }
 
-  return { render: render, buildGraph: buildGraph, findCrownCouple: findCrownCouple, planSide: planSide };
+  return {
+    render: render,
+    buildGraph: FamilyPlan.buildGraph,
+    findCrownCouple: FamilyPlan.findCrownCouple,
+    planSide: FamilyPlan.planSide
+  };
 });

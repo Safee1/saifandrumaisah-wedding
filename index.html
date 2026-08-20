@@ -652,7 +652,6 @@
   /* stems taper in and out of the paper, budding gold where they meet the next generation */
   .stem { width: 1.5px; height: 22px; margin: 0.65rem auto; border-radius: 1px; position: relative;
     background: linear-gradient(180deg, rgba(125,149,181,0.12), var(--line) 32%, var(--line) 72%, rgba(125,149,181,0.2)); }
-  .stem.sm { height: 15px; margin: 0.4rem auto 0.5rem; }
   .stem::after { content: ""; position: absolute; bottom: -2.5px; left: 50%; transform: translateX(-50%);
     width: 5px; height: 5px; border-radius: 50%; background: rgba(185,150,104,0.6); }
 
@@ -660,7 +659,7 @@
   .kids-row { row-gap: 1.15rem; }
 
   .p-node, .k-node { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
-  .node-name { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: clamp(0.84rem, 3.1vw, 0.95rem); letter-spacing: 0.02em; color: var(--ink); white-space: nowrap; line-height: 1.2; }
+  .node-name { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: clamp(0.84rem, 3.1vw, 0.95rem); letter-spacing: 0.02em; color: var(--ink); max-width: 11em; overflow-wrap: anywhere; line-height: 1.2; }
   .kid-star { width: 0.85em; height: 0.85em; color: var(--gold); margin-left: 3px; margin-bottom: -0.06em; display: inline-block; }
   .tag { display: block; font-size: 0.5rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--side); margin-top: 0.2rem; }
 
@@ -677,18 +676,29 @@
   .has-fold:focus-visible { outline: 2px solid var(--seal); outline-offset: 4px; border-radius: 10px; }
   .has-fold .node-name { border-bottom: 1px dotted rgba(185,150,104,0.75); padding-bottom: 1px; }
   .plus-mark { width: 1.05em; height: 1.05em; color: var(--gold); margin-left: 4px; margin-bottom: -0.14em; display: inline-block; transition: transform 0.3s ease; }
-  .plus-mark .pm-ring { fill: rgba(185,150,104,0.14); stroke: currentColor; stroke-width: 1.8; opacity: 0.8; }
-  .plus-mark .pm-cross { fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+  /* bare selectors on purpose: they must match the originals in <defs>
+     to reach through the <use> shadow boundary */
+  .pm-ring { fill: rgba(185,150,104,0.14); stroke: currentColor; stroke-width: 1.8; opacity: 0.8; }
+  .pm-cross { fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
   .has-fold[aria-expanded="true"] .plus-mark { transform: rotate(45deg); }
 
   /* a sibling's own little family — compact, framed like the invitation */
-  .mini-fam { padding: 0.95rem 1.15rem 0.85rem; background: var(--card); border-radius: 12px; text-align: center;
-    box-shadow: inset 0 0 0 1px rgba(185,150,104,0.45), inset 0 0 0 3px var(--card), inset 0 0 0 4px rgba(185,150,104,0.2), 0 8px 20px rgba(90,70,60,0.08); }
+  .mini-fam { position: relative; padding: 0.95rem 1.15rem 0.85rem; background: var(--card); border-radius: 12px; text-align: center;
+    box-shadow: inset 0 0 0 1px rgba(185,150,104,0.45), 0 8px 20px rgba(90,70,60,0.08); }
   .mini-fam .grp-cap { margin: 0 0 0.7rem; }
 
   /* the extended families — a quiet listing, kept out of the picture */
-  .twig-list { padding: 0.95rem 1.25rem 0.9rem; background: var(--card); border-radius: 12px; text-align: center;
-    box-shadow: inset 0 0 0 1px rgba(185,150,104,0.45), inset 0 0 0 3px var(--card), inset 0 0 0 4px rgba(185,150,104,0.2), 0 8px 20px rgba(90,70,60,0.08); }
+  .twig-list { position: relative; padding: 0.95rem 1.25rem 0.9rem; background: var(--card); border-radius: 12px; text-align: center;
+    box-shadow: inset 0 0 0 1px rgba(185,150,104,0.45), 0 8px 20px rgba(90,70,60,0.08); }
+  /* the inner frame line is painted as ::after so it stays unbroken
+     above the caret (a real child would be painted over) */
+  .mini-fam::after, .twig-list::after { content: ""; position: absolute; inset: 3px;
+    border: 1px solid rgba(185,150,104,0.2); border-radius: 9px; pointer-events: none; }
+
+  /* the little caret on a fold card points back at whoever owns it */
+  .fold-caret { position: absolute; top: -5.5px; left: var(--caret-x, 50%); width: 10px; height: 10px; margin-left: -5px;
+    transform: rotate(45deg); background: var(--card);
+    border-left: 1px solid rgba(185,150,104,0.45); border-top: 1px solid rgba(185,150,104,0.45); }
   .twig { margin-top: 0.8rem; }
   .twig:first-child { margin-top: 0; }
   .twig-cap { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; color: var(--side); font-size: 0.92rem; margin: 0 0 0.15rem; }
@@ -703,7 +713,6 @@
   .stem.rv.in { transform: scaleY(1); }
   svg.rv-draw path { stroke-dasharray: 100; stroke-dashoffset: 100; transition: stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1) 0.1s; }
   svg.rv-draw path:nth-child(2) { transition-delay: 0.35s; }
-  svg.rv-draw path:nth-child(3) { transition-delay: 0.5s; }
   svg.rv-draw.in path { stroke-dashoffset: 0; }
 
   .tree-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.7rem; margin: 2.9rem auto 0; }
@@ -730,6 +739,7 @@
     .floral path, .floral circle { stroke-dashoffset: 0; }
     .rv, .stem.rv { opacity: 1 !important; transform: none !important; transition: none !important; }
     svg.rv-draw path { stroke-dasharray: none !important; stroke-dashoffset: 0 !important; transition: none !important; }
+    .has-fold, .plus-mark, .add-link { transition: none !important; }
   }
 </style>
 </head>
@@ -958,8 +968,9 @@
       });
     })();
   </script>
-  <script src="js/tree-data.js"></script>
-  <script src="js/family-tree.js"></script>
+  <script src="js/tree-data.js?v=22"></script>
+  <script src="js/family-plan.js?v=22"></script>
+  <script src="js/family-tree.js?v=22"></script>
   <script>
     (function () {
       var container = document.getElementById("treeContainer");
@@ -998,7 +1009,7 @@
       });
     })();
   </script>
-  <script src="js/countdown.js"></script>
+  <script src="js/countdown.js?v=22"></script>
   <script>
     // Set the wedding date here once it is confirmed, e.g. "2027-06-01T16:00:00+01:00".
     // Empty string = the "date to be confirmed" line stays exactly as it is.
