@@ -581,9 +581,9 @@
 
 
   /* ============================================================
-     Family tree — one drawn tree: the couple's crown flowing down
-     into two family columns, with each parent's brothers & sisters
-     branching off as their own hand-set family cards
+     Family tree — one drawn tree: the couple large at its heart,
+     flowing down into the two immediate families. Everyone beyond
+     stays folded behind a small gold plus by a name.
      ============================================================ */
   .family-section {
     position: relative;
@@ -603,8 +603,8 @@
   /* the couple, heart of the tree */
   .couple-node { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center; gap: clamp(14px, 4vw, 26px); }
   .cn-person { display: flex; flex-direction: column; align-items: center; gap: 0.45rem; }
-  .cn-name { font-family: 'Pinyon Script', cursive; font-size: clamp(1.15rem, 5vw, 1.5rem); color: var(--ink); margin: 0; white-space: nowrap; }
-  .cn-heart { width: clamp(14px, 3.6vw, 18px); height: clamp(14px, 3.6vw, 18px); color: var(--accent); flex-shrink: 0; margin-top: clamp(17px, 5.2vw, 21px); animation: beat 3.4s ease-in-out 1.5s infinite; }
+  .cn-name { font-family: 'Pinyon Script', cursive; font-size: clamp(1.3rem, 5.6vw, 1.7rem); color: var(--ink); margin: 0; white-space: nowrap; }
+  .cn-heart { width: clamp(16px, 4vw, 20px); height: clamp(16px, 4vw, 20px); color: var(--accent); flex-shrink: 0; margin-top: clamp(21px, 6vw, 27px); animation: beat 3.4s ease-in-out 1.5s infinite; }
 
   /* soft curve flowing from the couple down into both families */
   .flow-link { display: block; width: clamp(150px, 42vw, 220px); height: auto; margin: 0.4rem auto 0; overflow: visible; }
@@ -616,7 +616,7 @@
     font-weight: 500; font-family: 'Cormorant Garamond', Georgia, serif; flex-shrink: 0; max-width: 100%;
     box-shadow: var(--av-inset), var(--av-ring, 0 0 0 0 transparent);
   }
-  .avatar.large { width: clamp(50px, 13vw, 62px); height: clamp(50px, 13vw, 62px); font-size: clamp(1.1rem, 4.4vw, 1.4rem); }
+  .avatar.large { width: clamp(58px, 15vw, 74px); height: clamp(58px, 15vw, 74px); font-size: clamp(1.25rem, 5vw, 1.6rem); }
   .avatar.med   { width: clamp(38px, 9vw, 46px);  height: clamp(38px, 9vw, 46px);  font-size: clamp(0.95rem, 3.6vw, 1.1rem); }
   .avatar.small { width: clamp(30px, 7vw, 36px);  height: clamp(30px, 7vw, 36px);  font-size: clamp(0.8rem, 3vw, 0.92rem); }
   .t1 {
@@ -631,8 +631,7 @@
   }
   /* every seal sits on the page with its own fine ring; the crown couple's is gold and doubled */
   .avatar.med, .avatar.small { --av-ring: 0 0 0 2px var(--bg), 0 0 0 2.8px rgba(185,150,104,0.32); }
-  .branch .avatar.med, .branch .avatar.small { --av-ring: 0 0 0 2px var(--card), 0 0 0 2.8px rgba(185,150,104,0.32); }
-  .nested .avatar.small { --av-ring: 0 0 0 2px var(--env), 0 0 0 2.8px rgba(185,150,104,0.32); }
+  .mini-fam .avatar.small, .mini-fam .avatar.med { --av-ring: 0 0 0 2px var(--card), 0 0 0 2.8px rgba(185,150,104,0.32); }
   .avatar.large { --av-ring: 0 0 0 3px var(--card), 0 0 0 4.5px rgba(185,150,104,0.5), 0 8px 18px rgba(90,70,60,0.13); }
   /* neighbouring seals take the light a little differently — kills the stamped-row look */
   .k-node:nth-child(3n+2) .avatar.t1 { background: radial-gradient(115% 115% at 32% 26%, #eef4fa 0%, #dde8f2 58%, #d1deeb 100%); }
@@ -668,41 +667,34 @@
   .grp-cap { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; color: var(--side); font-size: 0.95rem; margin: 0 0 0.95rem; }
   .grp-cap.sm { font-size: 0.88rem; margin: 0 0 0.7rem; }
 
-  /* a married child with their own family nests inside their side, framed like the invitation card */
-  .nested { width: 100%; margin-top: 1.4rem; padding: 1.05rem 0.85rem 0.9rem; background: var(--env); border-radius: 14px;
-    box-shadow: inset 0 0 0 1px rgba(185,150,104,0.4), inset 0 0 0 4px var(--env), inset 0 0 0 5px rgba(185,150,104,0.22); }
-  /* …but inside a branch card it's a quiet partition, not a box within a box */
-  .branch .nested { background: transparent; box-shadow: none; border-radius: 0;
-    border-top: 1px solid rgba(185,150,104,0.32); margin-top: 1.2rem; padding: 1rem 0 0; }
-  .branch .nested .stem { display: none; }
+  /* Everyone beyond the immediate family lives folded behind a small
+     gold plus by a name — hover or tap and their card unfolds right
+     there, then tucks away again. The main picture stays the couple's. */
+  .fold { margin: 1.15rem auto 0; width: fit-content; max-width: 100%; }
+  .fold[hidden] { display: none; }
+  .has-fold { cursor: pointer; transition: transform 0.25s ease; }
+  .has-fold:hover { transform: translateY(-2px); }
+  .has-fold:focus-visible { outline: 2px solid var(--seal); outline-offset: 4px; border-radius: 10px; }
+  .has-fold .node-name { border-bottom: 1px dotted rgba(185,150,104,0.75); padding-bottom: 1px; }
+  .plus-mark { width: 1.05em; height: 1.05em; color: var(--gold); margin-left: 4px; margin-bottom: -0.14em; display: inline-block; transition: transform 0.3s ease; }
+  .plus-mark .pm-ring { fill: rgba(185,150,104,0.14); stroke: currentColor; stroke-width: 1.8; opacity: 0.8; }
+  .plus-mark .pm-cross { fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+  .has-fold[aria-expanded="true"] .plus-mark { transform: rotate(45deg); }
 
-  /* boughs — a parent's brothers & sisters branch off into family cards */
-  .boughs { margin-top: 2.4rem; }
-  .bough-link { display: block; width: 64px; height: 34px; margin: 0 auto; overflow: visible; }
-  .bough-link path { fill: none; stroke: rgba(158,124,68,0.55); stroke-width: 1.4; stroke-linecap: round; }
-  .bough-cap { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; color: var(--side); font-size: 0.98rem; margin: 0.5rem 0 0; }
-  .branch {
-    position: relative;
-    margin: 1.35rem 0 0;
-    padding: 1.25rem 0.85rem 1.05rem;
-    background: var(--card);
-    border-radius: 14px;
-    box-shadow: inset 0 0 0 1px rgba(185,150,104,0.45), inset 0 0 0 4px var(--card), inset 0 0 0 5px rgba(185,150,104,0.22), 0 10px 24px rgba(90,70,60,0.08);
-  }
-  .branch .grp-cap { margin: 0 0 1rem; }
-  .branch-sprig { position: absolute; top: 0.7rem; right: 0.75rem; width: 26px; height: 26px; color: var(--gold); opacity: 0.6; }
-  .sprig-stem { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
-  .sprig-leaf { fill: currentColor; stroke: none; opacity: 0.55; }
+  /* a sibling's own little family — compact, framed like the invitation */
+  .mini-fam { padding: 0.95rem 1.15rem 0.85rem; background: var(--card); border-radius: 12px; text-align: center;
+    box-shadow: inset 0 0 0 1px rgba(185,150,104,0.45), inset 0 0 0 3px var(--card), inset 0 0 0 4px rgba(185,150,104,0.2), 0 8px 20px rgba(90,70,60,0.08); }
+  .mini-fam .grp-cap { margin: 0 0 0.7rem; }
 
-  /* the extended family waits quietly behind the anchor's name —
-     a small gold sprig marks that there is more to meet */
-  .boughs[hidden] { display: none; }
-  .p-node.has-boughs { cursor: pointer; transition: transform 0.25s ease; }
-  .p-node.has-boughs:hover { transform: translateY(-2px); }
-  .p-node.has-boughs:focus-visible { outline: 2px solid var(--seal); outline-offset: 4px; border-radius: 10px; }
-  .p-node.has-boughs .node-name { border-bottom: 1px dotted rgba(185,150,104,0.75); padding-bottom: 1px; }
-  .anchor-sprig { width: 0.9em; height: 0.9em; color: var(--gold); margin-left: 4px; margin-bottom: -0.08em; display: inline-block; transition: transform 0.3s ease; }
-  .p-node.has-boughs[aria-expanded="true"] .anchor-sprig { transform: rotate(-18deg) scale(1.08); }
+  /* the extended families — a quiet listing, kept out of the picture */
+  .twig-list { padding: 0.95rem 1.25rem 0.9rem; background: var(--card); border-radius: 12px; text-align: center;
+    box-shadow: inset 0 0 0 1px rgba(185,150,104,0.45), inset 0 0 0 3px var(--card), inset 0 0 0 4px rgba(185,150,104,0.2), 0 8px 20px rgba(90,70,60,0.08); }
+  .twig { margin-top: 0.8rem; }
+  .twig:first-child { margin-top: 0; }
+  .twig-cap { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; color: var(--side); font-size: 0.92rem; margin: 0 0 0.15rem; }
+  .twig-names { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 0.88rem; color: var(--ink); margin: 0; line-height: 1.5; }
+  .fold-sub { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-size: 0.84rem; color: var(--muted); margin: 0.35rem 0 0; line-height: 1.5; }
+  .twig-names .kid-star, .fold-sub .kid-star { width: 0.7em; height: 0.7em; margin-left: 2px; }
 
   /* the tree grows in as you reach it */
   .rv { opacity: 0; transform: translateY(18px); transition: opacity 0.85s ease, transform 0.85s cubic-bezier(.22,.8,.36,1); }
@@ -760,10 +752,9 @@
       </g>
       <path id="heart-shape" d="M12 21s-7-4.35-9.5-9.27C.92 8.36 2.5 4 6.5 4 9 4 10.5 5.5 12 7.5 13.5 5.5 15 4 17.5 4c4 0 5.58 4.36 4 7.73C19 16.65 12 21 12 21z"/>
       <path id="star-shape" d="M12 3 C 12.7 8.2 13.8 9.3 19 10 C 13.8 10.7 12.7 11.8 12 17 C 11.3 11.8 10.2 10.7 5 10 C 10.2 9.3 11.3 8.2 12 3 Z"/>
-      <g id="sprig-shape">
-        <path class="sprig-stem" d="M5 27 C 11 21, 17 15, 27 5"/>
-        <path class="sprig-leaf" d="M12 20 C 10 15, 11 11, 16 8 C 16.5 13, 15 17, 12 20 Z"/>
-        <path class="sprig-leaf" d="M17 15 C 22 12.5, 26 12.5, 29.5 15.5 C 25 18.5, 20 17.5, 17 15 Z"/>
+      <g id="plus-shape">
+        <circle class="pm-ring" cx="12" cy="12" r="10"/>
+        <path class="pm-cross" d="M12 7.4 L12 16.6 M7.4 12 L16.6 12"/>
       </g>
     </defs>
   </svg>
