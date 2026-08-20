@@ -99,3 +99,29 @@ test("findCrownCouple: finds the pair bridging both sides, saif side first", () 
   assert.equal(crown.a.id, "groom");
   assert.equal(crown.b.id, "bride");
 });
+
+// --- guards against bad approved data (audit follow-ups) ---
+
+test("buildGraph: duplicate parent_of rows are kept once", () => {
+  const graph = FamilyTree.buildGraph(PEOPLE, RELS.concat([
+    { from_person: "uncle", to_person: "cousinA", type: "parent_of" }
+  ]));
+  assert.deepEqual(graph.childrenOf["uncle"], ["cousinA", "cousinB"]);
+  assert.deepEqual(graph.parentsOf["cousinA"], ["uncle"]);
+});
+
+test("buildGraph: a self-referencing row is ignored", () => {
+  const graph = FamilyTree.buildGraph(PEOPLE, RELS.concat([
+    { from_person: "dad", to_person: "dad", type: "parent_of" }
+  ]));
+  assert.deepEqual(graph.parentsOf["dad"], []);
+});
+
+test("planSide: a parent_of cycle degrades to one household instead of a blank side", () => {
+  const cyclic = RELS.concat([{ from_person: "groom", to_person: "dad", type: "parent_of" }]);
+  const graph = FamilyTree.buildGraph(PEOPLE, cyclic);
+  const sidePeople = PEOPLE.filter(p => p.side === "saif");
+  const plan = FamilyTree.planSide(sidePeople, graph, "groom");
+  assert.ok(plan.primary, "side must not go blank");
+  assert.ok(plan.primary.length >= 1);
+});

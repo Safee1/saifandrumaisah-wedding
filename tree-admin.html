@@ -64,7 +64,7 @@
     <div id="list"></div>
   </div>
 
-  <script src="js/tree-data.js"></script>
+  <script src="js/tree-data.js?v=22"></script>
   <script>
     (function () {
       var pw = null;
@@ -100,7 +100,9 @@
 
       function loadPending() {
         list.innerHTML = "<p class=\"empty\">Loading…</p>";
-        TreeData.rpc("admin_list_pending", { pw: pw }).then(render);
+        TreeData.rpc("admin_list_pending", { pw: pw }).then(render).catch(function () {
+          list.innerHTML = "<p class=\"empty\">Couldn&rsquo;t load &mdash; tap Refresh to try again.</p>";
+        });
       }
 
       refreshBtn.addEventListener("click", loadPending);
