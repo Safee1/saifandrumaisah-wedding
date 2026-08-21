@@ -125,3 +125,18 @@ test("planSide: a parent_of cycle degrades to one household instead of a blank s
   assert.ok(plan.primary, "side must not go blank");
   assert.ok(plan.primary.length >= 1);
 });
+
+test("planSide: a cross-married household hangs from BOTH primary anchors", () => {
+  // uncle (mum's brother) marries auntie (dad's sister)
+  const people = PEOPLE.concat([person("auntie", "saif")]);
+  const rels = RELS.concat([
+    { from_person: "auntie", to_person: "uncle", type: "spouse_of" },
+    { from_person: "dad", to_person: "auntie", type: "sibling_of" }
+  ]).filter(r => !(r.from_person === "uncle" && r.type === "spouse_of")); // replace aunt with auntie
+  const graph = FamilyTree.buildGraph(people, rels);
+  const sidePeople = people.filter(p => p.side === "saif");
+  const plan = FamilyTree.planSide(sidePeople, graph, "groom");
+  const cross = plan.boughs.find(b => b.members.some(m => m.id === "auntie"));
+  const anchorIds = cross.anchors.map(a => a.id).sort();
+  assert.deepEqual(anchorIds, ["dad", "mum"]);
+});
