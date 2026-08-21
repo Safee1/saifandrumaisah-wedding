@@ -313,31 +313,54 @@
       return wrap;
     }
 
-    // quiet text listing of the extended families — deliberately no
-    // seals: they stay out of the picture
+    // the extended families as a little tree of their own: each couple
+    // above, a stem, their children below; a further generation (Abu &
+    // Sabiha) becomes its own block; siblings with no recorded family
+    // of their own share one row of seals
+    function appendFamBlock(el, members, kidIds, depth) {
+      if (depth > 4) { return; }
+      var fam = makeEl("div", "tw-fam rv");
+      fam.appendChild(makeEl("p", "twig-cap", coupleCaption(members)));
+      var parentsRow = makeEl("div", "kids-row tw-row");
+      members.forEach(function (m) { parentsRow.appendChild(buildKNode(m, crown)); });
+      fam.appendChild(parentsRow);
+      if (kidIds.length) {
+        var stem = makeEl("div", "stem tw-stem");
+        stem.setAttribute("aria-hidden", "true");
+        fam.appendChild(stem);
+        var kidsRow = makeEl("div", "kids-row tw-row");
+        kidIds.forEach(function (cid) { kidsRow.appendChild(buildKNode(graph.byId[cid], crown)); });
+        fam.appendChild(kidsRow);
+      }
+      el.appendChild(fam);
+      kidIds.forEach(function (cid) {
+        var f = familyOf(cid);
+        if (f.spouseId || f.kidIds.length) {
+          var couple = [graph.byId[cid]];
+          if (f.spouseId) { couple.push(graph.byId[f.spouseId]); }
+          appendFamBlock(el, couple, f.kidIds, depth + 1);
+        }
+      });
+    }
+
     function buildTwigList(boughs) {
       var wrap = makeEl("div", "fold");
       wrap.hidden = true;
       var card = makeEl("div", "twig-list rv");
+      var singles = [];
       boughs.forEach(function (bough) {
-        var twig = makeEl("div", "twig rv");
-        twig.appendChild(makeEl("p", "twig-cap", coupleCaption(bough.members)));
         var kidIds = plan.childrenOfHousehold(bough.members);
-        if (kidIds.length) {
-          var names = makeEl("p", "twig-names");
-          kidIds.forEach(function (cid, i) {
-            if (i > 0) { names.appendChild(document.createTextNode(" · ")); }
-            names.appendChild(document.createTextNode(graph.byId[cid].name));
-            if (graph.byId[cid].is_kid) { names.appendChild(kidStar()); }
-          });
-          twig.appendChild(names);
-          kidIds.forEach(function (cid) {
-            var sub = subLine(cid, 2);
-            if (sub) { sub.className = "fold-sub"; twig.appendChild(sub); }
-          });
+        if (bough.members.length === 1 && !kidIds.length) {
+          singles.push(bough.members[0]);
+          return;
         }
-        card.appendChild(twig);
+        appendFamBlock(card, bough.members, kidIds, 1);
       });
+      if (singles.length) {
+        var row = makeEl("div", "kids-row tw-row tw-singles rv");
+        singles.forEach(function (p) { row.appendChild(buildKNode(p, crown)); });
+        card.appendChild(row);
+      }
       wrap.appendChild(card);
       return wrap;
     }
