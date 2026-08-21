@@ -131,21 +131,23 @@
     });
     if (!primary && households.length) { primary = households[0]; }
 
+    // a household may hang from MORE than one primary member — a
+    // cross-marriage (mum's brother married dad's sister) belongs in
+    // both parents' folds
     var boughs = [];
     var extras = [];
     households.forEach(function (members) {
       if (members === primary) { return; }
-      var anchor = null;
-      members.some(function (m) {
-        return graph.siblingsOf[m.id].some(function (sid) {
-          if (primary && primary.some(function (pm) { return pm.id === sid; })) {
-            anchor = graph.byId[sid];
-            return true;
+      var anchors = [];
+      members.forEach(function (m) {
+        graph.siblingsOf[m.id].forEach(function (sid) {
+          if (primary && primary.some(function (pm) { return pm.id === sid; }) &&
+              !anchors.some(function (a) { return a.id === sid; })) {
+            anchors.push(graph.byId[sid]);
           }
-          return false;
         });
       });
-      if (anchor) { boughs.push({ anchor: anchor, members: members }); }
+      if (anchors.length) { boughs.push({ anchor: anchors[0], anchors: anchors, members: members }); }
       else { extras.push(members); }
     });
 

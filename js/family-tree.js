@@ -409,19 +409,21 @@
       first = false;
     });
 
-    // each parent with sibling households gets their own fold,
-    // listing only their own brothers' & sisters' families
+    // each parent with sibling households gets their own fold; a
+    // cross-married household appears in every anchor's fold
     if (plan.boughs.length) {
       var groups = [];
       var groupByAnchor = {};
       plan.boughs.forEach(function (bough) {
-        var g = groupByAnchor[bough.anchor.id];
-        if (!g) {
-          g = { anchor: bough.anchor, boughs: [] };
-          groupByAnchor[bough.anchor.id] = g;
-          groups.push(g);
-        }
-        g.boughs.push(bough);
+        (bough.anchors || [bough.anchor]).forEach(function (anchor) {
+          var g = groupByAnchor[anchor.id];
+          if (!g) {
+            g = { anchor: anchor, boughs: [] };
+            groupByAnchor[anchor.id] = g;
+            groups.push(g);
+          }
+          g.boughs.push(bough);
+        });
       });
       groups.forEach(function (g) {
         var twigs = buildTwigList(g.boughs);
