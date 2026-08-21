@@ -313,16 +313,32 @@
       return wrap;
     }
 
+    // Someone cross-married in from the OTHER parent's family (Asma:
+    // Sakhi's wife but Kashif's sister) is clearly labelled with the
+    // family she belongs to, wherever she appears.
+    function crossFamilyTagFor(personId, anchorId) {
+      var owner = null;
+      plan.primary && plan.primary.forEach(function (pm) {
+        if (pm.id !== anchorId && graph.siblingsOf[personId].indexOf(pm.id) !== -1) { owner = pm; }
+      });
+      return owner ? makeEl("span", "tag tag-cross", owner.name + "’s family") : null;
+    }
+
     // the extended families as a little tree of their own: each couple
     // above, a stem, their children below; a further generation (Abu &
     // Sabiha) becomes its own block; siblings with no recorded family
     // of their own share one row of seals
-    function appendFamBlock(el, members, kidIds, depth) {
+    function appendFamBlock(el, members, kidIds, depth, anchorId) {
       if (depth > 4) { return; }
       var fam = makeEl("div", "tw-fam rv");
       fam.appendChild(makeEl("p", "twig-cap", coupleCaption(members)));
       var parentsRow = makeEl("div", "kids-row tw-row");
-      members.forEach(function (m) { parentsRow.appendChild(buildKNode(m, crown)); });
+      members.forEach(function (m) {
+        var node = buildKNode(m, crown);
+        var tag = crossFamilyTagFor(m.id, anchorId);
+        if (tag) { node.querySelector(".node-name").appendChild(tag); }
+        parentsRow.appendChild(node);
+      });
       fam.appendChild(parentsRow);
       if (kidIds.length) {
         var stem = makeEl("div", "stem tw-stem");
@@ -338,12 +354,12 @@
         if (f.spouseId || f.kidIds.length) {
           var couple = [graph.byId[cid]];
           if (f.spouseId) { couple.push(graph.byId[f.spouseId]); }
-          appendFamBlock(el, couple, f.kidIds, depth + 1);
+          appendFamBlock(el, couple, f.kidIds, depth + 1, anchorId);
         }
       });
     }
 
-    function buildTwigList(boughs) {
+    function buildTwigList(boughs, anchorId) {
       var wrap = makeEl("div", "fold");
       wrap.hidden = true;
       var card = makeEl("div", "twig-list rv");
@@ -354,11 +370,16 @@
           singles.push(bough.members[0]);
           return;
         }
-        appendFamBlock(card, bough.members, kidIds, 1);
+        appendFamBlock(card, bough.members, kidIds, 1, anchorId);
       });
       if (singles.length) {
         var row = makeEl("div", "kids-row tw-row tw-singles rv");
-        singles.forEach(function (p) { row.appendChild(buildKNode(p, crown)); });
+        singles.forEach(function (p) {
+          var node = buildKNode(p, crown);
+          var tag = crossFamilyTagFor(p.id, anchorId);
+          if (tag) { node.querySelector(".node-name").appendChild(tag); }
+          row.appendChild(node);
+        });
         card.appendChild(row);
       }
       wrap.appendChild(card);
@@ -426,7 +447,7 @@
         });
       });
       groups.forEach(function (g) {
-        var twigs = buildTwigList(g.boughs);
+        var twigs = buildTwigList(g.boughs, g.anchor.id);
         var anchorNode = memberNodes[g.anchor.id];
         if (anchorNode) {
           // the listing unfolds right beneath the parents' row, not at
