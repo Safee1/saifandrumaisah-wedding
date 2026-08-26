@@ -703,9 +703,13 @@
   .ln-marriage, .ln-spine, .ln-bar, .ln-tick { fill: none; stroke: rgba(185,150,104,0.8); stroke-width: 1.4; stroke-linecap: round; }
   .ln-dot { fill: rgba(185,150,104,0.95); }
   .fu { display: inline-flex; flex-direction: column; align-items: center; vertical-align: top; position: relative; z-index: 1; }
-  .fu-couple { display: flex; align-items: flex-start; justify-content: center; gap: 28px; }
-  .fu-kids { display: flex; flex-wrap: nowrap; align-items: flex-start; justify-content: center; gap: 16px; margin-top: 30px; }
-  .fu-wrap > .fu-kids { flex-wrap: wrap; row-gap: 36px; }
+  .fu-couple { display: flex; align-items: flex-start; justify-content: center; gap: 10px; }
+  .fu-kids { display: flex; flex-wrap: nowrap; align-items: flex-start; justify-content: center; gap: 4px; margin-top: 34px; }
+  .fu-wrap > .fu-kids { flex-wrap: wrap; row-gap: 40px; }
+  /* every person gets the same column, so bars and spines meet in the middle */
+  .chart .k-node { width: 86px; }
+  .chart .p-node { width: 100px; }
+  .chart .node-name { max-width: 100%; }
   .k-node, .p-node { position: relative; z-index: 1; }
   /* seals never get squeezed in a branch row — names wrap by word, not by letter */
   .fu-couple > *, .fu-kids > * { flex-shrink: 0; }
@@ -1163,11 +1167,11 @@
       });
     })();
   </script>
-  <script src="js/tree-data.js?v=30"></script>
-  <script src="js/family-plan.js?v=30"></script>
-  <script src="js/family-lines.js?v=30"></script>
-  <script src="js/family-tree.js?v=30"></script>
-  <script src="js/blessings-data.js?v=30"></script>
+  <script src="js/tree-data.js?v=31"></script>
+  <script src="js/family-plan.js?v=31"></script>
+  <script src="js/family-lines.js?v=31"></script>
+  <script src="js/family-tree.js?v=31"></script>
+  <script src="js/blessings-data.js?v=31"></script>
   <script>
     // shared: content grows in as each part reaches the viewport
     function revealOnScroll(scope) {
@@ -1307,7 +1311,7 @@
       });
     })();
   </script>
-  <script src="js/countdown.js?v=30"></script>
+  <script src="js/countdown.js?v=31"></script>
   <script>
     // Set the wedding date here once it is confirmed, e.g. "2027-06-01T16:00:00+01:00".
     // Empty string = the "date to be confirmed" line stays exactly as it is.

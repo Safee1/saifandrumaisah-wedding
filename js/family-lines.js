@@ -57,40 +57,41 @@
     return c;
   }
 
+  function coupleGeometry(couple, nodes, rootDot, chart) {
+    if (nodes.length === 2) {
+      var a = box(nodes[0].querySelector(".avatar"), chart);
+      var b = box(nodes[1].querySelector(".avatar"), chart);
+      return { a: a, b: b, x: (a.x + a.w + b.x) / 2, y: a.y + a.h / 2 };
+    }
+    if (nodes.length === 1) {
+      var s = box(nodes[0], chart);
+      var av = box(nodes[0].querySelector(".avatar"), chart);
+      return { x: av.cx, y: s.y + s.h };            // below the name
+    }
+    if (rootDot) {
+      var r = box(rootDot, chart);
+      return { x: r.cx, y: r.y + r.h };
+    }
+    return null;
+  }
+
+  function nudge(el, dx) {
+    if (!el) { return; }
+    var cur = parseFloat(el.style.left) || 0;
+    el.style.position = "relative";
+    el.style.left = (cur + dx) + "px";
+  }
+
   function drawUnit(fu, chart, svg) {
     var couple = children(fu, ".fu-couple")[0];
     var kidsEl = children(fu, ".fu-kids")[0];
     if (!couple) { return; }
-
     var nodes = children(couple, ".k-node, .p-node");
     var rootDot = children(couple, ".fu-rootdot")[0];
-    var startX, startY;
+    var g = coupleGeometry(couple, nodes, rootDot, chart);
+    if (!g) { return; }
 
-    if (nodes.length === 2) {
-      var a = box(nodes[0].querySelector(".avatar"), chart);
-      var b = box(nodes[1].querySelector(".avatar"), chart);
-      var y = a.y + a.h / 2;
-      // marriage line between the two seals
-      svg.appendChild(path("M" + (a.x + a.w) + " " + y + " L" + b.x + " " + y, "ln-marriage"));
-      startX = (a.x + a.w + b.x) / 2;
-      startY = y;
-    } else if (nodes.length === 1) {
-      var s = box(nodes[0], chart);
-      var av = box(nodes[0].querySelector(".avatar"), chart);
-      startX = av.cx;
-      startY = s.y + s.h;      // below the name
-    } else if (rootDot) {
-      var r = box(rootDot, chart);
-      startX = r.cx;
-      startY = r.y + r.h;
-    } else {
-      return;
-    }
-
-    if (!kidsEl) { return; }
-    var kids = children(kidsEl, ".k-node, .fu");
-    if (!kids.length) { return; }
-
+    var kids = kidsEl ? children(kidsEl, ".k-node, .fu") : [];
     // group children into rows (a wrapped row of many siblings)
     var rows = [];
     kids.forEach(function (k) {
@@ -106,12 +107,29 @@
     });
     rows.sort(function (p, q) { return p.top - q.top; });
 
-    var prevY = startY;
+    // the couple sits exactly over the middle of their children's bar
+    if (rows.length) {
+      var first = rows[0];
+      var barMid = (Math.min.apply(null, first.xs) + Math.max.apply(null, first.xs)) / 2;
+      var dx = barMid - g.x;
+      if (Math.abs(dx) > 0.5) {
+        nudge(couple, dx);
+        nudge(children(fu, ".fu-cap")[0], dx);
+        g = coupleGeometry(couple, nodes, rootDot, chart);
+      }
+    }
+
+    if (g.a && g.b) {
+      // marriage line between the two seals
+      svg.appendChild(path("M" + (g.a.x + g.a.w) + " " + g.y + " L" + g.b.x + " " + g.y, "ln-marriage"));
+    }
+    if (!rows.length) { return; }
+
+    var startX = g.x, prevY = g.y;
     rows.forEach(function (row) {
       var barY = row.top - BAR_GAP;
       var minX = Math.min.apply(null, row.xs.concat([startX]));
       var maxX = Math.max.apply(null, row.xs.concat([startX]));
-      // spine down to this row's bar (behind any seals it passes)
       svg.appendChild(path("M" + startX + " " + prevY + " L" + startX + " " + barY, "ln-spine"));
       if (row.xs.length > 1 || Math.abs(row.xs[0] - startX) > 1) {
         svg.appendChild(path("M" + minX + " " + barY + " L" + maxX + " " + barY, "ln-bar"));
@@ -138,9 +156,10 @@
     svg.setAttribute("width", w);
     svg.setAttribute("height", h);
     svg.setAttribute("viewBox", "0 0 " + w + " " + h);
+    // deepest families first, so a nested couple has settled over its
+    // own children before its parents' bar is measured through it
     var units = chart.querySelectorAll(".fu");
-    for (var i = 0; i < units.length; i++) {
-      // a hidden unit (folded dup) has no boxes to measure
+    for (var i = units.length - 1; i >= 0; i--) {
       if (units[i].offsetWidth) { drawUnit(units[i], chart, svg); }
     }
   }
