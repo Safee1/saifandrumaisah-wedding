@@ -664,7 +664,7 @@
   .node-name { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: clamp(0.84rem, 3.1vw, 0.95rem); letter-spacing: 0.02em; color: var(--ink); max-width: 11em; overflow-wrap: anywhere; line-height: 1.2; }
   .kid-star { width: 0.85em; height: 0.85em; color: var(--gold); margin-left: 3px; margin-bottom: -0.06em; display: inline-block; }
   .tag { display: block; font-size: 0.5rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--side); margin-top: 0.2rem; }
-  .tag-rel { color: var(--gold); letter-spacing: 0.14em; margin-top: 0.25rem; }
+  .tag-rel { color: #7d5f2a; letter-spacing: 0.14em; margin-top: 0.25rem; }
 
   .grp-cap { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; color: var(--side); font-size: 0.95rem; margin: 0 0 0.95rem; }
   .grp-cap.sm { font-size: 0.88rem; margin: 0 0 0.7rem; }
@@ -676,6 +676,21 @@
      the rest of the family down the page */
   .fold { position: absolute; left: 0; right: 0; margin-top: 0.55rem; z-index: 6; }
   .fold[hidden] { display: none; }
+  .add-link[hidden] { display: none; }
+  /* "see the whole family": folds sit inline in the tree instead of floating */
+  .tree-full .fold { position: static; width: 100%; margin: 1.1rem auto 0; z-index: auto; }
+  .tree-full .fold-caret { display: none; }
+  .tree-full .mini-fam, .tree-full .twig-list { box-shadow: inset 0 0 0 1px rgba(185,150,104,0.45), 0 6px 16px rgba(90,70,60,0.06); }
+  .tree-full .twig-list { width: 100%; }
+  /* in the whole-family view the couple's own generation comes first;
+     each parent's brothers & sisters follow beneath, titled */
+  .tree-full .side { display: flex; flex-direction: column; align-items: center; }
+  .tree-full .side > * { max-width: 100%; }
+  .tree-full .fold-twigs { order: 10; margin-top: 2.2rem; }
+  .tw-title, .tw-xref { display: none; }
+  .tree-full .tw-title { display: block; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 0.78rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--side); font-weight: 500; margin: 0 0 1rem; }
+  .tree-full .tw-dup { display: none; }
+  .tree-full .tw-xref { display: block; font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-size: 0.9rem; color: var(--muted); margin: 0.6rem 0 0; }
   .mini-fam, .twig-list { width: fit-content; max-width: 100%; margin: 0 auto; }
   .has-fold { cursor: pointer; transition: transform 0.25s ease; }
   .has-fold:hover { transform: translateY(-2px); }
@@ -707,8 +722,8 @@
     border-left: 1px solid rgba(185,150,104,0.45); border-top: 1px solid rgba(185,150,104,0.45); }
   .twig-cap { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; color: var(--side); font-size: 0.92rem; margin: 0 0 0.55rem; }
   .tw-fam { margin-top: 1rem; }
-  .tw-fam:first-child { margin-top: 0; }
-  .tw-fam + .tw-fam, .tw-fam + .tw-singles, .tw-singles + .tw-fam { border-top: 1px solid rgba(185,150,104,0.22); padding-top: 0.9rem; margin-top: 1rem; }
+  .tw-fam:first-child, .tw-title + .tw-fam { margin-top: 0; }
+  .tw-fam + .tw-fam, .tw-xref + .tw-fam, .tw-fam + .tw-singles, .tw-xref + .tw-singles, .tw-singles + .tw-fam { border-top: 1px solid rgba(185,150,104,0.22); padding-top: 0.9rem; margin-top: 1rem; }
   .tw-row { row-gap: 1rem; }
   .tw-stem { height: 13px; margin: 0.4rem auto; }
   .fold-sub { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-size: 0.84rem; color: var(--muted); margin: 0.35rem 0 0; line-height: 1.5; }
@@ -731,6 +746,7 @@
     background: var(--card); box-shadow: 0 4px 12px rgba(90,70,60,0.07);
     transition: color 0.25s ease, border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
   }
+  button.add-link { cursor: pointer; line-height: normal; }
   .add-link:hover { color: var(--seal); border-color: var(--seal); transform: translateY(-2px); box-shadow: 0 8px 18px rgba(90,70,60,0.12); }
   .add-link:focus-visible { outline: 2px solid var(--seal); outline-offset: 3px; }
 
@@ -1000,8 +1016,9 @@
       <p class="status">gathering the family&hellip;</p>
     </div>
 
-    <p class="legend"><svg class="kid-star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><use href="#star-shape"></use></svg> the little ones &nbsp;&middot;&nbsp; navy for Saif's side, gold for Rumaisah's</p>
+    <p class="legend"><svg class="kid-star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><use href="#star-shape"></use></svg> the little ones &nbsp;&middot;&nbsp; navy for Saif's side, gold for Rumaisah's &nbsp;&middot;&nbsp; <svg class="plus-mark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><use href="#plus-shape"></use></svg> tap a name to meet their family</p>
     <div class="tree-actions">
+      <button type="button" class="add-link" id="viewToggle" hidden>see the whole family</button>
       <a class="add-link" href="add-to-tree.html">+ add someone to the tree</a>
       <a class="add-link" href="rsvp.html">+ RSVP</a>
     </div>
@@ -1075,10 +1092,10 @@
       });
     })();
   </script>
-  <script src="js/tree-data.js?v=27"></script>
-  <script src="js/family-plan.js?v=27"></script>
-  <script src="js/family-tree.js?v=27"></script>
-  <script src="js/blessings-data.js?v=27"></script>
+  <script src="js/tree-data.js?v=28"></script>
+  <script src="js/family-plan.js?v=28"></script>
+  <script src="js/family-tree.js?v=28"></script>
+  <script src="js/blessings-data.js?v=28"></script>
   <script>
     // shared: content grows in as each part reaches the viewport
     function revealOnScroll(scope) {
@@ -1106,6 +1123,17 @@
         FamilyTree.render(container, data, {
           captions: { saif: "brothers & sisters", rumaisah: "sisters" },
           onRendered: revealOnScroll
+        });
+        var toggle = document.getElementById("viewToggle");
+        toggle.hidden = !container.querySelector(".fold");
+        var full = false;
+        toggle.addEventListener("click", function () {
+          full = !full;
+          FamilyTree.setFullView(container, full);
+          toggle.textContent = full ? "back to the picture" : "see the whole family";
+          // bring the top of the tree back into view either way
+          var calm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          container.scrollIntoView({ block: "start", behavior: calm ? "auto" : "smooth" });
         });
       }).catch(function () {
         container.textContent = "";
@@ -1205,7 +1233,7 @@
       });
     })();
   </script>
-  <script src="js/countdown.js?v=27"></script>
+  <script src="js/countdown.js?v=28"></script>
   <script>
     // Set the wedding date here once it is confirmed, e.g. "2027-06-01T16:00:00+01:00".
     // Empty string = the "date to be confirmed" line stays exactly as it is.
