@@ -103,17 +103,16 @@
     return svgUse("kid-star", "0 0 24 24", "#star-shape", 10);
   }
 
-  // asChild: someone shown beneath their parents' stem — the stem already
-  // says whose they are, so no kinship tag (and no one is singled out)
-  function buildKNode(person, crown, asChild) {
+  // everyone beyond the immediate family wears their kinship, children
+  // included — worded the same way for all of them (Saif's ruling)
+  function buildKNode(person, crown) {
     var node = makeEl("div", "k-node");
     node.appendChild(avatarNode(person, "small"));
     var name = makeEl("p", "node-name", person.name);
     if (person.is_kid) { name.appendChild(kidStar()); }
     if (crown && (person.id === crown.a.id || person.id === crown.b.id)) {
       name.appendChild(makeEl("span", "tag", SIDE_TAGS[person.side] || ""));
-    } else if (person.relation && !asChild) {
-      // everyone beyond the immediate family wears their kinship
+    } else if (person.relation) {
       name.appendChild(makeEl("span", "tag tag-rel", person.relation));
     }
     node.appendChild(name);
@@ -313,7 +312,7 @@
       card.appendChild(makeEl("p", "grp-cap sm", person.name + (fam.spouseId ? " & " + graph.byId[fam.spouseId].name : "")));
       var row = makeEl("div", "kids-row");
       if (fam.spouseId) { row.appendChild(buildKNode(graph.byId[fam.spouseId], crown)); }
-      fam.kidIds.forEach(function (cid) { row.appendChild(buildKNode(graph.byId[cid], crown, true)); });
+      fam.kidIds.forEach(function (cid) { row.appendChild(buildKNode(graph.byId[cid], crown)); });
       card.appendChild(row);
       fam.kidIds.forEach(function (cid) {
         var sub = subLine(cid, 2);
@@ -339,7 +338,7 @@
         stem.setAttribute("aria-hidden", "true");
         fam.appendChild(stem);
         var kidsRow = makeEl("div", "kids-row tw-row");
-        kidIds.forEach(function (cid) { kidsRow.appendChild(buildKNode(graph.byId[cid], crown, true)); });
+        kidIds.forEach(function (cid) { kidsRow.appendChild(buildKNode(graph.byId[cid], crown)); });
         fam.appendChild(kidsRow);
       }
       el.appendChild(fam);
