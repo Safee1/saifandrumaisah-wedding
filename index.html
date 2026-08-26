@@ -633,7 +633,6 @@
   }
   /* every seal sits on the page with its own fine ring; the crown couple's is gold and doubled */
   .avatar.med, .avatar.small { --av-ring: 0 0 0 2px var(--bg), 0 0 0 2.8px rgba(185,150,104,0.32); }
-  .mini-fam .avatar.small, .mini-fam .avatar.med { --av-ring: 0 0 0 2px var(--card), 0 0 0 2.8px rgba(185,150,104,0.32); }
   .avatar.large { --av-ring: 0 0 0 3px var(--card), 0 0 0 4.5px rgba(185,150,104,0.5), 0 8px 18px rgba(90,70,60,0.13); }
   /* neighbouring seals take the light a little differently — kills the stamped-row look */
   .k-node:nth-child(3n+2) .avatar.t1 { background: radial-gradient(115% 115% at 32% 26%, #eef4fa 0%, #dde8f2 58%, #d1deeb 100%); }
@@ -651,13 +650,7 @@
   .side-label { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 0.78rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--side); font-weight: 500; margin: 0 0 1.4rem; }
   .side-label::after { content: ""; display: block; width: 2.6rem; height: 1px; margin: 0.55rem auto 0; background: linear-gradient(90deg, transparent, rgba(185,150,104,0.65), transparent); }
 
-  /* stems taper in and out of the paper, budding gold where they meet the next generation */
-  .stem { width: 1.5px; height: 22px; margin: 0.65rem auto; border-radius: 1px; position: relative;
-    background: linear-gradient(180deg, rgba(125,149,181,0.12), var(--line) 32%, var(--line) 72%, rgba(125,149,181,0.2)); }
-  .stem::after { content: ""; position: absolute; bottom: -2.5px; left: 50%; transform: translateX(-50%);
-    width: 5px; height: 5px; border-radius: 50%; background: rgba(185,150,104,0.6); }
 
-  .parents-row, .kids-row { display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(10px, 3vw, 18px); }
   .kids-row { row-gap: 1.15rem; }
 
   .p-node, .k-node { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
@@ -666,8 +659,6 @@
   .tag { display: block; font-size: 0.5rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--side); margin-top: 0.2rem; }
   .tag-rel { color: #7d5f2a; letter-spacing: 0.14em; margin-top: 0.25rem; }
 
-  .grp-cap { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; color: var(--side); font-size: 0.95rem; margin: 0 0 0.95rem; }
-  .grp-cap.sm { font-size: 0.88rem; margin: 0 0 0.7rem; }
 
   /* Everyone beyond the immediate family lives folded behind a small
      gold plus by a name — hover or tap and their card unfolds right
@@ -680,8 +671,9 @@
   /* "see the whole family": folds sit inline in the tree instead of floating */
   .tree-full .fold { position: static; width: 100%; margin: 1.1rem auto 0; z-index: auto; }
   .tree-full .fold-caret { display: none; }
-  .tree-full .mini-fam, .tree-full .twig-list { box-shadow: inset 0 0 0 1px rgba(185,150,104,0.45), 0 6px 16px rgba(90,70,60,0.06); }
-  .tree-full .twig-list { width: 100%; }
+  .tree-full .fold-card { width: 100%; box-shadow: inset 0 0 0 1px rgba(185,150,104,0.45), 0 6px 16px rgba(90,70,60,0.06); }
+  .tree-full .sides { flex-direction: column; align-items: center; gap: 3.5rem; max-width: 1160px; }
+  .tree-full .side { max-width: 1160px; }
   /* in the whole-family view the couple's own generation comes first;
      each parent's brothers & sisters follow beneath, titled */
   .tree-full .side { display: flex; flex-direction: column; align-items: center; }
@@ -691,7 +683,6 @@
   .tree-full .tw-title { display: block; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 0.78rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--side); font-weight: 500; margin: 0 0 1rem; }
   .tree-full .tw-dup { display: none; }
   .tree-full .tw-xref { display: block; font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-size: 0.9rem; color: var(--muted); margin: 0.6rem 0 0; }
-  .mini-fam, .twig-list { width: fit-content; max-width: 100%; margin: 0 auto; }
   .has-fold { cursor: pointer; transition: transform 0.25s ease; }
   .has-fold:hover { transform: translateY(-2px); }
   .has-fold:focus-visible { outline: 2px solid var(--seal); outline-offset: 4px; border-radius: 10px; }
@@ -703,40 +694,42 @@
   .pm-cross { fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
   .has-fold[aria-expanded="true"] .plus-mark { transform: rotate(45deg); }
 
-  /* a sibling's own little family — compact, framed like the invitation */
-  .mini-fam { position: relative; padding: 0.95rem 1.15rem 0.85rem; background: var(--card); border-radius: 12px; text-align: center;
-    box-shadow: inset 0 0 0 1px rgba(185,150,104,0.45), 0 14px 30px rgba(90,70,60,0.16); }
-  .mini-fam .grp-cap { margin: 0 0 0.7rem; }
+  /* ---- family charts: units of couple -> children, branches drawn by js/family-lines.js ---- */
+  .chart-scroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; text-align: center; padding: 0.25rem 0 0.4rem; max-width: 100%; }
+  .chart-scroll.can-scroll::after { content: "slide to see everyone \2192"; display: block; font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-size: 0.78rem; color: var(--muted); margin-top: 0.4rem; }
+  .chart { position: relative; display: inline-block; vertical-align: top; padding: 0.25rem 0.6rem; }
+  .chart-main { display: block; width: 100%; padding: 0; }
+  svg.lines { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 0; overflow: visible; }
+  .ln-marriage, .ln-spine, .ln-bar, .ln-tick { fill: none; stroke: rgba(185,150,104,0.8); stroke-width: 1.4; stroke-linecap: round; }
+  .ln-dot { fill: rgba(185,150,104,0.95); }
+  .fu { display: inline-flex; flex-direction: column; align-items: center; vertical-align: top; position: relative; z-index: 1; }
+  .fu-couple { display: flex; align-items: flex-start; justify-content: center; gap: 28px; }
+  .fu-kids { display: flex; flex-wrap: nowrap; align-items: flex-start; justify-content: center; gap: 16px; margin-top: 30px; }
+  .fu-wrap > .fu-kids { flex-wrap: wrap; row-gap: 36px; }
+  .k-node, .p-node { position: relative; z-index: 1; }
+  /* seals never get squeezed in a branch row — names wrap by word, not by letter */
+  .fu-couple > *, .fu-kids > * { flex-shrink: 0; }
+  .tag-rel { white-space: normal; max-width: 8.5em; margin-left: auto; margin-right: auto; line-height: 1.35; }
+  .fu-cap { position: relative; z-index: 1; margin: 0.8rem 0 -0.35rem; padding: 0 0.55rem; background: var(--bg); font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; color: var(--side); font-size: 0.95rem; }
+  .fu-rootdot { display: block; width: 8px; height: 8px; border-radius: 50%; background: rgba(185,150,104,0.95); margin: 0 auto 2px; box-shadow: 0 0 0 3px rgba(185,150,104,0.18); }
+  /* the person whose branch this is, highlighted among their own */
+  .avatar.is-anchor { --av-ring: 0 0 0 2px var(--card), 0 0 0 3.5px rgba(185,150,104,0.7), 0 6px 14px rgba(90,70,60,0.12); }
 
-  /* the extended families — a quiet listing, kept out of the picture */
-  .twig-list { position: relative; padding: 0.95rem 1.25rem 0.9rem; background: var(--card); border-radius: 12px; text-align: center;
+  /* the fold card — a sibling's own family, or a parent's whole branch */
+  .fold-card { position: relative; padding: 1rem 0.9rem 0.9rem; background: var(--card); border-radius: 12px; text-align: center; width: fit-content; max-width: 100%; margin: 0 auto;
     box-shadow: inset 0 0 0 1px rgba(185,150,104,0.45), 0 14px 30px rgba(90,70,60,0.16); }
-  /* the inner frame line is painted as ::after so it stays unbroken
-     above the caret (a real child would be painted over) */
-  .mini-fam::after, .twig-list::after { content: ""; position: absolute; inset: 3px;
-    border: 1px solid rgba(185,150,104,0.2); border-radius: 9px; pointer-events: none; }
+  .fold-card::after { content: ""; position: absolute; inset: 3px; border: 1px solid rgba(185,150,104,0.2); border-radius: 9px; pointer-events: none; }
+  .fold-card .fu-cap { background: var(--card); }
 
   /* the little caret on a fold card points back at whoever owns it */
   .fold-caret { position: absolute; top: -5.5px; left: var(--caret-x, 50%); width: 10px; height: 10px; margin-left: -5px;
     transform: rotate(45deg); background: var(--card);
-    border-left: 1px solid rgba(185,150,104,0.45); border-top: 1px solid rgba(185,150,104,0.45); }
-  .twig-cap { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; color: var(--side); font-size: 0.92rem; margin: 0 0 0.55rem; }
-  .tw-fam { margin-top: 1rem; }
-  .tw-fam:first-child, .tw-title + .tw-fam { margin-top: 0; }
-  .tw-fam + .tw-fam, .tw-xref + .tw-fam, .tw-fam + .tw-singles, .tw-xref + .tw-singles, .tw-singles + .tw-fam { border-top: 1px solid rgba(185,150,104,0.22); padding-top: 0.9rem; margin-top: 1rem; }
-  .tw-row { row-gap: 1rem; }
-  .tw-stem { height: 13px; margin: 0.4rem auto; }
-  .fold-sub { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-size: 0.84rem; color: var(--muted); margin: 0.35rem 0 0; line-height: 1.5; }
-  .fold-sub .kid-star { width: 0.7em; height: 0.7em; margin-left: 2px; }
+    border-left: 1px solid rgba(185,150,104,0.45); border-top: 1px solid rgba(185,150,104,0.45); z-index: 2; }
 
-  /* the tree grows in as you reach it */
-  .rv { opacity: 0; transform: translateY(18px); transition: opacity 0.85s ease, transform 0.85s cubic-bezier(.22,.8,.36,1); }
-  .rv.in { opacity: 1; transform: none; }
-  .stem.rv { opacity: 1; transform: scaleY(0); transform-origin: top center; transition: transform 0.9s cubic-bezier(.22,.8,.36,1); }
-  .stem.rv.in { transform: scaleY(1); }
-  svg.rv-draw path { stroke-dasharray: 100; stroke-dashoffset: 100; transition: stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1) 0.1s; }
-  svg.rv-draw path:nth-child(2) { transition-delay: 0.35s; }
-  svg.rv-draw.in path { stroke-dashoffset: 0; }
+  .tw-title, .tw-xref { display: none; }
+  .tree-full .tw-title { display: block; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 0.78rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--side); font-weight: 500; margin: 0 0 0.6rem; }
+  .tree-full .tw-dup { display: none; }
+  .tree-full .tw-xref { display: block; font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-size: 0.9rem; color: var(--muted); margin: 0.6rem 0 0; }
 
   .tree-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.7rem; margin: 2.9rem auto 0; }
   .add-link {
@@ -817,6 +810,38 @@
   .bf-status.err { color: #a1503f; }
   .footer { font-size: 0.75rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); margin: 0; padding: 3rem 1.5rem 3.5rem; font-weight: 400; }
 
+  /* ============================================================
+     A closing moment — the ring, drawn in the site's own hand
+     ============================================================ */
+  .close-section { padding: 3.5rem 1.25rem 1rem; }
+  .moment { display: block; width: min(420px, 92vw); height: auto; margin: 0 auto; }
+  .mo-drape { fill: none; stroke: rgba(125,149,181,0.35); stroke-width: 1.2; }
+  .mo-flowers circle { fill: #fffdf9; stroke: rgba(185,150,104,0.6); stroke-width: 1.2; }
+  .mo-leaf { fill: rgba(125,149,181,0.25); stroke: var(--accent); stroke-width: 1.1; }
+  .mo-kurta { fill: #fbf8f1; stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
+  .mo-waistcoat { fill: #dfe6ee; stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
+  .mo-stroke, .mo-face, .mo-dress-line { fill: none; stroke: var(--ink); stroke-width: 1.3; stroke-linecap: round; }
+  .mo-pocket { fill: #fbf8f1; stroke: var(--ink); stroke-width: 1; }
+  .mo-arm { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-linecap: round; }
+  .mo-skin { fill: #e9c9a8; stroke: var(--ink); stroke-width: 1.4; }
+  .mo-hair { fill: #1f2a3f; stroke: var(--ink); stroke-width: 1.2; }
+  .mo-beard { fill: #2a3448; stroke: none; }
+  .mo-dupatta { fill: #b3373f; stroke: var(--gold); stroke-width: 2.4; stroke-linejoin: round; }
+  .mo-dress { fill: #dfe6ee; stroke: var(--ink); stroke-width: 1.4; stroke-linejoin: round; }
+  .mo-plait { fill: none; stroke: #1f2a3f; stroke-width: 4; stroke-linecap: round; }
+  .mo-gold-line { fill: none; stroke: var(--gold); stroke-width: 1.2; }
+  .mo-ring { fill: none; stroke: var(--gold); stroke-width: 2.4; }
+  .mo-gold { fill: var(--gold); stroke: none; }
+  .mo-necklace { fill: none; stroke: var(--gold); stroke-width: 1.4; stroke-dasharray: 2 3; stroke-linecap: round; }
+  .mo-spark { fill: var(--gold); }
+  .mo-tray { fill: #f3efe6; stroke: var(--gold); stroke-width: 1.4; }
+  .mo-tray-inner { fill: #fffdf9; stroke: rgba(185,150,104,0.4); stroke-width: 0.8; }
+  .mo-tray-text { font-family: 'Pinyon Script', cursive; font-size: 13px; fill: var(--side); }
+  .close-names { font-family: 'Pinyon Script', cursive; font-size: clamp(1.9rem, 7vw, 2.4rem); color: var(--ink); margin: 1rem 0 0; }
+  .close-line { font-style: italic; color: var(--muted); font-size: clamp(0.95rem, 3.8vw, 1.05rem); margin: 0.35rem auto 0; max-width: 30rem; }
+  .moment.rv { transform: translateY(18px) scale(0.98); }
+  .moment.rv.in { transform: none; }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0s !important; }
     .story { display: none; }
@@ -824,7 +849,7 @@
     .divider-line { transform: scaleX(1); }
     .border-svg rect { stroke-dashoffset: 0; }
     .floral path, .floral circle { stroke-dashoffset: 0; }
-    .rv, .stem.rv { opacity: 1 !important; transform: none !important; transition: none !important; }
+    .rv { opacity: 1 !important; transform: none !important; transition: none !important; }
     svg.rv-draw path { stroke-dasharray: none !important; stroke-dashoffset: 0 !important; transition: none !important; }
     .has-fold, .plus-mark, .add-link { transition: none !important; }
   }
@@ -1061,6 +1086,52 @@
     <noscript><p class="status">This page needs JavaScript turned on to show and send blessings.</p></noscript>
   </section>
 
+  <section class="close-section" aria-label="Saif and Rumaisah">
+    <svg class="moment rv" viewBox="0 0 420 320" role="img" aria-label="Saif placing a ring on Rumaisah's finger">
+      <path class="mo-drape" d="M40 0 C 30 90, 60 160, 30 250"/>
+      <path class="mo-drape" d="M120 0 C 110 80, 140 150, 118 250"/>
+      <path class="mo-drape" d="M300 0 C 290 90, 320 160, 296 250"/>
+      <path class="mo-drape" d="M380 0 C 372 80, 400 150, 380 250"/>
+      <g class="mo-flowers">
+        <circle cx="386" cy="34" r="12"/><circle cx="404" cy="58" r="10"/><circle cx="370" cy="62" r="9"/><circle cx="398" cy="18" r="8"/>
+        <path class="mo-leaf" d="M366 40 C 350 36, 342 46, 350 56 C 360 54, 366 48, 366 40 Z"/>
+      </g>
+      <path class="mo-kurta" d="M92 138 C 112 120, 168 120, 188 140 L 200 250 L 84 250 Z"/>
+      <path class="mo-waistcoat" d="M112 132 C 128 124, 154 124, 170 134 L 174 248 L 108 248 Z"/>
+      <path class="mo-stroke" d="M141 134 L 141 248"/>
+      <rect class="mo-pocket" x="148" y="158" width="14" height="6" rx="1"/>
+      <path class="mo-arm" d="M182 150 C 210 168, 218 190, 212 208"/>
+      <path class="mo-skin" d="M204 200 C 214 196, 226 204, 222 214 C 216 220, 206 218, 204 210 Z"/>
+      <circle class="mo-skin" cx="140" cy="98" r="27"/>
+      <path class="mo-hair" d="M113 92 C 108 62, 130 56, 142 62 C 156 54, 174 64, 168 90 C 164 78, 156 74, 148 78 C 140 70, 126 72, 122 84 C 118 86, 114 88, 113 92 Z"/>
+      <path class="mo-beard" d="M118 106 C 122 128, 158 128, 164 106 C 156 122, 128 122, 118 106 Z"/>
+      <path class="mo-face" d="M129 96 C 133 93, 137 93, 140 96"/>
+      <path class="mo-face" d="M148 95 C 152 92, 156 92, 159 95"/>
+      <path class="mo-face" d="M136 110 C 140 114, 148 114, 152 110"/>
+      <path class="mo-dupatta" d="M246 70 C 250 40, 300 34, 318 62 C 340 90, 350 140, 352 170 L 356 252 L 300 252 C 300 210, 292 180, 274 150 C 258 130, 246 100, 246 70 Z"/>
+      <path class="mo-dress" d="M254 152 C 270 138, 320 136, 340 152 L 344 252 L 250 252 Z"/>
+      <path class="mo-dress-line" d="M297 156 L 297 250"/>
+      <circle class="mo-skin" cx="288" cy="102" r="24"/>
+      <path class="mo-hair" d="M266 96 C 264 74, 278 66, 290 68 C 304 66, 314 78, 310 96 C 304 86, 294 84, 288 88 C 282 84, 272 86, 266 96 Z"/>
+      <path class="mo-plait" d="M266 108 C 258 130, 262 160, 258 186"/>
+      <path class="mo-gold-line" d="M288 72 L 288 86"/>
+      <circle class="mo-gold" cx="288" cy="88" r="2.6"/>
+      <path class="mo-necklace" d="M270 134 C 280 142, 296 142, 306 134"/>
+      <path class="mo-face" d="M277 102 C 281 99, 285 99, 288 102"/>
+      <path class="mo-face" d="M292 102 C 296 99, 300 99, 303 102"/>
+      <path class="mo-face" d="M282 113 C 286 116, 292 116, 296 113"/>
+      <path class="mo-arm" d="M258 160 C 240 176, 228 194, 224 210"/>
+      <path class="mo-skin" d="M214 206 C 222 200, 234 204, 232 214 C 228 220, 216 218, 214 210 Z"/>
+      <circle class="mo-ring" cx="217" cy="211" r="5.4"/>
+      <path class="mo-spark" d="M228 190 C 229 196, 231 198, 237 199 C 231 200, 229 202, 228 208 C 227 202, 225 200, 219 199 C 225 198, 227 196, 228 190 Z"/>
+      <ellipse class="mo-tray" cx="210" cy="268" rx="82" ry="17"/>
+      <ellipse class="mo-tray-inner" cx="210" cy="268" rx="70" ry="12"/>
+      <text class="mo-tray-text" x="210" y="272" text-anchor="middle">Saif &amp; Rumaisah</text>
+    </svg>
+    <p class="close-names">Saif &amp; Rumaisah</p>
+    <p class="close-line">two families, one story &mdash; thank you for being part of ours</p>
+  </section>
+
   <p class="footer">more details coming soon</p>
 
   <script>
@@ -1092,10 +1163,11 @@
       });
     })();
   </script>
-  <script src="js/tree-data.js?v=29"></script>
-  <script src="js/family-plan.js?v=29"></script>
-  <script src="js/family-tree.js?v=29"></script>
-  <script src="js/blessings-data.js?v=29"></script>
+  <script src="js/tree-data.js?v=30"></script>
+  <script src="js/family-plan.js?v=30"></script>
+  <script src="js/family-lines.js?v=30"></script>
+  <script src="js/family-tree.js?v=30"></script>
+  <script src="js/blessings-data.js?v=30"></script>
   <script>
     // shared: content grows in as each part reaches the viewport
     function revealOnScroll(scope) {
@@ -1173,6 +1245,8 @@
         return card;
       }
 
+      revealOnScroll(document.querySelector(".close-section"));
+
       BlessingsData.fetchApproved().then(function (rows) {
         wall.textContent = "";
         if (!rows.length) {
@@ -1233,7 +1307,7 @@
       });
     })();
   </script>
-  <script src="js/countdown.js?v=29"></script>
+  <script src="js/countdown.js?v=30"></script>
   <script>
     // Set the wedding date here once it is confirmed, e.g. "2027-06-01T16:00:00+01:00".
     // Empty string = the "date to be confirmed" line stays exactly as it is.
