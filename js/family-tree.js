@@ -31,20 +31,6 @@
     return el;
   }
 
-  function initialsFor(name) {
-    var words = name.trim().split(/\s+/);
-    if (words.length > 1 && words[0] && words[1]) {
-      return (words[0].charAt(0) + words[1].charAt(0)).toUpperCase();
-    }
-    return name.trim().charAt(0).toUpperCase();
-  }
-
-  function avatarNode(person, sizeClass, isAnchor) {
-    var avatar = makeEl("div", "avatar " + sizeClass + " " + (TINTS[person.side] || "t1") + (isAnchor ? " is-anchor" : ""), initialsFor(person.name));
-    avatar.setAttribute("aria-hidden", "true");
-    return avatar;
-  }
-
   // size is a safety net: an explicit width/height attribute keeps the
   // glyph sane even if the page's CSS hasn't caught up (stale cache)
   function svgUse(className, viewBox, href, size) {
@@ -60,47 +46,16 @@
     return svg;
   }
 
-  function buildCoupleNode(a, b) {
-    var wrap = makeEl("div", "couple-node rv");
-    var pa = makeEl("div", "cn-person");
-    pa.appendChild(avatarNode(a, "large"));
-    pa.appendChild(makeEl("p", "cn-name", a.name));
-    var pb = makeEl("div", "cn-person");
-    pb.appendChild(avatarNode(b, "large"));
-    pb.appendChild(makeEl("p", "cn-name", b.name));
-    wrap.appendChild(pa);
-    wrap.appendChild(svgUse("cn-heart", "0 0 24 24", "#heart-shape", 18));
-    wrap.appendChild(pb);
-    return wrap;
-  }
-
-  function buildFlowLink() {
-    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("class", "flow-link rv-draw");
-    svg.setAttribute("viewBox", "0 0 120 56");
-    svg.setAttribute("preserveAspectRatio", "none");
-    svg.setAttribute("aria-hidden", "true");
-    [
-      "M60 2 C 60 20, 58 24, 40 32 C 22 40, 14 44, 6 54",
-      "M60 2 C 60 20, 62 24, 80 32 C 98 40, 106 44, 114 54"
-    ].forEach(function (d) {
-      var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      path.setAttribute("d", d);
-      path.setAttribute("pathLength", "100");
-      svg.appendChild(path);
-    });
-    return svg;
-  }
-
   function kidStar() {
     return svgUse("kid-star", "0 0 24 24", "#star-shape", 10);
   }
 
-  // one person: seal + name (+ little-one star, groom/bride tag, or
-  // their kinship label — everyone beyond the immediate family wears one)
+  // one person: a bordered box carrying their name (+ little-one star,
+  // groom/bride tag, or their kinship label — everyone beyond the
+  // immediate family wears one). big = a parent's box; isAnchor = the
+  // person whose branch this fold belongs to, ringed in gold.
   function buildNode(person, crown, big, isAnchor) {
-    var node = makeEl("div", big ? "p-node" : "k-node");
-    node.appendChild(avatarNode(person, big ? "med" : "small", isAnchor));
+    var node = makeEl("div", (big ? "p-node" : "k-node") + " " + (TINTS[person.side] || "t1") + (isAnchor ? " is-anchor" : ""));
     var name = makeEl("p", "node-name", person.name);
     if (person.is_kid) { name.appendChild(kidStar()); }
     if (crown && (person.id === crown.a.id || person.id === crown.b.id)) {
@@ -110,6 +65,40 @@
     }
     node.appendChild(name);
     return node;
+  }
+
+  // the couple, always the tree's centre: two boxes joined by a marriage
+  // line, larger and gold-bordered to stand apart from everyone else
+  function buildCoupleNode(a, b) {
+    var wrap = makeEl("div", "couple-node rv");
+    var pa = makeEl("div", "cn-person " + (TINTS[a.side] || "t1"));
+    pa.appendChild(makeEl("p", "cn-name", a.name));
+    var pb = makeEl("div", "cn-person " + (TINTS[b.side] || "t1"));
+    pb.appendChild(makeEl("p", "cn-name", b.name));
+    wrap.appendChild(pa);
+    wrap.appendChild(svgUse("cn-heart", "0 0 24 24", "#heart-shape", 18));
+    wrap.appendChild(pb);
+    return wrap;
+  }
+
+  // the couple's box splits into two square branches, one to each
+  // family — a plain right-angle T, matching the tree's own connectors
+  function buildFlowLink() {
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "flow-link rv-draw");
+    svg.setAttribute("viewBox", "0 0 120 56");
+    svg.setAttribute("preserveAspectRatio", "none");
+    svg.setAttribute("aria-hidden", "true");
+    [
+      "M60 2 L60 22 L12 22 L12 54",
+      "M60 2 L60 22 L108 22 L108 54"
+    ].forEach(function (d) {
+      var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", d);
+      path.setAttribute("pathLength", "100");
+      svg.appendChild(path);
+    });
+    return svg;
   }
 
   function coupleCaption(members) {

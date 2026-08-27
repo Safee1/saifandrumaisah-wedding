@@ -16,7 +16,7 @@
   // ---------------------------------------------------------------
 
   var NS = "http://www.w3.org/2000/svg";
-  var BAR_GAP = 12;   // px between the children's bar and their avatars
+  var BAR_GAP = 14;   // px between the children's bar and their boxes
 
   function box(el, chart) {
     var x = 0, y = 0, n = el;
@@ -33,15 +33,14 @@
     return out;
   }
 
-  // the avatar that lines attach to: a node's own seal, or for a
-  // nested family unit, the blood child's seal (first in its couple)
-  function anchorAvatar(el) {
+  // the box a line attaches to: a node is its own box, or for a nested
+  // family unit, the blood child's box (first in its couple)
+  function anchorBox(el) {
     if (el.classList.contains("fu")) {
       var couple = children(el, ".fu-couple")[0];
-      var first = couple ? children(couple, ".k-node, .p-node")[0] : null;
-      return first ? first.querySelector(".avatar") : null;
+      return couple ? children(couple, ".k-node, .p-node")[0] : null;
     }
-    return el.querySelector(".avatar");
+    return el;
   }
 
   function path(d, cls) {
@@ -59,14 +58,13 @@
 
   function coupleGeometry(couple, nodes, rootDot, chart) {
     if (nodes.length === 2) {
-      var a = box(nodes[0].querySelector(".avatar"), chart);
-      var b = box(nodes[1].querySelector(".avatar"), chart);
+      var a = box(nodes[0], chart);
+      var b = box(nodes[1], chart);
       return { a: a, b: b, x: (a.x + a.w + b.x) / 2, y: a.y + a.h / 2 };
     }
     if (nodes.length === 1) {
       var s = box(nodes[0], chart);
-      var av = box(nodes[0].querySelector(".avatar"), chart);
-      return { x: av.cx, y: s.y + s.h };            // below the name
+      return { x: s.cx, y: s.y + s.h };              // below the box
     }
     if (rootDot) {
       var r = box(rootDot, chart);
@@ -96,9 +94,9 @@
     var rows = [];
     kids.forEach(function (k) {
       if (!k.offsetWidth) { return; }   // folded away (e.g. a family shown elsewhere)
-      var av = anchorAvatar(k);
-      if (!av) { return; }
-      var bb = box(av, chart);
+      var ab = anchorBox(k);
+      if (!ab) { return; }
+      var bb = box(ab, chart);
       var top = Math.round(bb.y);
       var row = null;
       for (var i = 0; i < rows.length; i++) { if (Math.abs(rows[i].top - top) < 6) { row = rows[i]; break; } }
