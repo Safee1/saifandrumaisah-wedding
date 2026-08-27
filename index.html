@@ -602,46 +602,43 @@
 
   .family-section .status { font-style: italic; color: var(--muted); font-size: 1rem; }
 
-  /* the couple, heart of the tree */
-  .couple-node { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center; gap: clamp(14px, 4vw, 26px); }
-  .cn-person { display: flex; flex-direction: column; align-items: center; gap: 0.45rem; }
-  .cn-name { font-family: 'Pinyon Script', cursive; font-size: clamp(1.3rem, 5.6vw, 1.7rem); color: var(--ink); margin: 0; white-space: nowrap; }
-  .cn-heart { width: clamp(16px, 4vw, 20px); height: clamp(16px, 4vw, 20px); color: var(--accent); flex-shrink: 0; margin-top: clamp(21px, 6vw, 27px); animation: beat 3.4s ease-in-out 1.5s infinite; }
+  /* the couple, heart of the tree — always the two boxes everything
+     else branches from, so this pair stays visually apart from the
+     plain family-tree boxes below it */
+  .couple-node { display: flex; align-items: center; justify-content: center; gap: clamp(14px, 4vw, 22px); }
+  .cn-person {
+    width: clamp(108px, 26vw, 138px); padding: 0.85rem 0.7rem; text-align: center;
+    background: var(--card); border-radius: 8px; border: 1.5px solid rgba(185,150,104,0.55);
+    box-shadow: 0 8px 20px rgba(90,70,60,0.11);
+  }
+  .cn-person.t2 { border-color: rgba(185,150,104,0.75); }
+  .cn-name { font-family: 'Pinyon Script', cursive; font-size: clamp(1.2rem, 5.2vw, 1.55rem); color: var(--ink); margin: 0; overflow-wrap: anywhere; }
+  .cn-heart { width: clamp(15px, 3.6vw, 18px); height: clamp(15px, 3.6vw, 18px); color: var(--seal); flex-shrink: 0; animation: beat 3.4s ease-in-out 1.5s infinite; }
 
-  /* soft curve flowing from the couple down into both families */
+  /* the couple's box splits into two square branches, one to each family */
   .flow-link { display: block; width: clamp(150px, 42vw, 220px); height: auto; margin: 0.4rem auto 0; overflow: visible; }
-  .flow-link path { fill: none; stroke: var(--line); stroke-width: 1.6; stroke-linecap: round; }
+  .flow-link path { fill: none; stroke: rgba(185,150,104,0.75); stroke-width: 1.5; stroke-linecap: square; }
 
-  /* avatars — engraved seals: inked serif initials, a fine offset ring on card */
-  .avatar {
-    border-radius: 50%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-    font-weight: 500; font-family: 'Cormorant Garamond', Georgia, serif; flex-shrink: 0; max-width: 100%;
-    box-shadow: var(--av-inset), var(--av-ring, 0 0 0 0 transparent);
+  /* every family member is a plain bordered box — a chart, not a
+     portrait gallery — with a fine coloured top edge for which side.
+     Fixed widths so every bar and spine below meets its box dead centre. */
+  .p-node, .k-node {
+    background: var(--card); border: 1px solid rgba(34,48,73,0.22); border-radius: 5px;
+    padding: 0.5rem 0.55rem; text-align: center; box-shadow: 0 2px 6px rgba(90,70,60,0.06);
   }
-  .avatar.large { width: clamp(58px, 15vw, 74px); height: clamp(58px, 15vw, 74px); font-size: clamp(1.25rem, 5vw, 1.6rem); }
-  .avatar.med   { width: clamp(38px, 9vw, 46px);  height: clamp(38px, 9vw, 46px);  font-size: clamp(0.95rem, 3.6vw, 1.1rem); }
-  .avatar.small { width: clamp(30px, 7vw, 36px);  height: clamp(30px, 7vw, 36px);  font-size: clamp(0.8rem, 3vw, 0.92rem); }
-  .t1 {
-    background: radial-gradient(115% 115% at 32% 26%, #eaf1f8 0%, #d7e2ef 58%, #c9d7e8 100%);
-    color: #2c4a73;
-    --av-inset: inset 0 0 0 1px rgba(44,74,115,0.22), inset 0 -2px 4px rgba(44,74,115,0.10);
+  .k-node { width: 84px; }
+  .p-node { width: 102px; padding: 0.6rem 0.65rem; }
+  .t1 { border-top: 3px solid #5b7ba3; }
+  .t2 { border-top: 3px solid var(--gold); }
+  /* the person whose branch this fold belongs to, highlighted among their own */
+  .k-node.is-anchor, .p-node.is-anchor {
+    border-color: var(--gold); border-width: 1.5px;
+    box-shadow: 0 2px 6px rgba(90,70,60,0.06), 0 0 0 3px rgba(185,150,104,0.18);
   }
-  .t2 {
-    background: radial-gradient(115% 115% at 32% 26%, #f8f1de 0%, #eee0c2 58%, #e6d5b0 100%);
-    color: #7d5f2a;
-    --av-inset: inset 0 0 0 1px rgba(158,124,68,0.30), inset 0 -2px 4px rgba(158,124,68,0.12);
-  }
-  /* every seal sits on the page with its own fine ring; the crown couple's is gold and doubled */
-  .avatar.med, .avatar.small { --av-ring: 0 0 0 2px var(--bg), 0 0 0 2.8px rgba(185,150,104,0.32); }
-  .avatar.large { --av-ring: 0 0 0 3px var(--card), 0 0 0 4.5px rgba(185,150,104,0.5), 0 8px 18px rgba(90,70,60,0.13); }
-  /* neighbouring seals take the light a little differently — kills the stamped-row look */
-  .k-node:nth-child(3n+2) .avatar.t1 { background: radial-gradient(115% 115% at 32% 26%, #eef4fa 0%, #dde8f2 58%, #d1deeb 100%); }
-  .k-node:nth-child(3n)   .avatar.t1 { background: radial-gradient(115% 115% at 32% 26%, #e4edf6 0%, #cfdcec 58%, #c0d1e5 100%); }
-  .k-node:nth-child(3n+2) .avatar.t2 { background: radial-gradient(115% 115% at 32% 26%, #fbf5e7 0%, #f2e7cf 58%, #ecdcbd 100%); }
-  .k-node:nth-child(3n)   .avatar.t2 { background: radial-gradient(115% 115% at 32% 26%, #f5edd5 0%, #e9d9b6 58%, #dfcda3 100%); }
 
   /* two sides — stacked on narrow screens, flanking the couple from tablet up */
   .sides { display: flex; flex-direction: column; align-items: center; gap: 3rem; max-width: 900px; margin: 1.8rem auto 0; }
+  .sides[hidden] { display: none; }
   .side { width: 100%; max-width: 380px; position: relative; }
   @media (min-width: 640px) {
     .sides { flex-direction: row; align-items: flex-start; justify-content: center; gap: clamp(2rem, 5vw, 4rem); }
@@ -650,14 +647,13 @@
   .side-label { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 0.78rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--side); font-weight: 500; margin: 0 0 1.4rem; }
   .side-label::after { content: ""; display: block; width: 2.6rem; height: 1px; margin: 0.55rem auto 0; background: linear-gradient(90deg, transparent, rgba(185,150,104,0.65), transparent); }
 
-
   .kids-row { row-gap: 1.15rem; }
 
-  .p-node, .k-node { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
-  .node-name { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: clamp(0.84rem, 3.1vw, 0.95rem); letter-spacing: 0.02em; color: var(--ink); max-width: 11em; overflow-wrap: anywhere; line-height: 1.2; }
-  .kid-star { width: 0.85em; height: 0.85em; color: var(--gold); margin-left: 3px; margin-bottom: -0.06em; display: inline-block; }
-  .tag { display: block; font-size: 0.5rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--side); margin-top: 0.2rem; }
-  .tag-rel { color: #7d5f2a; letter-spacing: 0.14em; margin-top: 0.25rem; }
+  .node-name { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600; font-size: 0.76rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink); overflow-wrap: anywhere; line-height: 1.3; margin: 0; }
+  .p-node .node-name { font-size: 0.84rem; }
+  .kid-star { width: 0.8em; height: 0.8em; color: var(--gold); margin-left: 3px; margin-bottom: -0.05em; display: inline-block; }
+  .tag { display: block; font-size: 0.46rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--side); margin-top: 0.25rem; font-weight: 500; }
+  .tag-rel { color: #7d5f2a; white-space: normal; line-height: 1.35; }
 
 
   /* Everyone beyond the immediate family lives folded behind a small
@@ -700,24 +696,18 @@
   .chart { position: relative; display: inline-block; vertical-align: top; padding: 0.25rem 0.6rem; }
   .chart-main { display: block; width: 100%; padding: 0; }
   svg.lines { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 0; overflow: visible; }
-  .ln-marriage, .ln-spine, .ln-bar, .ln-tick { fill: none; stroke: rgba(185,150,104,0.8); stroke-width: 1.4; stroke-linecap: round; }
+  /* square right-angle connectors — a chart, not a hand-drawn branch */
+  .ln-marriage, .ln-spine, .ln-bar, .ln-tick { fill: none; stroke: rgba(34,48,73,0.4); stroke-width: 1.4; stroke-linecap: square; }
   .ln-dot { fill: rgba(185,150,104,0.95); }
   .fu { display: inline-flex; flex-direction: column; align-items: center; vertical-align: top; position: relative; z-index: 1; }
-  .fu-couple { display: flex; align-items: flex-start; justify-content: center; gap: 10px; }
-  .fu-kids { display: flex; flex-wrap: nowrap; align-items: flex-start; justify-content: center; gap: 4px; margin-top: 34px; }
-  .fu-wrap > .fu-kids { flex-wrap: wrap; row-gap: 40px; }
-  /* every person gets the same column, so bars and spines meet in the middle */
-  .chart .k-node { width: 86px; }
-  .chart .p-node { width: 100px; }
-  .chart .node-name { max-width: 100%; }
+  .fu-couple { display: flex; align-items: flex-start; justify-content: center; gap: 14px; }
+  .fu-kids { display: flex; flex-wrap: nowrap; align-items: flex-start; justify-content: center; gap: 10px; margin-top: 38px; }
+  .fu-wrap > .fu-kids { flex-wrap: wrap; row-gap: 44px; }
   .k-node, .p-node { position: relative; z-index: 1; }
-  /* seals never get squeezed in a branch row — names wrap by word, not by letter */
+  /* boxes never get squeezed in a branch row — names wrap by word, not by letter */
   .fu-couple > *, .fu-kids > * { flex-shrink: 0; }
-  .tag-rel { white-space: normal; max-width: 8.5em; margin-left: auto; margin-right: auto; line-height: 1.35; }
   .fu-cap { position: relative; z-index: 1; margin: 0.8rem 0 -0.35rem; padding: 0 0.55rem; background: var(--bg); font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; color: var(--side); font-size: 0.95rem; }
   .fu-rootdot { display: block; width: 8px; height: 8px; border-radius: 50%; background: rgba(185,150,104,0.95); margin: 0 auto 2px; box-shadow: 0 0 0 3px rgba(185,150,104,0.18); }
-  /* the person whose branch this is, highlighted among their own */
-  .avatar.is-anchor { --av-ring: 0 0 0 2px var(--card), 0 0 0 3.5px rgba(185,150,104,0.7), 0 6px 14px rgba(90,70,60,0.12); }
 
   /* the fold card — a sibling's own family, or a parent's whole branch */
   .fold-card { position: relative; padding: 1rem 0.9rem 0.9rem; background: var(--card); border-radius: 12px; text-align: center; width: fit-content; max-width: 100%; margin: 0 auto;
@@ -747,6 +737,23 @@
   .add-link:hover { color: var(--seal); border-color: var(--seal); transform: translateY(-2px); box-shadow: 0 8px 18px rgba(90,70,60,0.12); }
   .add-link:focus-visible { outline: 2px solid var(--seal); outline-offset: 3px; }
 
+  /* the rest of both families waits behind one unlock — the picture
+     stays just the two of you until someone chooses to open it */
+  .unlock-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 0.35rem;
+    margin: 2.2rem auto 0; padding: 1rem 1.8rem; cursor: pointer;
+    background: var(--card); border: 1px solid rgba(185,150,104,0.5); border-radius: 14px;
+    box-shadow: 0 8px 20px rgba(90,70,60,0.09);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .unlock-btn[hidden] { display: none; }
+  .unlock-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(90,70,60,0.14); border-color: var(--seal); }
+  .unlock-btn:focus-visible { outline: 2px solid var(--seal); outline-offset: 3px; }
+  .unlock-icon { width: 25px; height: 25px; color: var(--gold); }
+  .unlock-label { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 0.78rem; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 500; color: var(--side); }
+  .unlock-sub { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-size: 0.82rem; color: var(--muted); }
+
+  .legend[hidden], .tree-actions[hidden] { display: none; }
   .legend { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 0.78rem; letter-spacing: 0.12em; color: var(--muted); margin-top: 3rem; }
   .legend .kid-star { margin: 0 2px 0 0; }
 
@@ -881,6 +888,12 @@
       <g id="plus-shape">
         <circle class="pm-ring" cx="12" cy="12" r="10"/>
         <path class="pm-cross" d="M12 7.4 L12 16.6 M7.4 12 L16.6 12"/>
+      </g>
+      <g id="lock-shape">
+        <path d="M8 10.5 V7.5 A4 4 0 0 1 16 7.5 V10.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        <rect x="5.5" y="10.5" width="13" height="10" rx="2" fill="rgba(185,150,104,0.14)" stroke="currentColor" stroke-width="1.6"/>
+        <circle cx="12" cy="14.6" r="1.3" fill="currentColor"/>
+        <path d="M12 15.9 L12 17.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
       </g>
     </defs>
   </svg>
@@ -1045,8 +1058,14 @@
       <p class="status">gathering the family&hellip;</p>
     </div>
 
-    <p class="legend"><svg class="kid-star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><use href="#star-shape"></use></svg> the little ones &nbsp;&middot;&nbsp; navy for Saif's side, gold for Rumaisah's &nbsp;&middot;&nbsp; <svg class="plus-mark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><use href="#plus-shape"></use></svg> tap a name to meet their family</p>
-    <div class="tree-actions">
+    <button type="button" class="unlock-btn" id="unlockFamily" hidden>
+      <svg class="unlock-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#lock-shape"></use></svg>
+      <span class="unlock-label">unlock our families</span>
+      <span class="unlock-sub">tap to meet everyone</span>
+    </button>
+
+    <p class="legend" hidden><svg class="kid-star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><use href="#star-shape"></use></svg> the little ones &nbsp;&middot;&nbsp; navy for Saif's side, gold for Rumaisah's &nbsp;&middot;&nbsp; <svg class="plus-mark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><use href="#plus-shape"></use></svg> tap a name to meet their family</p>
+    <div class="tree-actions" hidden>
       <button type="button" class="add-link" id="viewToggle" hidden>see the whole family</button>
       <a class="add-link" href="add-to-tree.html">+ add someone to the tree</a>
       <a class="add-link" href="rsvp.html">+ RSVP</a>
@@ -1167,11 +1186,11 @@
       });
     })();
   </script>
-  <script src="js/tree-data.js?v=31"></script>
-  <script src="js/family-plan.js?v=31"></script>
-  <script src="js/family-lines.js?v=31"></script>
-  <script src="js/family-tree.js?v=31"></script>
-  <script src="js/blessings-data.js?v=31"></script>
+  <script src="js/tree-data.js?v=32"></script>
+  <script src="js/family-plan.js?v=32"></script>
+  <script src="js/family-lines.js?v=32"></script>
+  <script src="js/family-tree.js?v=32"></script>
+  <script src="js/blessings-data.js?v=32"></script>
   <script>
     // shared: content grows in as each part reaches the viewport
     function revealOnScroll(scope) {
@@ -1195,21 +1214,51 @@
 
     (function () {
       var container = document.getElementById("treeContainer");
+      var calm = function () { return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches; };
+
       TreeData.fetchApprovedTree().then(function (data) {
         FamilyTree.render(container, data, {
           captions: { saif: "brothers & sisters", rumaisah: "sisters" },
           onRendered: revealOnScroll
         });
+
+        // the picture is just the two of you until "unlock" is pressed —
+        // hide the families the instant they're built, before anything
+        // paints, so there's no flash of the full tree first
+        var sides = container.querySelector(".sides");
+        var legend = document.querySelector(".legend");
+        var actions = document.querySelector(".tree-actions");
+        var unlockBtn = document.getElementById("unlockFamily");
         var toggle = document.getElementById("viewToggle");
         toggle.hidden = !container.querySelector(".fold");
+
+        if (sides) {
+          sides.hidden = true;
+          unlockBtn.hidden = false;
+          unlockBtn.addEventListener("click", function () {
+            sides.hidden = false;
+            legend.hidden = false;
+            actions.hidden = false;
+            unlockBtn.hidden = true;
+            // the scroll-reveal observer never saw these while hidden —
+            // bring them in by hand, gently staggered
+            var els = sides.querySelectorAll(".rv, .rv-draw");
+            for (var i = 0; i < els.length; i++) {
+              els[i].style.transitionDelay = Math.min(i * 45, 500) + "ms";
+              els[i].classList.add("in");
+            }
+            FamilyTree.redraw(container);
+            sides.scrollIntoView({ block: "start", behavior: calm() ? "auto" : "smooth" });
+          });
+        }
+
         var full = false;
         toggle.addEventListener("click", function () {
           full = !full;
           FamilyTree.setFullView(container, full);
           toggle.textContent = full ? "back to the picture" : "see the whole family";
           // bring the top of the tree back into view either way
-          var calm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-          container.scrollIntoView({ block: "start", behavior: calm ? "auto" : "smooth" });
+          container.scrollIntoView({ block: "start", behavior: calm() ? "auto" : "smooth" });
         });
       }).catch(function () {
         container.textContent = "";
@@ -1311,7 +1360,7 @@
       });
     })();
   </script>
-  <script src="js/countdown.js?v=31"></script>
+  <script src="js/countdown.js?v=32"></script>
   <script>
     // Set the wedding date here once it is confirmed, e.g. "2027-06-01T16:00:00+01:00".
     // Empty string = the "date to be confirmed" line stays exactly as it is.
