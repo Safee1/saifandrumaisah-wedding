@@ -9,15 +9,16 @@ A small wedding website for Saif & Rumaisah.
 - **Domain:** saifandrumaisah.com (Namecheap; DNS points at GitHub Pages)
 - **Repo:** github.com/Safee1/saifandrumaisah-wedding (**public** — never commit secrets or passwords; admin passwords live only in Supabase RPCs)
 - **Hosting:** GitHub Pages, deployed from `main` (static site, no build step)
-- **Live pages:** `/` (invitation story + family tree), `add-to-tree.html` (public submit form), `tree-admin.html` (password-gated approvals), `rsvp.html` (public RSVP), `rsvp-admin.html` (password-gated RSVP list + CSV), `404.html`
-- **Data source:** Supabase (project `rfopieelzxvnmfhdvqqf`), reached from the browser with the public anon key via REST — see `js/tree-data.js` and `js/rsvp-data.js`
+- **Live pages:** `/` (invitation story + box-chart family tree, locked behind an "unlock our families" gate + blessings wall), `add-to-tree.html` (public submit form), `tree-admin.html` (password-gated approvals for people/relationships **and** blessings moderation), `rsvp.html` (public RSVP), `rsvp-admin.html` (password-gated RSVP list + CSV), `404.html`
+- **Data source:** Supabase (project `rfopieelzxvnmfhdvqqf`), reached from the browser with the public anon key via REST — see `js/tree-data.js`, `js/rsvp-data.js`, `js/blessings-data.js`
 
 ## Data model (Supabase)
 
 - `people` — id, name, side (`saif`/`rumaisah`), is_kid, status (`pending`/`approved`), sort_order, submitted_note. Public SELECT only where approved; public INSERT forced to pending by RLS.
 - `relationships` — id, from_person, to_person, type (`parent_of`/`spouse_of`/`sibling_of`), status. Same RLS shape.
+- `blessings` — guest messages for the blessings wall. Public INSERT forced to pending by RLS; public SELECT only where approved.
 - `rsvps` — public INSERT, admin-only read.
-- Admin actions go through `SECURITY DEFINER` RPCs that take the password as an argument (`admin_list_pending`, `admin_set_person_status`, `admin_set_relationship_status`, `admin_list_rsvps`, `admin_delete_rsvp`, `admin_check`). Passwords are **not** in the repo.
+- Admin actions go through `SECURITY DEFINER` RPCs that take the password as an argument (`admin_list_pending`, `admin_set_person_status`, `admin_set_relationship_status`, `admin_list_blessings`, `admin_set_blessing_status`, `admin_list_rsvps`, `admin_delete_rsvp`, `admin_check`). Passwords are **not** in the repo.
 - Schema changes are applied as Supabase migrations (via MCP/CLI), not tracked in this repo — describe them in the PR body.
 
 ## Stack & structure
@@ -25,8 +26,9 @@ A small wedding website for Saif & Rumaisah.
 - Static HTML + vanilla ES5-style JS + plain CSS. No dependencies, no build.
 - **Shared logic** lives in `js/` as UMD modules so the same file works in a browser `<script>` tag and in node tests:
   - `js/family-plan.js` — pure tree planning (graph, crown couple, side layout). No DOM.
-  - `js/family-tree.js` — DOM rendering + the fold interaction; depends on FamilyPlan.
-  - `js/tree-data.js`, `js/rsvp-data.js` — Supabase REST access.
+  - `js/family-tree.js` — DOM rendering of the box-chart tree + the unlock gate; depends on FamilyPlan.
+  - `js/family-lines.js` — draws the SVG connector lines (marriage/spine/children bar) between rendered boxes. Pure DOM measurement, no data knowledge.
+  - `js/tree-data.js`, `js/rsvp-data.js`, `js/blessings-data.js` — Supabase REST access.
   - `js/countdown.js` — countdown logic.
 - **No files over ~400 lines.** Approaching that → split (pure logic module + DOM sibling, like family-plan/family-tree).
 - Remote data is always inserted into the DOM via `textContent`, never `innerHTML`.
