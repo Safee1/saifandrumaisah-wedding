@@ -18,7 +18,7 @@ A small wedding website for Saif & Rumaisah.
 - `relationships` — id, from_person, to_person, type (`parent_of`/`spouse_of`/`sibling_of`), status. Same RLS shape.
 - `blessings` — guest messages for the blessings wall. Public INSERT forced to pending by RLS; public SELECT only where approved.
 - `rsvps` — public INSERT, admin-only read.
-- Admin actions go through `SECURITY DEFINER` RPCs that take the password as an argument (`admin_list_pending`, `admin_set_person_status`, `admin_set_relationship_status`, `admin_list_blessings`, `admin_set_blessing_status`, `admin_list_rsvps`, `admin_delete_rsvp`, `admin_check`). Passwords are **not** in the repo.
+- Admin actions go through `SECURITY DEFINER` RPCs that take the password as an argument: `admin_list_pending`, `admin_set_person_status`, `admin_set_relationship_status`, `admin_list_blessings`, `admin_set_blessing_status`, `admin_list_rsvps`, `admin_delete_rsvp` (also takes a `target` uuid), `admin_list_all`. `admin_check` also exists in the DB but is no longer called from any page in this repo — legacy, kept for now rather than dropped. Passwords are **not** in the repo.
 - Schema changes are applied as Supabase migrations (via MCP/CLI), not tracked in this repo — describe them in the PR body.
 
 ## Stack & structure
@@ -30,7 +30,7 @@ A small wedding website for Saif & Rumaisah.
   - `js/family-lines.js` — draws the SVG connector lines (marriage/spine/children bar) between rendered boxes. Pure DOM measurement, no data knowledge.
   - `js/tree-data.js`, `js/rsvp-data.js`, `js/blessings-data.js` — Supabase REST access.
   - `js/countdown.js` — countdown logic.
-- **No files over ~400 lines.** Approaching that → split (pure logic module + DOM sibling, like family-plan/family-tree). `js/family-tree.js` is already past this (~520 lines, box-chart rendering + unlock gate) — next non-trivial change to it should split out a piece rather than grow it further.
+- **No files over ~400 lines.** Approaching that → split (pure logic module + DOM sibling, like family-plan/family-tree). `js/family-tree.js` is already past this (~520 lines, box-chart rendering + unlock gate) — next non-trivial change to it should split out a piece rather than grow it further. `index.html` is also well past this (~1,380 lines: ~840 of inline `<style>`, ~215 of inline `<script>`, the rest markup) — next non-trivial change to it should start pulling the inline CSS/JS into their own files instead of growing the inline blocks.
 - Remote data is always inserted into the DOM via `textContent`, never `innerHTML`.
 
 ## Cache-stamp convention (IMPORTANT)
