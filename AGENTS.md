@@ -30,7 +30,7 @@ A small wedding website for Saif & Rumaisah.
   - `js/family-lines.js` — draws the SVG connector lines (marriage/spine/children bar) between rendered boxes. Pure DOM measurement, no data knowledge.
   - `js/tree-data.js`, `js/rsvp-data.js`, `js/blessings-data.js` — Supabase REST access.
   - `js/countdown.js` — countdown logic.
-- **No files over ~400 lines.** Approaching that → split (pure logic module + DOM sibling, like family-plan/family-tree).
+- **No files over ~400 lines.** Approaching that → split (pure logic module + DOM sibling, like family-plan/family-tree). `js/family-tree.js` is already past this (~520 lines, box-chart rendering + unlock gate) — next non-trivial change to it should split out a piece rather than grow it further.
 - Remote data is always inserted into the DOM via `textContent`, never `innerHTML`.
 
 ## Cache-stamp convention (IMPORTANT)
