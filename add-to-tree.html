@@ -75,6 +75,13 @@
 
     <form id="addForm">
       <div class="field">
+        <label for="inviteCode">Your invite code</label>
+        <input type="text" id="inviteCode" maxlength="12" required autocomplete="off"
+               placeholder="Ask Saif or Rumaisah" style="text-transform: uppercase; letter-spacing: 0.15em;">
+        <p class="hint">Only family with a code from Saif or Rumaisah can add names.</p>
+      </div>
+
+      <div class="field">
         <label for="name">Their name</label>
         <input type="text" id="name" maxlength="60" required autocomplete="off">
       </div>
@@ -174,14 +181,6 @@
 
       var loadedAt = Date.now();
 
-      // If the person saved but the relationship request failed, remember
-      // them so a retry doesn't create a duplicate pending person —
-      // as long as the person's own fields haven't changed since.
-      var savedPerson = null;
-      function personKey(name, sideVal, isKid, note) {
-        return [name, sideVal, isKid ? "1" : "0", note || ""].join("\x00");
-      }
-
       form.addEventListener("submit", function (e) {
         e.preventDefault();
 
@@ -198,48 +197,34 @@
         statusMsg.className = "status";
         statusMsg.textContent = "Sending…";
 
+        var code = document.getElementById("inviteCode").value.trim();
         var name = document.getElementById("name").value.trim();
         var relType = document.getElementById("relType").value;
         var isKid = document.getElementById("isKid").checked;
         var note = document.getElementById("note").value.trim();
         var anchorId = linkTo.value;
 
-        if (!name || !anchorId) {
+        if (!code || !name || !anchorId) {
           statusMsg.className = "status err";
-          statusMsg.textContent = "Please fill in their name and how they connect.";
+          statusMsg.textContent = "Please fill in your invite code, their name and how they connect.";
           submitBtn.disabled = false;
           return;
         }
 
-        var key = personKey(name, side.value, isKid, note);
-        var personPromise;
-        if (savedPerson && savedPerson.key === key) {
-          // person already saved on a previous half-failed attempt
-          personPromise = Promise.resolve({ id: savedPerson.id });
+        // person + relationship land together server-side, one gated call
+        var relArgs;
+        if (relType === "child") {
+          relArgs = { from_person: anchorId, to_person: "NEW", type: "parent_of" };
+        } else if (relType === "parent") {
+          relArgs = { from_person: "NEW", to_person: anchorId, type: "parent_of" };
+        } else if (relType === "sibling") {
+          relArgs = { from_person: anchorId, to_person: "NEW", type: "sibling_of" };
         } else {
-          personPromise = TreeData.submitPerson({ name: name, side: side.value, is_kid: isKid, note: note || null })
-            .then(function (person) {
-              savedPerson = { id: person.id, key: key };
-              return person;
-            });
+          relArgs = { from_person: anchorId, to_person: "NEW", type: "spouse_of" };
         }
 
-        personPromise
-          .then(function (person) {
-            var relArgs;
-            if (relType === "child") {
-              relArgs = { from_person: anchorId, to_person: person.id, type: "parent_of" };
-            } else if (relType === "parent") {
-              relArgs = { from_person: person.id, to_person: anchorId, type: "parent_of" };
-            } else if (relType === "sibling") {
-              relArgs = { from_person: anchorId, to_person: person.id, type: "sibling_of" };
-            } else {
-              relArgs = { from_person: anchorId, to_person: person.id, type: "spouse_of" };
-            }
-            return TreeData.submitRelationship(relArgs);
-          })
+        TreeData.submitWithInvite(code, { name: name, side: side.value, is_kid: isKid, note: note || null }, relArgs)
           .then(function () {
-            savedPerson = null;
             statusMsg.className = "status ok";
             statusMsg.textContent = "Thank you — sent for approval.";
             form.reset();
@@ -248,7 +233,9 @@
           })
           .catch(function (err) {
             statusMsg.className = "status err";
-            statusMsg.textContent = "Something went wrong — please try again.";
+            statusMsg.textContent = /invalid code/i.test(err && err.message || "")
+              ? "That code isn't valid — check it with Saif or Rumaisah."
+              : "Something went wrong — please try again.";
             submitBtn.disabled = false;
           });
       });
