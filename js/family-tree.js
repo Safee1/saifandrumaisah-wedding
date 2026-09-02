@@ -212,11 +212,6 @@
       });
     }
     function isPinned() { return wrap.getAttribute("data-pinned") === "1"; }
-    function scheduleClose() {
-      if (fullMode || wrap.hidden || isPinned()) { return; }
-      cancelClose();
-      closeTimer = setTimeout(function () { setOpen(false); }, 380);
-    }
     function activate() {
       if (wrap.hidden || !isPinned()) { setOpen(true, true); } else { setOpen(false); }
     }
@@ -229,23 +224,9 @@
       }
     });
 
+    // folds open on tap/click only — hovering past names used to flap
+    // branches open and shut, which read as broken rather than playful
     var hasPE = typeof window !== "undefined" && "PointerEvent" in window;
-    var enterEv = hasPE ? "pointerenter" : "mouseenter";
-    var leaveEv = hasPE ? "pointerleave" : "mouseleave";
-    function mouseOnly(fn) {
-      return function (e) {
-        if (hasPE && e.pointerType !== "mouse") { return; }
-        fn();
-      };
-    }
-    node.addEventListener(enterEv, mouseOnly(function () {
-      cancelClose();
-      if (wrap.hidden) { setOpen(true, false); }
-    }));
-    node.addEventListener(leaveEv, mouseOnly(scheduleClose));
-    wrap.addEventListener(enterEv, mouseOnly(cancelClose));
-    wrap.addEventListener(leaveEv, mouseOnly(scheduleClose));
-
     var downEv = hasPE ? "pointerdown" : "mousedown";
     document.addEventListener(downEv, function (e) {
       if (fullMode || wrap.hidden) { return; }

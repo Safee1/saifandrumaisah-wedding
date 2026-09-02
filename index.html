@@ -673,6 +673,11 @@
   .tree-full .fold-card { width: 100%; box-shadow: inset 0 0 0 1px rgba(185,150,104,0.45), 0 6px 16px rgba(90,70,60,0.06); }
   .tree-full .sides { flex-direction: column; align-items: center; gap: 3.5rem; max-width: 1160px; }
   .tree-full .side { max-width: 1160px; }
+  /* on a wide screen the two families flank the couple, one branch each side */
+  @media (min-width: 1100px) {
+    .tree-full .sides { flex-direction: row; align-items: flex-start; justify-content: center; gap: clamp(2rem, 4vw, 4rem); max-width: 1500px; }
+    .tree-full .side { flex: 1 1 0; max-width: 720px; }
+  }
   /* in the whole-family view the couple's own generation comes first;
      each parent's brothers & sisters follow beneath, titled */
   .tree-full .side { display: flex; flex-direction: column; align-items: center; }
@@ -757,6 +762,13 @@
   .unlock-sub { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-size: 0.82rem; color: var(--muted); }
 
   .legend[hidden], .tree-actions[hidden] { display: none; }
+
+  /* one-time welcome for first visitors: how to explore the tree */
+  .tree-hint { max-width: 420px; margin: 2rem auto 0; background: var(--card); border: 1px solid rgba(185,150,104,0.55); border-radius: 12px; padding: 1rem 1.2rem; box-shadow: 0 10px 24px rgba(90,70,60,0.1); text-align: center; }
+  .tree-hint[hidden] { display: none; }
+  .tree-hint p { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 0.95rem; line-height: 1.55; color: var(--ink); margin: 0 0 0.8rem; }
+  .tree-hint .plus-mark { width: 0.9em; height: 0.9em; vertical-align: -0.1em; color: var(--gold); }
+  .tree-hint button { font-family: inherit; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: #fff; background: #3d5175; border: none; border-radius: 8px; padding: 0.5rem 1.1rem; cursor: pointer; }
   .legend { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 0.78rem; letter-spacing: 0.12em; color: var(--muted); margin-top: 3rem; }
   .legend .kid-star { margin: 0 2px 0 0; }
 
@@ -1067,6 +1079,13 @@
       <span class="unlock-sub">tap to meet everyone</span>
     </button>
 
+    <div class="tree-hint" id="treeHint" hidden>
+      <p>Welcome to Saif &amp; Rumaisah's family tree. Tap any name wearing a
+        <svg class="plus-mark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><use href="#plus-shape"></use></svg>
+        to open that person's branch — parents, brothers and sisters, little ones.
+        Or press <em>see the whole family</em> to open every branch at once.</p>
+      <button type="button" id="treeHintBtn">Got it</button>
+    </div>
     <p class="legend" hidden><svg class="kid-star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><use href="#star-shape"></use></svg> the little ones &nbsp;&middot;&nbsp; navy for Saif's side, gold for Rumaisah's &nbsp;&middot;&nbsp; <svg class="plus-mark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><use href="#plus-shape"></use></svg> tap a name to meet their family</p>
     <div class="tree-actions" hidden>
       <button type="button" class="add-link" id="viewToggle" hidden>see the whole family</button>
@@ -1189,11 +1208,11 @@
       });
     })();
   </script>
-  <script src="js/tree-data.js?v=33"></script>
-  <script src="js/family-plan.js?v=33"></script>
-  <script src="js/family-lines.js?v=33"></script>
-  <script src="js/family-tree.js?v=33"></script>
-  <script src="js/blessings-data.js?v=33"></script>
+  <script src="js/tree-data.js?v=34"></script>
+  <script src="js/family-plan.js?v=34"></script>
+  <script src="js/family-lines.js?v=34"></script>
+  <script src="js/family-tree.js?v=34"></script>
+  <script src="js/blessings-data.js?v=34"></script>
   <script>
     // shared: content grows in as each part reaches the viewport
     function revealOnScroll(scope) {
@@ -1243,6 +1262,17 @@
             legend.hidden = false;
             actions.hidden = false;
             unlockBtn.hidden = true;
+            // first visit only: a small how-to card under the tree
+            var hint = document.getElementById("treeHint");
+            var seen = null;
+            try { seen = localStorage.getItem("treeHintSeen"); } catch (e) {}
+            if (hint && !seen) {
+              hint.hidden = false;
+              document.getElementById("treeHintBtn").addEventListener("click", function () {
+                hint.hidden = true;
+                try { localStorage.setItem("treeHintSeen", "1"); } catch (e) {}
+              });
+            }
             // the scroll-reveal observer never saw these while hidden —
             // bring them in by hand, gently staggered
             var els = sides.querySelectorAll(".rv, .rv-draw");
@@ -1363,7 +1393,7 @@
       });
     })();
   </script>
-  <script src="js/countdown.js?v=33"></script>
+  <script src="js/countdown.js?v=34"></script>
   <script>
     // Set the wedding date here once it is confirmed, e.g. "2027-06-01T16:00:00+01:00".
     // Empty string = the "date to be confirmed" line stays exactly as it is.
