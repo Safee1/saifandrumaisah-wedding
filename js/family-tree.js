@@ -56,7 +56,9 @@
   // person whose branch this fold belongs to, ringed in gold.
   function buildNode(person, crown, big, isAnchor) {
     var node = makeEl("div", (big ? "p-node" : "k-node") + " " + (TINTS[person.side] || "t1") + (isAnchor ? " is-anchor" : ""));
-    var name = makeEl("p", "node-name", person.name);
+    // a long name shrinks rather than breaking mid-word (RUMAISA / H)
+    var longest = String(person.name || "").split(/\s+/).reduce(function (m, w) { return Math.max(m, w.length); }, 0);
+    var name = makeEl("p", "node-name" + (longest >= 8 ? " is-long" : ""), person.name);
     if (person.is_kid) { name.appendChild(kidStar()); }
     if (crown && (person.id === crown.a.id || person.id === crown.b.id)) {
       name.appendChild(makeEl("span", "tag", SIDE_TAGS[person.side] || ""));

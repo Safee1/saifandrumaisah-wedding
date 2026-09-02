@@ -14,8 +14,9 @@ A small wedding website for Saif & Rumaisah.
 
 ## Data model (Supabase)
 
-- `people` — id, name, side (`saif`/`rumaisah`), is_kid, status (`pending`/`approved`), sort_order, submitted_note. Public SELECT only where approved; public INSERT forced to pending by RLS.
-- `relationships` — id, from_person, to_person, type (`parent_of`/`spouse_of`/`sibling_of`), status. Same RLS shape.
+- `people` — id, name, side (`saif`/`rumaisah`), is_kid, status (`pending`/`approved`), sort_order, submitted_note. Public SELECT only where approved; **no public INSERT** — the only way in is the invite-gated `submit_with_invite` RPC.
+- `relationships` — id, from_person, to_person, type (`parent_of`/`spouse_of`/`sibling_of`), status. Same shape: approved-only SELECT, no direct INSERT.
+- `invite_codes` — per-person invite codes for adding to the tree (label, side, bcrypt code_hash, max_uses/uses, revoked). RLS deny-all; touched only via RPCs. `submit_with_invite(code, person, rel)` validates the code and inserts person + relationship as pending in one call; admins mint/list/revoke codes with `admin_create_invite`, `admin_list_invites`, `admin_revoke_invite` (plaintext code returned once at creation).
 - `blessings` — guest messages for the blessings wall. Public INSERT forced to pending by RLS; public SELECT only where approved.
 - `rsvps` — public INSERT, admin-only read.
 - Admin actions go through `SECURITY DEFINER` RPCs that take the password as an argument: `admin_list_pending`, `admin_set_person_status`, `admin_set_relationship_status`, `admin_list_blessings`, `admin_set_blessing_status`, `admin_list_rsvps`, `admin_delete_rsvp` (also takes a `target` uuid), `admin_list_all` and `admin_check` also exist in the DB as SECURITY DEFINER RPCs but are not called from any page in this repo (zero hits in *.js/*.html) — legacy/unreferenced, kept for now rather than dropped. Passwords are **not** in the repo.

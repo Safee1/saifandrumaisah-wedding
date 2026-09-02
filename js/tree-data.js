@@ -97,10 +97,18 @@
     }).then(function () { return { id: id }; });
   }
 
+  // The one gated door onto the tree: person + optional relationship in a
+  // single RPC that checks the invite code server-side. Direct table
+  // inserts (submitPerson/submitRelationship) are refused by the DB now.
+  function submitWithInvite(code, person, rel) {
+    return rpc("submit_with_invite", { code: code, person: person, rel: rel || null });
+  }
+
   root.TreeData = {
     fetchApprovedTree: fetchApprovedTree,
     submitPerson: submitPerson,
     submitRelationship: submitRelationship,
+    submitWithInvite: submitWithInvite,
     rpc: rpc,
     restGet: restGet
   };
