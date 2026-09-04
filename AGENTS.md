@@ -31,14 +31,15 @@ A small wedding website for Saif & Rumaisah.
   - `js/family-lines.js` — draws the SVG connector lines (marriage/spine/children bar) between rendered boxes. Pure DOM measurement, no data knowledge.
   - `js/tree-data.js`, `js/rsvp-data.js`, `js/blessings-data.js` — Supabase REST access.
   - `js/countdown.js` — countdown logic.
+  - `css/envelope.css` — the intro envelope, its liner and the wax seal (moved out of `index.html`'s inline `<style>`; the rest of the intro's CSS is still inline). Decorative textures are inline SVG data URIs, no image files.
 - **No files over ~400 lines.** Approaching that → split (pure logic module + DOM sibling, like family-plan/family-tree). `js/family-tree.js` is already past this (~520 lines, box-chart rendering + fold interaction) — next non-trivial change to it should split out a piece rather than grow it further. `index.html` is also well past this (~1,380 lines: ~840 of inline `<style>`, ~215 of inline `<script>`, the rest markup) — next non-trivial change to it should start pulling the inline CSS/JS into their own files instead of growing the inline blocks.
 - Remote data is always inserted into the DOM via `textContent`, never `innerHTML`.
 
 ## Cache-stamp convention (IMPORTANT)
 
 GitHub Pages caches each file for 10 minutes independently, so a deploy can serve new HTML with old JS (or vice-versa) — this has broken the live site before. Therefore:
-- Every `<script src="js/...">` carries a `?v=N` stamp.
-- **Any change to a `js/` file bumps `N` on every page that references it** (keep the number uniform across pages).
+- Every `<script src="js/...">` and `<link href="css/...">` carries a `?v=N` stamp.
+- **Any change to a `js/` or `css/` file bumps `N` on every page that references it** (keep the number uniform across pages — `tests/index-page.test.js` fails if the stamps on `index.html` differ).
 
 ## What needs the owner's explicit review before merge
 
