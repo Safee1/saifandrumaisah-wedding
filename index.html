@@ -21,7 +21,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/envelope.css?v=33">
+<link rel="stylesheet" href="css/envelope.css?v=34">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   :root {
@@ -437,7 +437,7 @@
     margin-top: 0.15rem;
   }
   .cd-sep { width: 1px; height: 1.9rem; background: rgba(125,149,181,0.4); margin-top: 0.25rem; }
-  .treelink { display: inline-block; margin-top: 2.3rem; font-size: 0.66rem; letter-spacing: 0.32em; text-transform: uppercase; color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(125,149,181,0.45); padding-bottom: 3px; }
+  .treelink { display: inline-block; margin-top: calc(2.3rem - 12px); padding: 12px 8px 3px; font-size: 0.66rem; letter-spacing: 0.32em; text-transform: uppercase; color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(125,149,181,0.45); }
 
 
   /* ============================================================
@@ -639,9 +639,9 @@
   .bless-card:nth-child(3n+1) { --tilt: -0.55deg; }
   .bless-card.rv { opacity: 0; transform: translateY(18px) rotate(var(--tilt)); }
   .bless-card.rv.in { opacity: 1; transform: rotate(var(--tilt)); }
-  .bless-msg { margin: 0; font-style: italic; font-size: 0.98rem; line-height: 1.5; color: var(--ink); overflow-wrap: normal; word-break: keep-all; }
+  .bless-msg { margin: 0; font-style: italic; font-size: 0.98rem; line-height: 1.5; color: var(--ink); overflow-wrap: anywhere; word-break: normal; }
   .bless-msg::before { content: "\201C"; font-family: 'Pinyon Script', cursive; font-style: normal; color: var(--gold); font-size: 1.5rem; line-height: 0; margin-right: 3px; vertical-align: -0.35em; }
-  .bless-name { margin: 0.55rem 1.9rem 0 0; font-family: 'Pinyon Script', cursive; font-size: 1.1rem; color: var(--side); text-align: right; overflow-wrap: normal; word-break: keep-all; }
+  .bless-name { margin: 0.55rem 1.9rem 0 0; font-family: 'Pinyon Script', cursive; font-size: 1.1rem; color: var(--side); text-align: right; overflow-wrap: anywhere; word-break: normal; }
   .bless-seal {
     position: absolute; right: 0.85rem; bottom: -9px; width: 26px; height: 26px; border-radius: 50%;
     background: radial-gradient(circle at 35% 30%, #4a6b96, var(--seal) 58%, #1c3050);
@@ -1017,14 +1017,18 @@
 
   <p class="footer">more details coming soon</p>
 
+  <script src="js/addressee.js?v=34"></script>
   <script>
     (function () {
       var root = document.documentElement;
       // personalised address: ?to=Ammi+%26+Abu → "for Ammi & Abu"
       try {
-        var to = new URLSearchParams(location.search).get("to");
-        if (to && to.length <= 40) {
-          document.getElementById("envTo").textContent = "for " + to;
+        var to = Addressee.clean(new URLSearchParams(location.search).get("to"));
+        if (to) {
+          var envTo = document.getElementById("envTo");
+          envTo.textContent = "for " + to;
+          var size = Addressee.sizeClass(to);
+          if (size) { envTo.classList.add(size); }
         }
       } catch (e) {}
       var seen = false;
@@ -1048,11 +1052,11 @@
       });
     })();
   </script>
-  <script src="js/tree-data.js?v=33"></script>
-  <script src="js/family-plan.js?v=33"></script>
-  <script src="js/family-lines.js?v=33"></script>
-  <script src="js/family-tree.js?v=33"></script>
-  <script src="js/blessings-data.js?v=33"></script>
+  <script src="js/tree-data.js?v=34"></script>
+  <script src="js/family-plan.js?v=34"></script>
+  <script src="js/family-lines.js?v=34"></script>
+  <script src="js/family-tree.js?v=34"></script>
+  <script src="js/blessings-data.js?v=34"></script>
   <script>
     // shared: content grows in as each part reaches the viewport
     function revealOnScroll(scope) {
@@ -1222,7 +1226,7 @@
       });
     })();
   </script>
-  <script src="js/countdown.js?v=33"></script>
+  <script src="js/countdown.js?v=34"></script>
   <script>
     // Set the wedding date here once it is confirmed, e.g. "2027-06-01T16:00:00+01:00".
     // Empty string = the "date to be confirmed" line stays exactly as it is.
