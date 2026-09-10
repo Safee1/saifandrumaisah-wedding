@@ -140,3 +140,19 @@ test("planSide: a cross-married household hangs from BOTH primary anchors", () =
   const anchorIds = cross.anchors.map(a => a.id).sort();
   assert.deepEqual(anchorIds, ["dad", "mum"]);
 });
+
+test("orderForAnchor: each parent's own sibling leads a cross-married couple", () => {
+  const FamilyPlan = require("../js/family-plan.js");
+  const people = [person("kashif", "saif"), person("sheine", "saif"), person("sakhi", "saif"), person("asma", "saif")];
+  const rels = [
+    { from_person: "kashif", to_person: "sheine", type: "spouse_of" },
+    { from_person: "sakhi", to_person: "asma", type: "spouse_of" },
+    { from_person: "sheine", to_person: "sakhi", type: "sibling_of" },
+    { from_person: "kashif", to_person: "asma", type: "sibling_of" }
+  ];
+  const graph = FamilyPlan.buildGraph(people, rels);
+  const household = [graph.byId.sakhi, graph.byId.asma];
+  assert.deepEqual(FamilyPlan.orderForAnchor(graph, household, "kashif").map(m => m.id), ["asma", "sakhi"]);
+  assert.deepEqual(FamilyPlan.orderForAnchor(graph, household, "sheine").map(m => m.id), ["sakhi", "asma"]);
+  assert.deepEqual(household.map(m => m.id), ["sakhi", "asma"], "input order untouched");
+});
