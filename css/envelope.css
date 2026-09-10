@@ -184,11 +184,16 @@
   font-family: 'Pinyon Script', cursive;
   font-size: clamp(1.05rem, 4.6vw, 1.35rem);
   line-height: 1;
+  padding: 0 6%;
+  overflow-wrap: anywhere;
   color: var(--wax-ink);
   z-index: 3;
   opacity: 0;
   animation: fadeIn 1.2s ease 11.6s forwards;
 }
+/* longer names step down so they still sit in one line under the seal */
+.env-to.long  { font-size: clamp(0.82rem, 3.6vw, 1.05rem); }
+.env-to.xlong { font-size: clamp(0.66rem, 2.9vw, 0.84rem); }
 .env-req {
   position: absolute;
   left: 0; right: 0;
