@@ -172,5 +172,14 @@
     };
   }
 
-  return { buildGraph: buildGraph, findCrownCouple: findCrownCouple, planSide: planSide };
+  // A cross-married household appears in both parents' folds; in each fold
+  // the parent's OWN sibling must come first (the bloodline, left), the
+  // married-in spouse second — otherwise Kashif's fold looks like it hangs
+  // off Sheine's brother instead of Kashif's sister.
+  function orderForAnchor(graph, members, anchorId) {
+    function rank(m) { return graph.siblingsOf[m.id].indexOf(anchorId) !== -1 ? 0 : 1; }
+    return members.slice().sort(function (a, b) { return rank(a) - rank(b); });
+  }
+
+  return { buildGraph: buildGraph, findCrownCouple: findCrownCouple, planSide: planSide, orderForAnchor: orderForAnchor };
 });

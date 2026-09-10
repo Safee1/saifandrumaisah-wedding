@@ -371,9 +371,13 @@
           kids.appendChild(buildNode(anchor, crown, false, true));
           return;
         }
-        var dup = !!(e.bough.anchors && e.bough.anchors[0].id !== anchor.id);
-        kids.appendChild(buildUnit(e.bough.members, plan.childrenOfHousehold(e.bough.members), { dup: dup }));
-        if (dup) { xrefs.push(coupleCaption(e.bough.members) + " — see " + e.bough.anchors[0].name + "'s brothers & sisters"); }
+        // this parent's own sibling leads the couple; a cross-married household
+        // is a full member of BOTH folds, so it is never dimmed — just cross-noted
+        var members = FamilyPlan.orderForAnchor(graph, e.bough.members, anchor.id);
+        kids.appendChild(buildUnit(members, plan.childrenOfHousehold(members), {}));
+        (e.bough.anchors || []).forEach(function (other) {
+          if (other.id !== anchor.id) { xrefs.push(coupleCaption(members) + " — also under " + other.name + "'s brothers & sisters"); }
+        });
       });
       rootUnit.appendChild(kids);
       chart.appendChild(rootUnit);
