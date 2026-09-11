@@ -1,0 +1,42 @@
+/* ============================================================
+   Travelling to us — a private tick-list for an abroad wedding.
+   Hidden until TRAVEL.show is true in index.html (or ?travel=preview).
+   ============================================================ */
+.travel-section { position: relative; padding: 4.5rem 1.25rem 1rem; }
+.travel-section[hidden] { display: none; }
+
+.travel-card {
+  position: relative; max-width: 520px; margin: 0 auto; padding: 1.3rem 1.2rem 1.1rem;
+  background: var(--card); border-radius: 16px; text-align: left;
+  box-shadow: inset 0 0 0 1px rgba(185,150,104,0.4), 0 10px 24px rgba(90,70,60,0.08);
+}
+.travel-card::after { content: ""; position: absolute; inset: 4px; border: 1px solid rgba(185,150,104,0.18); border-radius: 12px; pointer-events: none; }
+
+.travel-progress { display: flex; align-items: center; gap: 0.75rem; margin: 0 0.2rem 0.9rem; }
+.travel-bar { flex: 1; height: 4px; border-radius: 2px; background: rgba(125,149,181,0.2); overflow: hidden; }
+.travel-bar > span { display: block; height: 100%; width: 0; background: var(--gold); border-radius: 2px; transition: width 0.4s ease; }
+.travel-count { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--side); font-weight: 500; white-space: nowrap; }
+
+.travel-list { list-style: none; margin: 0; padding: 0; }
+.travel-item { border-top: 1px solid rgba(185,150,104,0.22); }
+.travel-item:first-child { border-top: 0; }
+.travel-item label { display: flex; gap: 0.8rem; align-items: flex-start; padding: 0.8rem 0.2rem; cursor: pointer; }
+.travel-item input {
+  flex-shrink: 0; width: 22px; height: 22px; margin: 0.15rem 0 0;
+  accent-color: var(--side); cursor: pointer;
+}
+.travel-item input:focus-visible { outline: 2px solid var(--seal); outline-offset: 3px; }
+.ti-title { display: block; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600; font-size: 1.02rem; color: var(--ink); line-height: 1.25; }
+.ti-text { display: block; font-size: 0.95rem; line-height: 1.45; color: var(--muted); margin-top: 0.15rem; }
+.ti-link {
+  display: inline-block; margin: 0 0 0.7rem 2.2rem; padding: 0.35rem 0;
+  font-size: 0.66rem; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--side); text-decoration: none; border-bottom: 1px solid rgba(64,88,122,0.4);
+}
+.ti-link:hover { color: var(--seal); border-color: var(--seal); }
+.travel-item.done .ti-title { color: var(--muted); text-decoration: line-through; text-decoration-color: rgba(185,150,104,0.7); }
+
+.travel-foot { margin: 0.9rem 0.2rem 0; font-style: italic; font-size: 0.9rem; color: var(--muted); display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+.travel-reset { background: none; border: 0; padding: 0.5rem 0; font: inherit; font-style: normal; font-size: 0.66rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--side); cursor: pointer; }
+.travel-reset:hover { color: var(--seal); }
+.travel-reset[hidden] { display: none; }
