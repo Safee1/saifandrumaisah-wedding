@@ -64,9 +64,11 @@
     return [
       { id: "reply", title: "Tell us you're coming",
         text: reply
-          ? "Please RSVP by " + format(reply) + " — flights and rooms are booked around the final numbers."
-          : "Please RSVP at least 3 months before the wedding — flights and rooms are booked around the final numbers.",
+          ? "Please RSVP by " + format(reply) + " so we can plan the day around everyone coming."
+          : "Please RSVP at least 3 months before the wedding so we can plan the day around everyone coming.",
         link: { href: "rsvp.html", label: "RSVP" } },
+      { id: "booking", title: "Book your flights and stay",
+        text: "Everyone books their own travel and accommodation. Booking early usually means better prices and more choice." },
       { id: "passport", title: "Passport in date",
         text: until
           ? "Make sure it's valid until at least " + format(until) + ". Many countries want 6 months left after you fly home."

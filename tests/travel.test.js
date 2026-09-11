@@ -43,6 +43,14 @@ test("items: dates appear once the wedding date is set; general wording before",
   assert.match(by(unset, "entry").text, /the country's page/);
 });
 
+test("items: guests book their own travel; nothing suggests the couple books it", () => {
+  for (const list of [Travel.items("2027-08-23", "Bali"), Travel.items("", "")]) {
+    const all = list.map((i) => i.title + " " + i.text).join(" ");
+    assert.match(list.find((i) => i.id === "booking").text, /books their own travel and accommodation/);
+    assert.doesNotMatch(all, /(flights|rooms|hotels?) (are|will be) (booked|paid|covered)|we('ll| will) (book|pay)/i);
+  }
+});
+
 test("items: every item has a unique id and plain copy; links are RSVP or official sites", () => {
   const list = Travel.items("2027-08-23", "");
   assert.equal(new Set(list.map((i) => i.id)).size, list.length);
