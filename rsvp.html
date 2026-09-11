@@ -77,6 +77,9 @@
 
   .back { display: block; text-align: center; margin-top: 0.9rem; padding: 0.7rem 0; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-decoration: none; }
   .back:hover { color: var(--side); }
+  .travel-note { margin: -0.4rem auto 1.6rem; max-width: 30rem; padding: 0.8rem 1rem; border-radius: 10px; background: rgba(185,150,104,0.1); box-shadow: inset 0 0 0 1px rgba(185,150,104,0.35); font-size: 0.98rem; line-height: 1.5; color: var(--ink); text-align: center; }
+  .travel-note[hidden] { display: none; }
+  .travel-note a { color: var(--side); text-decoration: underline; text-underline-offset: 3px; }
 </style>
 </head>
 <body>
@@ -84,6 +87,10 @@
     <p class="eyebrow">our wedding</p>
     <h1>rsvp</h1>
     <p class="sub">We'd be so glad to know if you can join us. Let us know below.</p>
+    <p class="travel-note" id="travelNote" hidden>
+      <span id="travelNoteText"></span>
+      <a id="travelNoteLink" href="/#travel">our travel checklist</a>
+    </p>
 
     <form id="rsvpForm">
       <div class="field">
@@ -135,7 +142,22 @@
     <a class="back" href="index.html">&larr; back to the invitation</a>
   </div>
 
-  <script src="js/rsvp-data.js?v=37"></script>
+  <script src="js/rsvp-data.js?v=38"></script>
+  <script src="js/config.js?v=38"></script>
+  <script src="js/travel.js?v=38"></script>
+  <script>
+    // abroad wedding: the reply-by date and a pointer to the travel checklist
+    (function () {
+      var t = WeddingConfig.travel;
+      if (!Travel.visible(t.show, location.search)) { return; }
+      var by = Travel.replyBy(WeddingConfig.date);
+      document.getElementById("travelNoteText").textContent =
+        (by ? "Please reply by " + Travel.format(by) + "." : "Please reply at least 3 months before the wedding.") +
+        " Everyone books their own flights and stay — everything else is on";
+      if (!t.show) { document.getElementById("travelNoteLink").href = "/?travel=preview#travel"; }
+      document.getElementById("travelNote").hidden = false;
+    })();
+  </script>
   <script>
     (function () {
       var form = document.getElementById("rsvpForm");
