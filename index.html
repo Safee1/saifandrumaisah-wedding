@@ -21,7 +21,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/envelope.css?v=35">
+<link rel="stylesheet" href="css/envelope.css?v=36">
+<link rel="stylesheet" href="css/travel.css?v=36">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   :root {
@@ -934,6 +935,30 @@
     <noscript><p class="status">This page needs JavaScript turned on to show the family tree.</p></noscript>
   </section>
 
+  <!-- travel checklist: hidden until TRAVEL.show is true (see the script at the bottom) -->
+  <section class="travel-section" id="travel" aria-labelledby="travelTitle" hidden>
+    <header class="tree-head">
+      <h2 class="tree-title" id="travelTitle">Travelling to Us</h2>
+      <p class="tree-sub" id="travelSub">a little list to get you here, stress-free</p>
+      <svg class="tree-flourish" viewBox="0 0 120 22" aria-hidden="true">
+        <path d="M4 15 C 26 6, 44 6, 57 12.5"/>
+        <path d="M116 15 C 94 6, 76 6, 63 12.5"/>
+        <circle class="bud" cx="60" cy="13" r="1.8"/>
+      </svg>
+    </header>
+    <div class="travel-card">
+      <div class="travel-progress">
+        <div class="travel-bar" aria-hidden="true"><span id="travelBar"></span></div>
+        <p class="travel-count" id="travelCount" aria-live="polite">0 of 0 ready</p>
+      </div>
+      <ul class="travel-list" id="travelList"></ul>
+      <div class="travel-foot">
+        <span>Your ticks stay on this phone only &mdash; we never see them.</span>
+        <button type="button" class="travel-reset" id="travelReset" hidden>clear my ticks</button>
+      </div>
+    </div>
+  </section>
+
   <section class="bless-section" id="blessings" aria-label="Wishes and blessings">
     <header class="tree-head">
       <svg class="bless-dove" viewBox="0 0 100 60" aria-hidden="true">
@@ -1020,7 +1045,7 @@
 
   <footer><p class="footer">more details coming soon</p></footer>
 
-  <script src="js/addressee.js?v=35"></script>
+  <script src="js/addressee.js?v=36"></script>
   <script>
     (function () {
       var root = document.documentElement;
@@ -1036,7 +1061,7 @@
       } catch (e) {}
       var seen = false;
       try { seen = sessionStorage.getItem("introSeen") === "1"; } catch (e) {}
-      if (seen || location.hash === "#family") {
+      if (seen || /^#(family|travel|blessings)$/.test(location.hash)) {
         root.classList.add("no-intro");
         return;
       }
@@ -1055,11 +1080,11 @@
       });
     })();
   </script>
-  <script src="js/tree-data.js?v=35"></script>
-  <script src="js/family-plan.js?v=35"></script>
-  <script src="js/family-lines.js?v=35"></script>
-  <script src="js/family-tree.js?v=35"></script>
-  <script src="js/blessings-data.js?v=35"></script>
+  <script src="js/tree-data.js?v=36"></script>
+  <script src="js/family-plan.js?v=36"></script>
+  <script src="js/family-lines.js?v=36"></script>
+  <script src="js/family-tree.js?v=36"></script>
+  <script src="js/blessings-data.js?v=36"></script>
   <script>
     // shared: content grows in as each part reaches the viewport
     function revealOnScroll(scope) {
@@ -1229,11 +1254,16 @@
       });
     })();
   </script>
-  <script src="js/countdown.js?v=35"></script>
+  <script src="js/countdown.js?v=36"></script>
+  <script src="js/travel.js?v=36"></script>
   <script>
     // Set the wedding date here once it is confirmed, e.g. "2027-06-01T16:00:00+01:00".
     // Empty string = the "date to be confirmed" line stays exactly as it is.
     var WEDDING_DATE = "";
+    // Abroad wedding travel checklist. show: false keeps it hidden from guests;
+    // preview it privately with ?travel=preview. destination e.g. "Bali" (optional);
+    // country = the name GOV.UK travel advice uses, e.g. "Indonesia" (optional).
+    var TRAVEL = { show: false, destination: "", country: "" };
     Countdown.attach(WEDDING_DATE, {
       getNow: function () { return Date.now(); },
       setIntervalFn: function (fn, ms) { return setInterval(fn, ms); },
@@ -1247,6 +1277,77 @@
         seconds: document.getElementById("cd-secs")
       }
     });
+
+    (function () {
+      var section = document.getElementById("travel");
+      if (!Travel.visible(TRAVEL.show, location.search)) { return; }
+      var list = document.getElementById("travelList");
+      var bar = document.getElementById("travelBar");
+      var count = document.getElementById("travelCount");
+      var reset = document.getElementById("travelReset");
+      var store = null;
+      try { store = window.localStorage; } catch (e) {}
+      var ticks = Travel.load(store);
+      var items = Travel.items(WEDDING_DATE, TRAVEL.destination, TRAVEL.country);
+      if (TRAVEL.destination) {
+        document.getElementById("travelSub").textContent = "a little list to get you to " + TRAVEL.destination + ", stress-free";
+      }
+
+      function refresh() {
+        var done = 0;
+        items.forEach(function (it) { if (ticks[it.id]) { done++; } });
+        count.textContent = done + " of " + items.length + " ready";
+        bar.style.width = Math.round(done / items.length * 100) + "%";
+        reset.hidden = done === 0;
+      }
+
+      items.forEach(function (it) {
+        var li = document.createElement("li");
+        li.className = "travel-item" + (ticks[it.id] ? " done" : "");
+        var label = document.createElement("label");
+        var box = document.createElement("input");
+        box.type = "checkbox";
+        box.checked = !!ticks[it.id];
+        var body = document.createElement("span");
+        var title = document.createElement("span");
+        title.className = "ti-title";
+        title.textContent = it.title;
+        var text = document.createElement("span");
+        text.className = "ti-text";
+        text.textContent = it.text;
+        body.appendChild(title);
+        body.appendChild(text);
+        label.appendChild(box);
+        label.appendChild(body);
+        li.appendChild(label);
+        if (it.link) {
+          var a = document.createElement("a");
+          a.className = "ti-link";
+          a.href = it.link.href;
+          a.textContent = it.link.label + (/^https:/.test(it.link.href) ? " ↗" : "");
+          if (/^https:/.test(it.link.href)) { a.target = "_blank"; a.rel = "noopener"; }
+          li.appendChild(a);
+        }
+        box.addEventListener("change", function () {
+          if (box.checked) { ticks[it.id] = true; } else { delete ticks[it.id]; }
+          li.className = "travel-item" + (box.checked ? " done" : "");
+          Travel.save(store, ticks);
+          refresh();
+        });
+        list.appendChild(li);
+      });
+
+      reset.addEventListener("click", function () {
+        ticks = {};
+        Travel.save(store, ticks);
+        var boxes = list.querySelectorAll("input");
+        for (var i = 0; i < boxes.length; i++) { boxes[i].checked = false; boxes[i].parentNode.parentNode.className = "travel-item"; }
+        refresh();
+      });
+
+      refresh();
+      section.hidden = false;
+    })();
   </script>
 </body>
 </html>
