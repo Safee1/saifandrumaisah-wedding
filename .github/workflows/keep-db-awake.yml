@@ -1,0 +1,35 @@
+name: keep-db-awake
+
+# Supabase pauses free-plan projects after ~7 days without database
+# activity, and the family tree goes blank until someone unpauses it by
+# hand. A tiny read every 3 days counts as activity and stops that.
+#
+# The URL and public anon key are read from js/tree-data.js at run time,
+# so they live in one place. The anon key is already public (the site
+# ships it), so no repository secret is needed.
+#
+# Note: GitHub switches off scheduled workflows in a repo with no commits
+# for 60 days. If the tree ever goes blank, check the Actions tab first.
+
+on:
+  schedule:
+    - cron: "17 6 */3 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read one approved row
+        run: |
+          url=$(grep -o 'https://[a-z0-9]*\.supabase\.co' js/tree-data.js | head -1)
+          key=$(sed -n 's/.*SUPABASE_ANON_KEY = "\([^"]*\)".*/\1/p' js/tree-data.js | head -1)
+          test -n "$url" && test -n "$key" || { echo "could not read Supabase URL/key from js/tree-data.js"; exit 1; }
+          status=$(curl -s -o body.json -w '%{http_code}' "$url/rest/v1/people?select=id&limit=1" \
+            -H "apikey: $key" -H "Authorization: Bearer $key")
+          echo "HTTP $status"; cat body.json; echo
+          test "$status" = "200" || { echo "::error::Supabase did not answer 200 — the project may be paused"; exit 1; }
