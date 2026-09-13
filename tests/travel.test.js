@@ -56,8 +56,15 @@ test("items: every item has a unique id and plain copy; links are RSVP or offici
   assert.equal(new Set(list.map((i) => i.id)).size, list.length);
   for (const i of list) {
     assert.ok(i.title && i.text, i.id);
-    if (i.link) { assert.match(i.link.href, /^(rsvp\.html|https:\/\/www\.(gov\.uk|fitfortravel\.nhs\.uk)\/)/); }
+    if (i.link) { assert.match(i.link.href, /^(rsvp\.html|https:\/\/(www\.gov\.uk|travelhealthpro\.org\.uk)\/)/); }
   }
+});
+
+test("items: no link points at the retired NHS fitfortravel site", () => {
+  // fitfortravel.nhs.uk was retired in 2025; NaTHNaC's TravelHealthPro replaced it
+  const links = Travel.items("2027-08-23", "Bali").map((i) => i.link && i.link.href).filter(Boolean).join(" ");
+  assert.doesNotMatch(links, /fitfortravel/);
+  assert.match(links, /travelhealthpro\.org\.uk/);
 });
 
 test("load/save: round-trips ticks and survives junk or missing storage", () => {
