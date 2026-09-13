@@ -89,7 +89,7 @@
         text: "Take it out as soon as you book, so it covers you if plans change." },
       { id: "health", title: "Jabs and medicines",
         text: "Check travel vaccinations about 8 weeks before you go. Keep medicines in your hand luggage with a copy of the prescription.",
-        link: { href: "https://www.fitfortravel.nhs.uk/destinations", label: "NHS fitfortravel" } },
+        link: { href: "https://travelhealthpro.org.uk/countries", label: "TravelHealthPro" } },
       { id: "copies", title: "A copy of your passport",
         text: "Keep a photo of the photo page on your phone, just in case." }
     ];
