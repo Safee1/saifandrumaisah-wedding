@@ -73,8 +73,15 @@
 
     <div class="summary" id="summary">
       <div class="stat"><span class="stat-num" id="statTotal">0</span><span class="stat-lab">total responses</span></div>
-      <div class="stat"><span class="stat-num" id="statAttending">0</span><span class="stat-lab">attending guests</span></div>
+      <div class="stat"><span class="stat-num" id="statAdults">0</span><span class="stat-lab">adults</span></div>
+      <div class="stat"><span class="stat-num" id="statChildren">0</span><span class="stat-lab">children</span></div>
+      <div class="stat"><span class="stat-num" id="statAttending">0</span><span class="stat-lab">total headcount</span></div>
       <div class="stat"><span class="stat-num" id="statDeclined">0</span><span class="stat-lab">declined</span></div>
+    </div>
+    <div class="summary" id="summaryLikelihood">
+      <div class="stat"><span class="stat-num" id="statDefinitely">0</span><span class="stat-lab">definitely</span></div>
+      <div class="stat"><span class="stat-num" id="statVeryLikely">0</span><span class="stat-lab">very likely</span></div>
+      <div class="stat"><span class="stat-num" id="statHopingTo">0</span><span class="stat-lab">hoping to</span></div>
     </div>
 
     <div style="display:flex; gap:0.6rem; justify-content:center; margin-bottom:1.5rem; flex-wrap:wrap;">
@@ -97,9 +104,20 @@
       var refreshBtn = document.getElementById("refreshBtn");
       var exportBtn = document.getElementById("exportBtn");
       var statTotal = document.getElementById("statTotal");
+      var statAdults = document.getElementById("statAdults");
+      var statChildren = document.getElementById("statChildren");
       var statAttending = document.getElementById("statAttending");
       var statDeclined = document.getElementById("statDeclined");
+      var statDefinitely = document.getElementById("statDefinitely");
+      var statVeryLikely = document.getElementById("statVeryLikely");
+      var statHopingTo = document.getElementById("statHopingTo");
       var lastRows = [];
+
+      var LIKELIHOOD_LABEL = {
+        definitely: "Definitely",
+        very_likely: "Very likely",
+        hoping_to: "Hoping to"
+      };
 
       function fmtDate(iso) {
         try {
@@ -147,13 +165,17 @@
       }
 
       function exportCsv() {
-        var header = ["Name", "Attending", "Guests", "Dietary", "Message", "Submitted"];
+        var header = ["Name", "Attending", "Contact", "Adults", "Children", "Guests", "Likelihood", "Dietary", "Note", "Submitted"];
         var lines = [header.join(",")];
         lastRows.forEach(function (row) {
           lines.push([
             csvField(row.name),
             csvField(row.attending ? "Yes" : "No"),
+            csvField(row.contact),
+            csvField(row.adults),
+            csvField(row.children),
             csvField(row.attending ? row.guest_count : ""),
+            csvField(LIKELIHOOD_LABEL[row.likelihood] || row.likelihood),
             csvField(row.dietary),
             csvField(row.message),
             csvField(fmtDate(row.created_at))
@@ -176,17 +198,30 @@
         lastRows = rows;
         var totalResponses = rows.length;
         var totalAttendingGuests = 0;
+        var totalAdults = 0;
+        var totalChildren = 0;
         var totalDeclined = 0;
+        var byLikelihood = { definitely: 0, very_likely: 0, hoping_to: 0 };
         rows.forEach(function (row) {
           if (row.attending) {
             totalAttendingGuests += (row.guest_count || 0);
+            totalAdults += (row.adults || 0);
+            totalChildren += (row.children || 0);
+            if (row.likelihood && byLikelihood.hasOwnProperty(row.likelihood)) {
+              byLikelihood[row.likelihood] += 1;
+            }
           } else {
             totalDeclined += 1;
           }
         });
         statTotal.textContent = totalResponses;
+        statAdults.textContent = totalAdults;
+        statChildren.textContent = totalChildren;
         statAttending.textContent = totalAttendingGuests;
         statDeclined.textContent = totalDeclined;
+        statDefinitely.textContent = byLikelihood.definitely;
+        statVeryLikely.textContent = byLikelihood.very_likely;
+        statHopingTo.textContent = byLikelihood.hoping_to;
 
         list.innerHTML = "";
         if (!rows.length) {
@@ -211,11 +246,25 @@
           info.appendChild(kind);
           info.appendChild(main);
 
+          if (row.likelihood && LIKELIHOOD_LABEL[row.likelihood]) {
+            var likelihood = document.createElement("p");
+            likelihood.className = "item-detail";
+            likelihood.textContent = LIKELIHOOD_LABEL[row.likelihood];
+            info.appendChild(likelihood);
+          }
           if (row.attending) {
             var guests = document.createElement("p");
             guests.className = "item-detail";
-            guests.textContent = "Guests: " + row.guest_count;
+            guests.textContent = "Adults: " + (row.adults != null ? row.adults : "—") +
+              "  ·  Children: " + (row.children != null ? row.children : "—") +
+              "  ·  Total: " + row.guest_count;
             info.appendChild(guests);
+          }
+          if (row.contact) {
+            var contact = document.createElement("p");
+            contact.className = "item-detail";
+            contact.textContent = "Contact: " + row.contact;
+            info.appendChild(contact);
           }
           if (row.dietary) {
             var dietary = document.createElement("p");
