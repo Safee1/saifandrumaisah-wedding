@@ -21,8 +21,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/envelope.css?v=41">
-<link rel="stylesheet" href="css/travel.css?v=41">
+<link rel="stylesheet" href="css/envelope.css?v=42">
+<link rel="stylesheet" href="css/travel.css?v=42">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   :root {
@@ -104,9 +104,18 @@
   @keyframes winLight { to { fill: rgba(244,196,120,0.9); } }
   .cottage .door  { fill: rgba(120,95,60,0.16); stroke: var(--gold); stroke-width: 1.1; }
   .cottage .knob  { fill: var(--gold); }
-  .cottage .smoke { fill: none; stroke: rgba(125,149,181,0.55); stroke-width: 1.5; stroke-linecap: round; opacity: 0; transform-box: fill-box; transform-origin: bottom; animation: smokeIn 1s ease 2s forwards, smokeDrift 4.2s ease-in-out 3s infinite; }
-  @keyframes smokeIn { to { opacity: 1; } }
-  @keyframes smokeDrift { 0%,100% { transform: translateY(0) scaleY(1); } 50% { transform: translateY(-3px) scaleY(1.06); } }
+  /* soft layered wisps: each drifts up, expands and fades on its own loop,
+     staggered so the plume never looks mechanical */
+  .cottage .smoke { fill: none; stroke: rgba(150,168,196,0.5); stroke-width: 2; stroke-linecap: round; filter: blur(1.1px); opacity: 0; transform-box: fill-box; transform-origin: 50% 100%; }
+  .cottage .smoke.s1 { stroke-width: 2.6; filter: blur(1.4px); animation: smokeRise 6s ease-in 2s infinite; }
+  .cottage .smoke.s2 { stroke-width: 2;   filter: blur(1px);   animation: smokeRise 6.5s ease-in 3.4s infinite; opacity: 0; }
+  .cottage .smoke.s3 { stroke-width: 1.5; filter: blur(0.8px); animation: smokeRise 5.6s ease-in 4.6s infinite; opacity: 0; }
+  @keyframes smokeRise {
+    0%   { opacity: 0;    transform: translateY(0) scale(0.7, 0.6); }
+    12%  { opacity: 0.55; transform: translateY(-2px) scale(0.85, 0.8); }
+    55%  { opacity: 0.32; transform: translateY(-11px) scale(1.15, 1.3) translateX(1.5px); }
+    100% { opacity: 0;    transform: translateY(-20px) scale(1.4, 1.9) translateX(3px); }
+  }
   @keyframes draw { to { stroke-dashoffset: 0; } }
   @keyframes fadeIn { to { opacity: 1; } }
 
@@ -766,6 +775,7 @@
     svg.rv-draw path { stroke-dasharray: none !important; stroke-dashoffset: 0 !important; transition: none !important; }
     .has-fold, .plus-mark, .add-link { transition: none !important; }
     .redact-day, .redact-bar, .reveal-country, .reveal-month { animation: none !important; background-position: 0 0 !important; opacity: 1 !important; filter: none !important; transform: none !important; }
+    .cottage .smoke { animation: none !important; opacity: 0.28 !important; transform: none !important; }
   }
 </style>
 </head>
@@ -792,6 +802,14 @@
         <circle cx="12" cy="14.6" r="1.3" fill="currentColor"/>
         <path d="M12 15.9 L12 17.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
       </g>
+      <!-- wax-seal monogram: "S & R", engraved as clean vector strokes so it
+           stays crisp at any pixel density (drawn twice via <use>, offset
+           for the debossed shadow, then the lit face on top) -->
+      <g id="seal-monogram" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M13.5 12.5 C 9 11, 6 13, 6 16 C 6 21, 15 19, 15 24 C 15 27.5, 11 29, 6.5 27"/>
+        <path d="M22 10 C 20.3 10, 19 11.6, 19 13.6 C 19 17.5, 24.5 17, 24.5 21 C 24.5 22.8, 23.3 24, 21.6 24 C 20.4 24, 19.5 23.4, 19 22.4 M 22.2 20.5 L 26 26"/>
+        <path d="M31 27 L 31 13 C 34.5 13, 37 14.3, 37 17 C 37 19.7, 34.5 21, 31 21 M 31 21 L 37 27"/>
+      </g>
     </defs>
   </svg>
 
@@ -811,7 +829,9 @@
     <div class="cottage cottage-l" aria-hidden="true"><svg viewBox="0 0 100 96">
       <polygon class="roof" points="12,48 50,14 88,48"/>
       <rect class="chim" x="64" y="22" width="10" height="20"/>
-      <path class="smoke" d="M69 22 C 64 16, 74 12, 69 6 C 66 2, 72 -2, 69 -7"/>
+      <path class="smoke s1" d="M69 22 C 64 16, 74 12, 69 6 C 66 2, 72 -2, 69 -7"/>
+      <path class="smoke s2" d="M69 22 C 65 15, 73 11, 68 4 C 65 0, 71 -4, 67 -9"/>
+      <path class="smoke s3" d="M69 22 C 63 17, 75 13, 70 7 C 68 3, 73 -1, 70 -6"/>
       <rect class="wall" x="22" y="48" width="56" height="46" rx="1.5"/>
       <path class="line" d="M12 48 L50 14 L88 48"/>
       <rect class="win" x="29" y="56" width="15" height="15" rx="1"/>
@@ -822,7 +842,9 @@
     <div class="cottage cottage-r" aria-hidden="true"><svg viewBox="0 0 100 96">
       <polygon class="roof" points="12,48 50,14 88,48"/>
       <rect class="chim" x="64" y="22" width="10" height="20"/>
-      <path class="smoke" d="M69 22 C 64 16, 74 12, 69 6 C 66 2, 72 -2, 69 -7"/>
+      <path class="smoke s1" d="M69 22 C 64 16, 74 12, 69 6 C 66 2, 72 -2, 69 -7"/>
+      <path class="smoke s2" d="M69 22 C 65 15, 73 11, 68 4 C 65 0, 71 -4, 67 -9"/>
+      <path class="smoke s3" d="M69 22 C 63 17, 75 13, 70 7 C 68 3, 73 -1, 70 -6"/>
       <rect class="wall" x="22" y="48" width="56" height="46" rx="1.5"/>
       <path class="line" d="M12 48 L50 14 L88 48"/>
       <rect class="win" x="29" y="56" width="15" height="15" rx="1"/>
@@ -882,8 +904,8 @@
           <p class="env-to" id="envTo">for you</p>
           <p class="env-req" aria-hidden="true">the pleasure of your company</p>
           <button class="seal" id="seal" aria-label="Break the wax seal and open the invitation">
-            <span class="wax wax-l" aria-hidden="true">S&amp;R</span>
-            <span class="wax wax-r" aria-hidden="true">S&amp;R</span>
+            <span class="wax wax-l" aria-hidden="true"><svg viewBox="0 0 44 44"><use href="#seal-monogram" class="mono-shadow" x="0.6" y="0.9"/><use href="#seal-monogram" class="mono-face"/></svg></span>
+            <span class="wax wax-r" aria-hidden="true"><svg viewBox="0 0 44 44"><use href="#seal-monogram" class="mono-shadow" x="0.6" y="0.9"/><use href="#seal-monogram" class="mono-face"/></svg></span>
           </button>
         </div>
       </div>
@@ -1107,7 +1129,7 @@
 
   <footer><p class="footer">more details coming soon</p></footer>
 
-  <script src="js/addressee.js?v=41"></script>
+  <script src="js/addressee.js?v=42"></script>
   <script>
     (function () {
       var root = document.documentElement;
@@ -1142,11 +1164,11 @@
       });
     })();
   </script>
-  <script src="js/tree-data.js?v=41"></script>
-  <script src="js/family-plan.js?v=41"></script>
-  <script src="js/family-lines.js?v=41"></script>
-  <script src="js/family-tree.js?v=41"></script>
-  <script src="js/blessings-data.js?v=41"></script>
+  <script src="js/tree-data.js?v=42"></script>
+  <script src="js/family-plan.js?v=42"></script>
+  <script src="js/family-lines.js?v=42"></script>
+  <script src="js/family-tree.js?v=42"></script>
+  <script src="js/blessings-data.js?v=42"></script>
   <script>
     // shared: content grows in as each part reaches the viewport
     function revealOnScroll(scope) {
@@ -1316,9 +1338,9 @@
       });
     })();
   </script>
-  <script src="js/config.js?v=41"></script>
-  <script src="js/countdown.js?v=41"></script>
-  <script src="js/travel.js?v=41"></script>
+  <script src="js/config.js?v=42"></script>
+  <script src="js/countdown.js?v=42"></script>
+  <script src="js/travel.js?v=42"></script>
   <script>
     // the wedding date and travel switch live in js/config.js
     var WEDDING_DATE = WeddingConfig.date;

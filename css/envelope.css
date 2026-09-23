@@ -8,10 +8,10 @@
   --env: #f9eee9;         /* blush paper, lit */
   --env-dark: #eed9d0;    /* blush paper, in shadow */
   --env-liner: #f3dcd4;   /* inside of the envelope */
-  --wax: #cdb994;         /* champagne wax, mid-tone */
-  --wax-hi: #eadfc4;      /* wax highlight */
-  --wax-lo: #a88b5c;      /* wax in shadow */
-  --wax-ink: #7d6440;     /* the debossed monogram */
+  --wax: #7a1220;         /* rich oxblood wax, mid-tone */
+  --wax-hi: #b73347;      /* wax highlight, lit sheen */
+  --wax-lo: #3c0810;      /* wax in shadow, near-black at the rim */
+  --wax-ink: #f3d9a8;     /* the debossed monogram, warm gold */
 
   /* one botanical sprig, tiled — drawn three ways: the dark and light
      copies offset by a pixel fake a blind emboss; the gold one is the liner */
@@ -236,33 +236,37 @@
   background-color: var(--wax);
   background-image:
     var(--grain),
-    radial-gradient(circle at 34% 28%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.12) 22%, transparent 40%),
-    radial-gradient(circle at 68% 78%, rgba(70,45,15,0.28) 0%, transparent 46%),
-    radial-gradient(circle at 50% 50%, var(--wax-hi) 0%, var(--wax) 52%, var(--wax-lo) 100%);
+    radial-gradient(circle at 32% 24%, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0.15) 16%, transparent 34%),
+    radial-gradient(circle at 70% 80%, rgba(20,4,6,0.55) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, var(--wax-hi) 0%, var(--wax) 46%, var(--wax-lo) 100%);
   background-size: 60px 60px, 100% 100%, 100% 100%, 100% 100%;
   box-shadow:
-    inset 0 2px 3px rgba(255,255,255,0.45),
-    inset 0 -3px 5px rgba(70,45,15,0.35),
-    inset 0 0 0 1px rgba(70,45,15,0.08);
+    inset 0 2px 2px rgba(255,255,255,0.35),
+    inset 0 -4px 6px rgba(15,2,4,0.55),
+    inset 0 0 0 1px rgba(15,2,4,0.25);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Pinyon Script', cursive;
-  font-size: clamp(1.25rem, 4.8vw, 1.55rem);
-  color: var(--wax-ink);
-  /* pressed into the wax: dark edge above, lit edge below */
-  text-shadow: 0 -1px 0 rgba(70,45,15,0.45), 0 1px 0 rgba(255,255,255,0.5);
+  z-index: 1;
 }
+.wax svg {
+  width: 66%;
+  height: 66%;
+  overflow: visible;
+  filter: drop-shadow(0 1px 0 rgba(255,255,255,0.35));
+}
+.wax svg .mono-shadow { fill: none; stroke: rgba(15,2,4,0.55); }
+.wax svg .mono-face { fill: none; stroke: var(--wax-ink); }
 /* the stamp's rim, pressed in */
 .wax::before {
   content: "";
   position: absolute; inset: 6px;
   border-radius: 50%;
   box-shadow:
-    inset 0 1px 1px rgba(70,45,15,0.35),
-    inset 0 -1px 1px rgba(255,255,255,0.45),
-    0 1px 0 rgba(255,255,255,0.35),
-    0 -1px 0 rgba(70,45,15,0.25);
+    inset 0 1.5px 1.5px rgba(10,1,3,0.5),
+    inset 0 -1px 1px rgba(255,255,255,0.3),
+    0 1px 0 rgba(255,255,255,0.25),
+    0 -1px 0 rgba(10,1,3,0.3);
 }
 /* a small spill of wax that escaped the stamp */
 .wax::after {
