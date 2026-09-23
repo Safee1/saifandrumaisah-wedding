@@ -21,8 +21,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/envelope.css?v=42">
-<link rel="stylesheet" href="css/travel.css?v=42">
+<link rel="stylesheet" href="css/envelope.css?v=43">
+<link rel="stylesheet" href="css/travel.css?v=43">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   :root {
@@ -96,25 +96,53 @@
   .cottage svg { width: 100%; height: auto; overflow: visible; }
   .cottage-l { left: 1.5vw; }
   .cottage-r { right: 1.5vw; }
-  .cottage .wall  { fill: #fffdf6; stroke: var(--accent); stroke-width: 1.6; stroke-linejoin: round; }
-  .cottage .roof  { fill: rgba(125,149,181,0.22); stroke: var(--accent); stroke-width: 1.7; stroke-linejoin: round; }
-  .cottage .chim  { fill: #fffdf6; stroke: var(--accent); stroke-width: 1.4; }
-  .cottage .line  { fill: none; stroke: var(--accent); stroke-width: 1.2; stroke-linecap: round; opacity: 0.75; }
-  .cottage .win   { fill: rgba(244,196,120,0); animation: winLight 1.6s ease 1.6s forwards; }
-  @keyframes winLight { to { fill: rgba(244,196,120,0.9); } }
-  .cottage .door  { fill: rgba(120,95,60,0.16); stroke: var(--gold); stroke-width: 1.1; }
+  .cottage-r svg { transform: scaleX(-1); } /* mirrored pair, chimneys to the outside */
+  .cottage .c-shadow { fill: url(#g-shadow); }
+  .cottage .wall  { fill: url(#g-wall); stroke: #5f7799; stroke-width: 1.1; stroke-linejoin: round; }
+  .cottage .wall-shade { fill: rgba(34,48,73,0.1); }
+  .cottage .siding { fill: none; stroke: rgba(95,119,153,0.16); stroke-width: 0.6; }
+  .cottage .roof  { fill: url(#g-roof); }
+  .cottage .roof-shade { fill: rgba(34,48,73,0.14); }
+  .cottage .shingle { fill: none; stroke: rgba(255,255,255,0.38); stroke-width: 0.7; }
+  .cottage .shingle-v { fill: none; stroke: rgba(34,48,73,0.2); stroke-width: 0.6; }
+  .cottage .eave { fill: none; stroke: #4d6488; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .cottage .chim  { fill: url(#g-chim); stroke: #7d5a4b; stroke-width: 0.8; }
+  .cottage .brick { fill: none; stroke: rgba(255,240,228,0.55); stroke-width: 0.55; }
+  .cottage .chim-shade { fill: rgba(60,30,20,0.16); }
+  .cottage .chim-cap { fill: #6d5448; }
+  .cottage .attic { fill: url(#g-win); stroke: #4d6488; stroke-width: 0.9; }
+  .cottage .win   { fill: url(#g-win); }
+  .cottage .frame { fill: none; stroke: #4d6488; stroke-width: 1.1; }
+  .cottage .mullion { fill: none; stroke: #4d6488; stroke-width: 0.9; }
+  .cottage .sill  { fill: #4d6488; }
+  .cottage .flowers { fill: none; stroke: #b86a74; stroke-width: 1.3; stroke-linecap: round; }
+  .cottage .door  { fill: url(#g-door); stroke: #56402c; stroke-width: 0.9; }
+  .cottage .door-panel { fill: none; stroke: rgba(255,235,205,0.28); stroke-width: 0.6; }
   .cottage .knob  { fill: var(--gold); }
-  /* soft layered wisps: each drifts up, expands and fades on its own loop,
-     staggered so the plume never looks mechanical */
-  .cottage .smoke { fill: none; stroke: rgba(150,168,196,0.5); stroke-width: 2; stroke-linecap: round; filter: blur(1.1px); opacity: 0; transform-box: fill-box; transform-origin: 50% 100%; }
-  .cottage .smoke.s1 { stroke-width: 2.6; filter: blur(1.4px); animation: smokeRise 6s ease-in 2s infinite; }
-  .cottage .smoke.s2 { stroke-width: 2;   filter: blur(1px);   animation: smokeRise 6.5s ease-in 3.4s infinite; opacity: 0; }
-  .cottage .smoke.s3 { stroke-width: 1.5; filter: blur(0.8px); animation: smokeRise 5.6s ease-in 4.6s infinite; opacity: 0; }
-  @keyframes smokeRise {
-    0%   { opacity: 0;    transform: translateY(0) scale(0.7, 0.6); }
-    12%  { opacity: 0.55; transform: translateY(-2px) scale(0.85, 0.8); }
-    55%  { opacity: 0.32; transform: translateY(-11px) scale(1.15, 1.3) translateX(1.5px); }
-    100% { opacity: 0;    transform: translateY(-20px) scale(1.4, 1.9) translateX(3px); }
+  .cottage .step  { fill: #c9bba5; }
+  /* lamps come on after the cottages settle */
+  .cottage .win, .cottage .attic { opacity: 0.35; animation: lampOn 1.6s ease 1.6s forwards; }
+  .cottage .win-glow, .cottage .attic-glow { fill: url(#g-glow); opacity: 0; animation: glowOn 1.8s ease 1.8s forwards, glowFlicker 4.5s ease-in-out 3.6s infinite alternate; }
+  @keyframes lampOn { to { opacity: 1; } }
+  @keyframes glowOn { to { opacity: 1; } }
+  @keyframes glowFlicker { from { opacity: 1; } to { opacity: 0.78; } }
+  /* chimney smoke: soft radial puffs that rise, swell, drift and dissolve,
+     staggered so the plume is always full. transform/opacity only. */
+  .cottage .puff { fill: url(#g-puff); opacity: 0; transform-box: fill-box; transform-origin: center; animation: puff 6s cubic-bezier(.33,.1,.5,1) infinite; will-change: transform, opacity; }
+  .cottage .p1 { animation-delay: -0s; }
+  .cottage .p2 { animation-delay: -1s;   animation-duration: 6.4s; }
+  .cottage .p3 { animation-delay: -2s;   animation-duration: 5.8s; }
+  .cottage .p4 { animation-delay: -3s;   animation-duration: 6.6s; }
+  .cottage .p5 { animation-delay: -4s;   animation-duration: 6.1s; }
+  .cottage .p6 { animation-delay: -5s;   animation-duration: 6.3s; }
+  .cottage .p7 { animation-delay: -0.5s; animation-duration: 7s; }
+  .cottage .p8 { animation-delay: -3.5s; animation-duration: 5.6s; }
+  @keyframes puff {
+    0%   { opacity: 0;    transform: translate(0, 2px) scale(0.45); }
+    10%  { opacity: 1;    transform: translate(-1px, -4px) scale(0.75); }
+    45%  { opacity: 0.75; transform: translate(4px, -20px) scale(1.6); }
+    75%  { opacity: 0.35; transform: translate(10px, -36px) scale(2.4); }
+    100% { opacity: 0;    transform: translate(16px, -52px) scale(3.2); }
   }
   @keyframes draw { to { stroke-dashoffset: 0; } }
   @keyframes fadeIn { to { opacity: 1; } }
@@ -127,7 +155,14 @@
     z-index: 3;
   }
   .figure svg { width: 100%; height: auto; overflow: visible; }
-  .figure .sil { fill: var(--ink); opacity: 0.82; stroke: none; }
+  .figure .sil { fill: #34425f; stroke: none; }
+  .figure .hair { fill: #1b2436; }
+  .figure .coat { fill: url(#g-coat); }
+  .figure .gown { fill: url(#g-gown); }
+  .figure .veil { fill: rgba(185,150,104,0.22); stroke: rgba(185,150,104,0.55); stroke-width: 0.6; }
+  .figure .trim { fill: none; stroke: var(--gold); stroke-width: 0.9; stroke-linecap: round; opacity: 0.9; }
+  .figure .btn  { fill: var(--gold); }
+  .figure .shoe { fill: #1b2436; }
   .figure .thin { fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; opacity: 0.75; }
   /* soft ground shadow that travels with each figure */
   .fig-bob::after {
@@ -775,8 +810,52 @@
     svg.rv-draw path { stroke-dasharray: none !important; stroke-dashoffset: 0 !important; transition: none !important; }
     .has-fold, .plus-mark, .add-link { transition: none !important; }
     .redact-day, .redact-bar, .reveal-country, .reveal-month { animation: none !important; background-position: 0 0 !important; opacity: 1 !important; filter: none !important; transform: none !important; }
-    .cottage .smoke { animation: none !important; opacity: 0.28 !important; transform: none !important; }
+    .cottage .puff { animation: none !important; } .cottage .p1 { opacity: 0.8; transform: translate(1px,-6px) scale(1.1); } .cottage .p2 { opacity: 0.55; transform: translate(5px,-18px) scale(1.8); } .cottage .p3 { opacity: 0.3; transform: translate(10px,-32px) scale(2.5); } .cottage .win, .cottage .attic, .cottage .win-glow, .cottage .attic-glow { animation: none !important; opacity: 1; }
   }
+  /* ============================================================
+     Finish pass — one easing, layered paper shadows, tactile
+     press states, refined sealed tiles. Overrides only.
+     ============================================================ */
+  :root { --ease-out: cubic-bezier(.22,.8,.36,1); }
+  ::selection { background: rgba(185,150,104,0.28); color: var(--ink); }
+  .card {
+    background: linear-gradient(180deg, #fffefb 0%, var(--card) 60%, #fbf8f1 100%);
+    border-radius: 3px;
+    box-shadow: 0 1px 1px rgba(90,70,60,0.06), 0 6px 14px rgba(90,70,60,0.06), 0 28px 70px rgba(90,70,60,0.14), inset 0 0 0 1px rgba(185,150,104,0.14);
+  }
+  .divider-line { background: linear-gradient(90deg, transparent, var(--accent)); }
+  .divider-line:last-child { background: linear-gradient(90deg, var(--accent), transparent); }
+  .reveal-month { gap: 0.5rem; }
+  .redact-day {
+    border-radius: 999px; padding: 0.08rem 0.62rem;
+    box-shadow: inset 0 0 0 1px rgba(185,150,104,0.45);
+  }
+  .redact-bar {
+    width: 11rem; height: 1.3rem; border-radius: 999px;
+    background: linear-gradient(100deg, rgba(185,150,104,0.1) 0%, rgba(185,150,104,0.26) 50%, rgba(185,150,104,0.1) 100%);
+    background-size: 220% 100%;
+    box-shadow: inset 0 0 0 1px rgba(185,150,104,0.35);
+  }
+  .redact-bar::after { font-size: 0.6rem; letter-spacing: 0.2em; color: #8d6f47; }
+  .treelink { transition: color 0.3s var(--ease-out), border-color 0.3s var(--ease-out); }
+  .treelink:hover { color: var(--gold); border-color: var(--gold); }
+  .add-link, .unlock-btn { transition: transform 0.35s var(--ease-out), box-shadow 0.35s var(--ease-out), border-color 0.35s var(--ease-out), color 0.35s var(--ease-out); }
+  .add-link:active, .unlock-btn:active { transform: translateY(0) scale(0.98); box-shadow: 0 3px 8px rgba(90,70,60,0.1); transition-duration: 0.1s; }
+  .unlock-btn { border-radius: 16px; box-shadow: 0 1px 2px rgba(90,70,60,0.06), 0 10px 26px rgba(90,70,60,0.1); }
+  .bf-field input, .bf-field textarea { background: #fffefb; border-color: rgba(64,88,122,0.2); transition: border-color 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out); }
+  .bf-field input:focus, .bf-field textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(185,150,104,0.18); }
+  .bf-send {
+    background: linear-gradient(180deg, #4a6189 0%, var(--side) 100%);
+    border-radius: 999px; padding: 0.9rem; letter-spacing: 0.18em; font-size: 0.92rem;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset, 0 6px 16px rgba(52,72,106,0.28);
+    transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out), filter 0.3s var(--ease-out);
+  }
+  .bf-send:not(:disabled):hover { background: linear-gradient(180deg, #4a6189 0%, var(--side) 100%); filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset, 0 10px 22px rgba(52,72,106,0.32); }
+  .bf-send:not(:disabled):active { transform: scale(0.985); box-shadow: 0 3px 8px rgba(52,72,106,0.25); transition-duration: 0.1s; }
+  .bless-form { border-radius: 18px; box-shadow: inset 0 0 0 1px rgba(185,150,104,0.4), 0 2px 4px rgba(90,70,60,0.04), 0 16px 40px rgba(90,70,60,0.09); }
+  .bless-card { transition: transform 0.6s var(--ease-out), opacity 0.6s var(--ease-out), box-shadow 0.35s var(--ease-out); }
+  @media (hover: hover) { .bless-card:hover { box-shadow: inset 0 0 0 1px rgba(185,150,104,0.5), 0 16px 32px rgba(90,70,60,0.13); } }
+  .footer { letter-spacing: 0.32em; color: #8b93a3; }
 </style>
 </head>
 <body>
@@ -784,6 +863,17 @@
   <!-- shared SVG shapes, referenced below via <use> -->
   <svg aria-hidden="true" style="position:absolute; width:0; height:0; overflow:hidden">
     <defs>
+      <!-- storybook cottage paints -->
+      <linearGradient id="g-roof" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#95abc9"/><stop offset="1" stop-color="#6c86aa"/></linearGradient>
+      <linearGradient id="g-wall" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffdf8"/><stop offset="1" stop-color="#efe6d6"/></linearGradient>
+      <linearGradient id="g-chim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfa28c"/><stop offset="1" stop-color="#a97a67"/></linearGradient>
+      <linearGradient id="g-door" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8f6d4b"/><stop offset="1" stop-color="#6d5036"/></linearGradient>
+      <radialGradient id="g-win"><stop offset="0" stop-color="#fff4d2"/><stop offset="0.6" stop-color="#f8cf85"/><stop offset="1" stop-color="#eaa653"/></radialGradient>
+      <radialGradient id="g-glow"><stop offset="0" stop-color="#ffd48a" stop-opacity="0.6"/><stop offset="1" stop-color="#ffd48a" stop-opacity="0"/></radialGradient>
+      <radialGradient id="g-puff"><stop offset="0" stop-color="#8e9bb2" stop-opacity="0.62"/><stop offset="0.4" stop-color="#9eaac0" stop-opacity="0.45"/><stop offset="0.75" stop-color="#b3bdd0" stop-opacity="0.16"/><stop offset="1" stop-color="#c3ccdb" stop-opacity="0"/></radialGradient>
+      <linearGradient id="g-coat" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#46587a"/><stop offset="1" stop-color="#28344d"/></linearGradient>
+      <linearGradient id="g-gown" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4e6184"/><stop offset="1" stop-color="#2b3753"/></linearGradient>
+      <radialGradient id="g-shadow"><stop offset="0" stop-color="#223049" stop-opacity="0.28"/><stop offset="1" stop-color="#223049" stop-opacity="0"/></radialGradient>
       <g id="dove-shape">
         <path class="body-fill" d="M14 40 C 24 30, 40 26, 56 30 C 66 32, 74 30, 82 24 C 78 34, 70 42, 58 44 C 44 46, 28 46, 14 40 Z"/>
         <g class="swing"><path d="M56 30 C 60 18, 70 10, 84 8 C 76 16, 72 24, 70 30"/><path d="M50 32 C 52 22, 60 14, 72 10"/></g>
@@ -802,14 +892,30 @@
         <circle cx="12" cy="14.6" r="1.3" fill="currentColor"/>
         <path d="M12 15.9 L12 17.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
       </g>
-      <!-- wax-seal monogram: "S & R", engraved as clean vector strokes so it
-           stays crisp at any pixel density (drawn twice via <use>, offset
-           for the debossed shadow, then the lit face on top) -->
-      <g id="seal-monogram" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M13.5 12.5 C 9 11, 6 13, 6 16 C 6 21, 15 19, 15 24 C 15 27.5, 11 29, 6.5 27"/>
-        <path d="M22 10 C 20.3 10, 19 11.6, 19 13.6 C 19 17.5, 24.5 17, 24.5 21 C 24.5 22.8, 23.3 24, 21.6 24 C 20.4 24, 19.5 23.4, 19 22.4 M 22.2 20.5 L 26 26"/>
-        <path d="M31 27 L 31 13 C 34.5 13, 37 14.3, 37 17 C 37 19.7, 34.5 21, 31 21 M 31 21 L 37 27"/>
-      </g>
+      <!-- the wax seal, drawn once and used by both crack halves: poured
+           irregular edge with drips, raised stamp rim, pressed field and a
+           debossed gold S&R (dark + light offsets = the pressed walls) -->
+      <radialGradient id="w-body" cx="0.36" cy="0.3" r="0.8"><stop offset="0" stop-color="#b83a4c"/><stop offset="0.42" stop-color="#861627"/><stop offset="0.85" stop-color="#5a0c18"/><stop offset="1" stop-color="#3a0710"/></radialGradient>
+      <radialGradient id="w-field" cx="0.62" cy="0.7" r="0.75"><stop offset="0" stop-color="#8d1a2b"/><stop offset="0.7" stop-color="#6c1120"/><stop offset="1" stop-color="#4a0914"/></radialGradient>
+      <linearGradient id="w-rim" x1="0.2" y1="0.1" x2="0.8" y2="0.9"><stop offset="0" stop-color="#e37a88"/><stop offset="0.45" stop-color="#9a2334"/><stop offset="1" stop-color="#3c0810"/></linearGradient>
+      <linearGradient id="w-rim-in" x1="0.2" y1="0.1" x2="0.8" y2="0.9"><stop offset="0" stop-color="#2a0409"/><stop offset="0.55" stop-color="#6a1020"/><stop offset="1" stop-color="#d0707e"/></linearGradient>
+      <linearGradient id="w-gold" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#fbe7bd"/><stop offset="0.5" stop-color="#e2bd7c"/><stop offset="1" stop-color="#b78a4a"/></linearGradient>
+      <radialGradient id="w-spec"><stop offset="0" stop-color="#fff" stop-opacity="0.75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+      <symbol id="seal-art" viewBox="0 0 100 100" overflow="visible">
+        <path d="M95.7 50.0C95.8 52.3 94.7 54.7 94.2 57.0C93.7 59.3 93.1 61.5 92.5 63.8C92.0 66.1 91.6 68.5 91.1 70.9C90.5 73.4 90.9 76.8 89.2 78.5C87.6 80.2 83.7 80.4 81.2 81.2C78.7 82.0 76.2 82.1 74.2 83.4C72.3 84.6 71.3 86.9 69.6 88.5C67.9 90.1 66.0 91.6 63.9 92.8C61.9 94.1 59.6 95.6 57.3 95.8C54.9 96.0 52.3 94.7 50.0 94.1C47.7 93.4 45.6 92.4 43.4 91.9C41.2 91.4 39.0 91.3 36.7 90.9C34.5 90.4 32.1 90.2 30.0 89.3C27.8 88.5 25.9 87.1 24.0 85.8C22.0 84.6 19.8 83.5 18.1 81.9C16.4 80.3 15.3 78.2 13.6 76.5C11.9 74.7 9.2 73.4 8.0 71.4C6.7 69.4 6.2 66.7 6.1 64.3C6.0 61.8 7.0 59.2 7.2 56.8C7.4 54.4 7.0 52.2 7.3 50.0C7.5 47.8 8.5 45.7 8.5 43.4C8.6 41.1 7.3 38.5 7.7 36.3C8.2 34.1 10.0 32.2 11.1 30.2C12.3 28.2 13.6 26.5 14.4 24.2C15.3 21.9 15.5 19.0 16.4 16.4C17.3 13.8 17.9 10.1 19.8 8.5C21.7 6.8 24.9 6.2 27.8 6.4C30.6 6.5 34.2 9.1 36.8 9.5C39.5 9.9 41.3 9.3 43.5 8.8C45.7 8.3 47.7 7.0 50.0 6.5C52.3 6.0 54.7 5.7 57.0 5.8C59.3 5.9 61.7 6.5 63.9 7.2C66.1 7.9 68.1 9.2 70.3 10.1C72.6 10.9 75.5 10.9 77.4 12.3C79.3 13.7 80.4 16.3 81.7 18.3C83.1 20.3 84.6 22.1 85.4 24.3C86.3 26.4 86.2 29.0 86.9 31.2C87.6 33.3 88.4 35.2 89.6 37.1C90.8 39.1 93.0 40.9 94.1 43.0C95.1 45.2 95.7 47.7 95.7 50.0Z" fill="url(#w-body)"/>
+        <path d="M95.7 50.0C95.8 52.3 94.7 54.7 94.2 57.0C93.7 59.3 93.1 61.5 92.5 63.8C92.0 66.1 91.6 68.5 91.1 70.9C90.5 73.4 90.9 76.8 89.2 78.5C87.6 80.2 83.7 80.4 81.2 81.2C78.7 82.0 76.2 82.1 74.2 83.4C72.3 84.6 71.3 86.9 69.6 88.5C67.9 90.1 66.0 91.6 63.9 92.8C61.9 94.1 59.6 95.6 57.3 95.8C54.9 96.0 52.3 94.7 50.0 94.1C47.7 93.4 45.6 92.4 43.4 91.9C41.2 91.4 39.0 91.3 36.7 90.9C34.5 90.4 32.1 90.2 30.0 89.3C27.8 88.5 25.9 87.1 24.0 85.8C22.0 84.6 19.8 83.5 18.1 81.9C16.4 80.3 15.3 78.2 13.6 76.5C11.9 74.7 9.2 73.4 8.0 71.4C6.7 69.4 6.2 66.7 6.1 64.3C6.0 61.8 7.0 59.2 7.2 56.8C7.4 54.4 7.0 52.2 7.3 50.0C7.5 47.8 8.5 45.7 8.5 43.4C8.6 41.1 7.3 38.5 7.7 36.3C8.2 34.1 10.0 32.2 11.1 30.2C12.3 28.2 13.6 26.5 14.4 24.2C15.3 21.9 15.5 19.0 16.4 16.4C17.3 13.8 17.9 10.1 19.8 8.5C21.7 6.8 24.9 6.2 27.8 6.4C30.6 6.5 34.2 9.1 36.8 9.5C39.5 9.9 41.3 9.3 43.5 8.8C45.7 8.3 47.7 7.0 50.0 6.5C52.3 6.0 54.7 5.7 57.0 5.8C59.3 5.9 61.7 6.5 63.9 7.2C66.1 7.9 68.1 9.2 70.3 10.1C72.6 10.9 75.5 10.9 77.4 12.3C79.3 13.7 80.4 16.3 81.7 18.3C83.1 20.3 84.6 22.1 85.4 24.3C86.3 26.4 86.2 29.0 86.9 31.2C87.6 33.3 88.4 35.2 89.6 37.1C90.8 39.1 93.0 40.9 94.1 43.0C95.1 45.2 95.7 47.7 95.7 50.0Z" fill="none" stroke="#2a0409" stroke-opacity="0.45" stroke-width="0.8"/>
+        <circle cx="50" cy="50" r="33.5" fill="none" stroke="url(#w-rim)" stroke-width="4.2"/>
+        <circle cx="50" cy="50" r="31" fill="url(#w-field)"/>
+        <circle cx="50" cy="50" r="31" fill="none" stroke="url(#w-rim-in)" stroke-width="1.4"/>
+        <circle cx="50" cy="50" r="27.2" fill="none" stroke="url(#w-gold)" stroke-width="0.7" stroke-dasharray="0.1 2.3" stroke-linecap="round" opacity="0.9"/>
+        <g font-family="'Cormorant Garamond', Georgia, serif" font-style="italic" font-weight="500" text-anchor="middle">
+          <g transform="translate(-0.6 -0.6)" fill="#1e0307" opacity="0.8"><text x="36" y="60" font-size="30">S</text><text x="64" y="60" font-size="30">R</text><text x="50" y="57" font-size="15" font-family="'Pinyon Script', cursive" font-style="normal">&amp;</text></g>
+          <g transform="translate(0.5 0.6)" fill="#e98a97" opacity="0.55"><text x="36" y="60" font-size="30">S</text><text x="64" y="60" font-size="30">R</text><text x="50" y="57" font-size="15" font-family="'Pinyon Script', cursive" font-style="normal">&amp;</text></g>
+          <g fill="url(#w-gold)"><text x="36" y="60" font-size="30">S</text><text x="64" y="60" font-size="30">R</text><text x="50" y="57" font-size="15" font-family="'Pinyon Script', cursive" font-style="normal">&amp;</text></g>
+        </g>
+        <ellipse cx="30" cy="22" rx="11" ry="5" transform="rotate(-35 30 22)" fill="url(#w-spec)"/>
+        <ellipse cx="72" cy="80" rx="7" ry="2.2" transform="rotate(-40 72 80)" fill="url(#w-spec)" opacity="0.35"/>
+      </symbol>
     </defs>
   </svg>
 
@@ -827,45 +933,94 @@
       <svg viewBox="0 0 400 120" preserveAspectRatio="none"><path class="ground" d="M0 100 L400 100" pathLength="900"/></svg>
     </div>
     <div class="cottage cottage-l" aria-hidden="true"><svg viewBox="0 0 100 96">
-      <polygon class="roof" points="12,48 50,14 88,48"/>
-      <rect class="chim" x="64" y="22" width="10" height="20"/>
-      <path class="smoke s1" d="M69 22 C 64 16, 74 12, 69 6 C 66 2, 72 -2, 69 -7"/>
-      <path class="smoke s2" d="M69 22 C 65 15, 73 11, 68 4 C 65 0, 71 -4, 67 -9"/>
-      <path class="smoke s3" d="M69 22 C 63 17, 75 13, 70 7 C 68 3, 73 -1, 70 -6"/>
-      <rect class="wall" x="22" y="48" width="56" height="46" rx="1.5"/>
-      <path class="line" d="M12 48 L50 14 L88 48"/>
-      <rect class="win" x="29" y="56" width="15" height="15" rx="1"/>
-      <path class="line" d="M36.5 56 L36.5 71 M29 63.5 L44 63.5"/>
-      <rect class="door" x="52" y="64" width="16" height="30" rx="1"/>
-      <circle class="knob" cx="64.5" cy="80" r="1.4"/>
+      <ellipse class="c-shadow" cx="50" cy="94.5" rx="46" ry="3.2"/>
+      <g class="plume">
+        <circle class="puff p1" cx="68" cy="16" r="6.5"/><circle class="puff p2" cx="68" cy="16" r="6.5"/>
+        <circle class="puff p3" cx="68" cy="16" r="6.5"/><circle class="puff p4" cx="68" cy="16" r="6.5"/>
+        <circle class="puff p5" cx="68" cy="16" r="6.5"/><circle class="puff p6" cx="68" cy="16" r="6.5"/>
+        <circle class="puff p7" cx="68" cy="16" r="6.5"/><circle class="puff p8" cx="68" cy="16" r="6.5"/>
+      </g>
+      <rect class="chim" x="62" y="18" width="12" height="24"/>
+      <path class="brick" d="M62 22.5h12M62 27h12M62 31.5h12M62 36h12M66 18v4.5M71 22.5v4.5M66 27v4.5M71 31.5v4.5M66 36v4.5"/>
+      <rect class="chim-shade" x="70" y="18" width="4" height="24"/>
+      <rect class="chim-cap" x="60.5" y="15.2" width="15" height="3.4" rx="0.8"/>
+      <path class="roof" d="M8 50 L50 12.5 L92 50 Z"/>
+      <path class="roof-shade" d="M50 12.5 L92 50 L70 50 Z"/>
+      <path class="shingle" d="M40.6 21 h18.8 M33.9 27 h32.2 M27.2 33 h45.6 M20.5 39 h59 M13.8 45 h72.4"/>
+      <path class="shingle-v" d="M46 21v6M54 21v6M42 27v6M50 27v6M58 27v6M38 33v6M46 33v6M54 33v6M62 33v6M34 39v6M42 39v6M50 39v6M58 39v6M66 39v6"/>
+      <path class="eave" d="M6 50.6 L50 11.4 L94 50.6"/>
+      <circle class="attic-glow" cx="50" cy="33" r="7"/>
+      <circle class="attic" cx="50" cy="33" r="3.6"/>
+      <rect class="wall" x="20" y="50" width="60" height="44"/>
+      <rect class="wall-shade" x="20" y="50" width="60" height="5"/>
+      <path class="siding" d="M20 61h60M20 72h60M20 83h60"/>
+      <circle class="win-glow" cx="36" cy="66" r="15"/>
+      <rect class="win" x="28" y="58" width="16" height="17" rx="1"/>
+      <path class="mullion" d="M36 58v17M28 66.5h16"/>
+      <rect class="frame" x="28" y="58" width="16" height="17" rx="1"/>
+      <rect class="sill" x="26.5" y="75" width="19" height="2.2" rx="0.6"/>
+      <path class="flowers" d="M29 75c1-2 2.4-2.3 3.4 0M33.6 75c1-2.2 2.6-2.4 3.6 0M38.4 75c1-2 2.4-2.2 3.4 0"/>
+      <path class="door" d="M53 94 V70 a8 8 0 0 1 16 0 V94 Z"/>
+      <path class="door-panel" d="M56 76h10v7h-10zM56 86h10v6h-10z"/>
+      <circle class="knob" cx="66.4" cy="84.5" r="1.1"/>
+      <rect class="step" x="50.5" y="93" width="21" height="2.4" rx="0.8"/>
     </svg></div>
     <div class="cottage cottage-r" aria-hidden="true"><svg viewBox="0 0 100 96">
-      <polygon class="roof" points="12,48 50,14 88,48"/>
-      <rect class="chim" x="64" y="22" width="10" height="20"/>
-      <path class="smoke s1" d="M69 22 C 64 16, 74 12, 69 6 C 66 2, 72 -2, 69 -7"/>
-      <path class="smoke s2" d="M69 22 C 65 15, 73 11, 68 4 C 65 0, 71 -4, 67 -9"/>
-      <path class="smoke s3" d="M69 22 C 63 17, 75 13, 70 7 C 68 3, 73 -1, 70 -6"/>
-      <rect class="wall" x="22" y="48" width="56" height="46" rx="1.5"/>
-      <path class="line" d="M12 48 L50 14 L88 48"/>
-      <rect class="win" x="29" y="56" width="15" height="15" rx="1"/>
-      <path class="line" d="M36.5 56 L36.5 71 M29 63.5 L44 63.5"/>
-      <rect class="door" x="52" y="64" width="16" height="30" rx="1"/>
-      <circle class="knob" cx="64.5" cy="80" r="1.4"/>
+      <ellipse class="c-shadow" cx="50" cy="94.5" rx="46" ry="3.2"/>
+      <g class="plume">
+        <circle class="puff p1" cx="68" cy="16" r="6.5"/><circle class="puff p2" cx="68" cy="16" r="6.5"/>
+        <circle class="puff p3" cx="68" cy="16" r="6.5"/><circle class="puff p4" cx="68" cy="16" r="6.5"/>
+        <circle class="puff p5" cx="68" cy="16" r="6.5"/><circle class="puff p6" cx="68" cy="16" r="6.5"/>
+        <circle class="puff p7" cx="68" cy="16" r="6.5"/><circle class="puff p8" cx="68" cy="16" r="6.5"/>
+      </g>
+      <rect class="chim" x="62" y="18" width="12" height="24"/>
+      <path class="brick" d="M62 22.5h12M62 27h12M62 31.5h12M62 36h12M66 18v4.5M71 22.5v4.5M66 27v4.5M71 31.5v4.5M66 36v4.5"/>
+      <rect class="chim-shade" x="70" y="18" width="4" height="24"/>
+      <rect class="chim-cap" x="60.5" y="15.2" width="15" height="3.4" rx="0.8"/>
+      <path class="roof" d="M8 50 L50 12.5 L92 50 Z"/>
+      <path class="roof-shade" d="M50 12.5 L92 50 L70 50 Z"/>
+      <path class="shingle" d="M40.6 21 h18.8 M33.9 27 h32.2 M27.2 33 h45.6 M20.5 39 h59 M13.8 45 h72.4"/>
+      <path class="shingle-v" d="M46 21v6M54 21v6M42 27v6M50 27v6M58 27v6M38 33v6M46 33v6M54 33v6M62 33v6M34 39v6M42 39v6M50 39v6M58 39v6M66 39v6"/>
+      <path class="eave" d="M6 50.6 L50 11.4 L94 50.6"/>
+      <circle class="attic-glow" cx="50" cy="33" r="7"/>
+      <circle class="attic" cx="50" cy="33" r="3.6"/>
+      <rect class="wall" x="20" y="50" width="60" height="44"/>
+      <rect class="wall-shade" x="20" y="50" width="60" height="5"/>
+      <path class="siding" d="M20 61h60M20 72h60M20 83h60"/>
+      <circle class="win-glow" cx="36" cy="66" r="15"/>
+      <rect class="win" x="28" y="58" width="16" height="17" rx="1"/>
+      <path class="mullion" d="M36 58v17M28 66.5h16"/>
+      <rect class="frame" x="28" y="58" width="16" height="17" rx="1"/>
+      <rect class="sill" x="26.5" y="75" width="19" height="2.2" rx="0.6"/>
+      <path class="flowers" d="M29 75c1-2 2.4-2.3 3.4 0M33.6 75c1-2.2 2.6-2.4 3.6 0M38.4 75c1-2 2.4-2.2 3.4 0"/>
+      <path class="door" d="M53 94 V70 a8 8 0 0 1 16 0 V94 Z"/>
+      <path class="door-panel" d="M56 76h10v7h-10zM56 86h10v6h-10z"/>
+      <circle class="knob" cx="66.4" cy="84.5" r="1.1"/>
+      <rect class="step" x="50.5" y="93" width="21" height="2.4" rx="0.8"/>
     </svg></div>
 
     <!-- the couple -->
     <div class="figure fig-l"><div class="fig-bob"><svg viewBox="0 0 60 100">
-      <ellipse class="sil" cx="33" cy="12" rx="7" ry="7.6"/>
-      <path class="sil" d="M28 21 C 27.4 25, 27 29, 26.4 34 L 24.6 57 C 24.4 60.5, 26.5 62.5, 30 62.5 L 36 62.5 C 39.5 62.5, 41.6 60.5, 41.4 57 L 39.6 34 C 39 29, 38.6 25, 38 21 C 35 19.4, 31 19.4, 28 21 Z"/>
-      <path class="sil" d="M38.5 29 C 44 32.5, 49 37.5, 53.5 44 L 50.6 46.6 C 46.5 41, 41.8 37, 36.8 34.2 Z"/>
-      <path class="sil" d="M27.4 62 L 23.6 91 L 27.6 91 L 31.4 63 Z"/>
-      <path class="sil" d="M38.6 62 L 42.4 91 L 38.4 91 L 34.6 63 Z"/>
+      <ellipse class="sil" cx="33" cy="12" rx="6.8" ry="7.4"/>
+      <path class="hair" d="M26.3 11 C 26 5, 30 3.8, 33.4 4 C 37.6 4.2, 40.2 6.6, 39.8 11 C 38 8.4, 35 7.6, 31 8 C 29 8.2, 27.4 9.2, 26.3 11 Z"/>
+      <path class="sil" d="M31 19.4 L 35 19.4 L 35.4 22 L 30.6 22 Z"/>
+      <path class="coat" d="M28 21 C 27.2 26, 26.6 31, 26 37 L 24.2 64 L 41.8 64 L 40 37 C 39.4 31, 38.8 26, 38 21 C 35 19.6, 31 19.6, 28 21 Z"/>
+      <path class="coat" d="M38.5 29 C 44 32.5, 49 37.5, 53.5 44 L 50.6 46.6 C 46.5 41, 41.8 37, 36.8 34.2 Z"/>
+      <path class="trim" d="M33 21.4 L 33 64 M 24.4 63.2 L 41.6 63.2"/>
+      <circle class="btn" cx="33" cy="27" r="0.75"/><circle class="btn" cx="33" cy="33" r="0.75"/><circle class="btn" cx="33" cy="39" r="0.75"/><circle class="btn" cx="33" cy="45" r="0.75"/>
+      <path class="sil" d="M27.6 63.5 L 24.6 91 L 28.4 91 L 31.6 64 Z"/>
+      <path class="sil" d="M38.4 63.5 L 41.4 91 L 37.6 91 L 34.4 64 Z"/>
+      <path class="shoe" d="M22.6 91 h6.2 v1.6 h-6.8 Z M37.2 91 h6.2 l0.6 1.6 h-6.8 Z"/>
     </svg></div></div>
     <div class="figure fig-r"><div class="fig-bob"><svg viewBox="0 0 60 100">
-      <ellipse class="sil" cx="33" cy="12" rx="7" ry="7.6"/>
-      <circle class="sil" cx="25.5" cy="7.5" r="3.4"/>
-      <path class="sil" d="M30 19.5 C 29 26, 28 32, 26 40 C 23 51, 19 60, 15.5 67.5 C 25 72.5, 43 72.5, 51.5 67.5 C 46.5 58, 42.5 50, 40.5 40 C 38.5 32, 37.5 26, 36.5 19.5 C 34.4 18, 32.1 18, 30 19.5 Z"/>
+      <path class="veil" d="M26 6 C 30 -0.5, 39 0, 41 8 C 44 20, 47 40, 54 66 C 46 60, 42 44, 38.6 26 Z"/>
+      <ellipse class="sil" cx="33" cy="12" rx="6.8" ry="7.4"/>
+      <path class="hair" d="M26.3 11.5 C 26 5.5, 29.8 4, 33.2 4 C 37.2 4.1, 40 6.8, 39.8 11 C 37.4 8, 33 7.6, 29.4 8.6 C 28 9.2, 27 10.2, 26.3 11.5 Z"/>
+      <circle class="hair" cx="25.5" cy="8" r="3.4"/>
+      <path class="gown" d="M30 19.5 C 29 26, 28 32, 26 40 C 23 51, 19 60, 15.5 69 C 25 73.5, 43 73.5, 51.5 69 C 46.5 58, 42.5 50, 40.5 40 C 38.5 32, 37.5 26, 36.5 19.5 C 34.4 18, 32.1 18, 30 19.5 Z"/>
+      <path class="trim" d="M16.4 67.6 C 25.5 72, 42 72, 50.6 67.6 M 27 38 C 31 39.4, 36 39.4, 40 38"/>
       <path class="sil" d="M37 29 C 42.5 32.5, 47.5 37.5, 52 44 L 49.1 46.6 C 45 41, 40.3 37, 35.3 34.2 Z"/>
+      <circle class="btn" cx="50.5" cy="45.6" r="1"/>
       <path class="thin" d="M27.5 72.5 L 27.5 80 M 39.5 72.5 L 39.5 80"/>
     </svg></div></div>
 
@@ -904,8 +1059,8 @@
           <p class="env-to" id="envTo">for you</p>
           <p class="env-req" aria-hidden="true">the pleasure of your company</p>
           <button class="seal" id="seal" aria-label="Break the wax seal and open the invitation">
-            <span class="wax wax-l" aria-hidden="true"><svg viewBox="0 0 44 44"><use href="#seal-monogram" class="mono-shadow" x="0.6" y="0.9"/><use href="#seal-monogram" class="mono-face"/></svg></span>
-            <span class="wax wax-r" aria-hidden="true"><svg viewBox="0 0 44 44"><use href="#seal-monogram" class="mono-shadow" x="0.6" y="0.9"/><use href="#seal-monogram" class="mono-face"/></svg></span>
+            <span class="wax wax-l" aria-hidden="true"><svg viewBox="0 0 100 100"><use href="#seal-art"/></svg></span>
+            <span class="wax wax-r" aria-hidden="true"><svg viewBox="0 0 100 100"><use href="#seal-art"/></svg></span>
           </button>
         </div>
       </div>
@@ -952,7 +1107,7 @@
         <svg class="heart" viewBox="0 0 24 24" fill="currentColor"><use href="#heart-shape"></use></svg>
         <span class="divider-line"></span>
       </div>
-      <p class="where st d5">Egypt</p>
+      <p class="where st d5" id="whereLine">Egypt</p>
       <div class="reveal-wrap st d5" id="revealWrap" hidden>
         <p class="reveal-country" id="revealCountry"></p>
         <p class="reveal-month" id="revealMonthLine">
@@ -1129,7 +1284,7 @@
 
   <footer><p class="footer">more details coming soon</p></footer>
 
-  <script src="js/addressee.js?v=42"></script>
+  <script src="js/addressee.js?v=43"></script>
   <script>
     (function () {
       var root = document.documentElement;
@@ -1164,11 +1319,11 @@
       });
     })();
   </script>
-  <script src="js/tree-data.js?v=42"></script>
-  <script src="js/family-plan.js?v=42"></script>
-  <script src="js/family-lines.js?v=42"></script>
-  <script src="js/family-tree.js?v=42"></script>
-  <script src="js/blessings-data.js?v=42"></script>
+  <script src="js/tree-data.js?v=43"></script>
+  <script src="js/family-plan.js?v=43"></script>
+  <script src="js/family-lines.js?v=43"></script>
+  <script src="js/family-tree.js?v=43"></script>
+  <script src="js/blessings-data.js?v=43"></script>
   <script>
     // shared: content grows in as each part reaches the viewport
     function revealOnScroll(scope) {
@@ -1338,9 +1493,9 @@
       });
     })();
   </script>
-  <script src="js/config.js?v=42"></script>
-  <script src="js/countdown.js?v=42"></script>
-  <script src="js/travel.js?v=42"></script>
+  <script src="js/config.js?v=43"></script>
+  <script src="js/countdown.js?v=43"></script>
+  <script src="js/travel.js?v=43"></script>
   <script>
     // the wedding date and travel switch live in js/config.js
     var WEDDING_DATE = WeddingConfig.date;
@@ -1356,6 +1511,8 @@
       if (REVEAL.show) { return; }
       document.getElementById("dateTbc").hidden = true;
       document.getElementById("revealWrap").hidden = false;
+      // the teaser prints the country itself, so the plain line steps aside
+      document.getElementById("whereLine").hidden = true;
 
       // Country and month/year are safe to show now; day and venue stay
       // sealed (a shimmering redacted tile / bar) until those fields are
