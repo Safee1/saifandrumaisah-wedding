@@ -88,6 +88,9 @@
       <p id="invNewHint" style="display:none; text-align:center; font-size:0.8rem; color:var(--muted); margin:0">Copy it now — it's only shown once.</p>
     </div>
     <div id="invList"></div>
+
+    <h1 class="title" style="margin-top:2.5rem">rejected (restore)</h1>
+    <div id="rejectedList"></div>
   </div>
 
   <script src="js/tree-data.js?v=40"></script>
@@ -119,10 +122,18 @@
             try { sessionStorage.setItem("treeAdminPw", candidate); } catch (e) {}
             renderAll(rows, ++renderSeq);
           })
-          .catch(function () {
-            gateErr.textContent = "Wrong password.";
+          .catch(function (err) {
+            gateErr.textContent = lockoutMessage(err) || "Wrong password.";
             pwSubmit.disabled = false;
           });
+      }
+
+      // The DB-side lockout (5 failed admin_check calls in 15 minutes)
+      // raises a specific message; surface it as-is instead of the generic
+      // "Wrong password." so people know it's a timed lockout, not a typo.
+      function lockoutMessage(err) {
+        var msg = err && err.message;
+        return msg && msg.indexOf("Too many attempts") !== -1 ? msg : null;
       }
 
       pwSubmit.addEventListener("click", unlock);
@@ -186,10 +197,10 @@
           var fn = row.kind === "person" ? "admin_set_person_status" : "admin_set_relationship_status";
           TreeData.rpc(fn, { pw: pw, target: row.id, new_status: status })
             .then(function () { el.remove(); })
-            .catch(function () {
+            .catch(function (err) {
               approveBtn.disabled = false;
               rejectBtn.disabled = false;
-              alert("Something went wrong — please try again.");
+              alert(lockoutMessage(err) || "Something went wrong — please try again.");
             });
         }
         approveBtn.addEventListener("click", function () { act("approved"); });
@@ -318,8 +329,57 @@
         });
       });
 
+      // ----- rejected (restore) panel -----
+      var rejectedList = document.getElementById("rejectedList");
+
+      function buildRejectedItem(row) {
+        var el = document.createElement("div");
+        el.className = "item";
+        var info = document.createElement("div");
+        info.className = "item-info";
+        var kind = document.createElement("p");
+        kind.className = "item-kind";
+        kind.textContent = (row.side === "saif" ? "Saif's side" : "Rumaisah's side") + (row.is_kid ? " · little one" : "");
+        var main = document.createElement("p");
+        main.className = "item-main";
+        main.textContent = row.name;
+        info.appendChild(kind);
+        info.appendChild(main);
+        el.appendChild(info);
+
+        var actions = document.createElement("div");
+        actions.className = "item-actions";
+        var restoreBtn = document.createElement("button");
+        restoreBtn.className = "btn-approve";
+        restoreBtn.textContent = "Restore";
+        restoreBtn.addEventListener("click", function () {
+          restoreBtn.disabled = true;
+          TreeData.rpc("admin_restore_person", { pw: pw, target: row.id })
+            .then(function () { el.remove(); loadPending(); })
+            .catch(function (err) {
+              restoreBtn.disabled = false;
+              alert(lockoutMessage(err) || "Something went wrong — please try again.");
+            });
+        });
+        actions.appendChild(restoreBtn);
+        el.appendChild(actions);
+        return el;
+      }
+
+      function loadRejected() {
+        TreeData.rpc("admin_list_rejected", { pw: pw }).then(function (rows) {
+          rejectedList.innerHTML = "";
+          if (!rows.length) {
+            rejectedList.innerHTML = "<p class=\"empty\">Nothing rejected.</p>";
+            return;
+          }
+          rows.forEach(function (row) { rejectedList.appendChild(buildRejectedItem(row)); });
+        }).catch(function () { /* leave the list as-is */ });
+      }
+
       function renderAll(treeRows, seq) {
         loadInvites();
+        loadRejected();
         list.innerHTML = "";
         treeRows.forEach(function (row) { list.appendChild(buildTreeItem(row)); });
         TreeData.rpc("admin_list_blessings", { pw: pw })

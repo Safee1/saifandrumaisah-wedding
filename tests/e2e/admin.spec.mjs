@@ -67,6 +67,20 @@ test.describe("rsvp-admin.html", () => {
     await expect(page.locator("#statTotal")).toHaveText("0");
   });
 
+  test("brute-force lockout shows the DB's message, not the generic 'Wrong password.'", async ({ page }) => {
+    await mockSupabase(page, {
+      "POST /rest/v1/rpc/admin_list_rsvps": (route) => route.fulfill({
+        status: 429,
+        contentType: "application/json",
+        body: JSON.stringify({ message: "Too many attempts — try again in 15 minutes" })
+      })
+    });
+    await page.goto("/rsvp-admin.html");
+    await page.locator("#pw").fill("whatever");
+    await page.locator("#pwSubmit").click();
+    await expect(page.locator("#gateErr")).toContainText("Too many attempts");
+  });
+
   test("500-row dataset renders without failure", async ({ page }) => {
     const rows = Array.from({ length: 500 }, (_, i) => ({
       id: "r" + i, name: "Guest " + i, attending: i % 2 === 0, contact: "g" + i + "@example.com",
@@ -177,5 +191,58 @@ test.describe("tree-admin.html", () => {
     await page.locator("#pw").fill("pw");
     await page.locator("#pwSubmit").click();
     await expect(page.locator("#app")).toHaveClass(/show/);
+  });
+
+  test("brute-force lockout shows the DB's message, not the generic 'Wrong password.'", async ({ page }) => {
+    await mockSupabase(page, {
+      "POST /rest/v1/rpc/admin_list_pending": (route) => route.fulfill({
+        status: 429,
+        contentType: "application/json",
+        body: JSON.stringify({ message: "Too many attempts — try again in 15 minutes" })
+      })
+    });
+    await page.goto("/tree-admin.html");
+    await page.locator("#pw").fill("whatever");
+    await page.locator("#pwSubmit").click();
+    await expect(page.locator("#gateErr")).toContainText("Too many attempts");
+    await expect(page.locator("#app")).not.toHaveClass(/show/);
+  });
+
+  test("rejected (restore) list renders and Restore calls admin_restore_person", async ({ page }) => {
+    const rejectedRows = [
+      { id: "rj1", side: "rumaisah", is_kid: false, name: "Bounced Cousin", submitted_note: null }
+    ];
+    let restoredTarget = null;
+    await mockSupabase(page, {
+      "POST /rest/v1/rpc/admin_list_pending": [],
+      "POST /rest/v1/rpc/admin_list_blessings": [],
+      "POST /rest/v1/rpc/admin_list_invites": [],
+      "POST /rest/v1/rpc/admin_list_rejected": rejectedRows,
+      "POST /rest/v1/rpc/admin_restore_person": (route) => {
+        restoredTarget = route.request().postDataJSON().target;
+        route.fulfill({ status: 200, contentType: "application/json", body: "null" });
+      }
+    });
+    await page.goto("/tree-admin.html");
+    await page.locator("#pw").fill("pw");
+    await page.locator("#pwSubmit").click();
+    await expect(page.locator("#rejectedList .item")).toHaveCount(1);
+    await expect(page.locator("#rejectedList")).toContainText("Bounced Cousin");
+
+    await page.locator("#rejectedList .item", { hasText: "Bounced Cousin" }).locator("button").click();
+    await expect.poll(() => restoredTarget).toBe("rj1");
+  });
+
+  test("no rejected people shows the empty state", async ({ page }) => {
+    await mockSupabase(page, {
+      "POST /rest/v1/rpc/admin_list_pending": [],
+      "POST /rest/v1/rpc/admin_list_blessings": [],
+      "POST /rest/v1/rpc/admin_list_invites": [],
+      "POST /rest/v1/rpc/admin_list_rejected": []
+    });
+    await page.goto("/tree-admin.html");
+    await page.locator("#pw").fill("pw");
+    await page.locator("#pwSubmit").click();
+    await expect(page.locator("#rejectedList")).toContainText(/nothing rejected/i);
   });
 });
