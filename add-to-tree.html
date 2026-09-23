@@ -75,6 +75,20 @@
 
   .back { display: block; text-align: center; margin-top: 0.9rem; padding: 0.7rem 0; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-decoration: none; }
   .back:hover { color: var(--side); }
+  /* finish pass: warm paper fields, custom select chevron, pill send button with press state */
+  input, textarea, select { background-color: #fffefb; transition: border-color .25s cubic-bezier(.22,.8,.36,1), box-shadow .25s cubic-bezier(.22,.8,.36,1); }
+  input:focus, textarea:focus, select:focus { border-color: var(--gold, #b99668) !important; box-shadow: 0 0 0 3px rgba(185,150,104,0.18); outline: none; }
+  select { -webkit-appearance: none; appearance: none; padding-right: 2.4rem !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23b99668' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 1rem center; background-size: 12px 8px; }
+  input[type="checkbox"] { accent-color: #3f5679; }
+  button[type="submit"] { border-radius: 999px !important; letter-spacing: 0.18em;
+    background: linear-gradient(180deg, #4a6189 0%, #3f5679 100%) !important;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset, 0 6px 16px rgba(52,72,106,0.28);
+    transition: transform .3s cubic-bezier(.22,.8,.36,1), box-shadow .3s cubic-bezier(.22,.8,.36,1), filter .3s; }
+  button[type="submit"]:not(:disabled):hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset, 0 10px 22px rgba(52,72,106,0.32); }
+  button[type="submit"]:not(:disabled):active { transform: scale(0.985); transition-duration: .1s; }
+  ::selection { background: rgba(185,150,104,0.28); }
 </style>
 </head>
 <body>

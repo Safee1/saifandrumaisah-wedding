@@ -59,3 +59,9 @@ test("no source file mentions the destination the couple haven't announced (venu
     assert.doesNotMatch(text, /\b\d{1,2}\s+July\s+2027\b/i, f + " leaks an exact day");
   }
 });
+
+test('country is printed once: the plain "where" line hides when the teaser shows', () => {
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'index.html'), 'utf8');
+  assert.match(html, /id="whereLine"/);
+  assert.match(html, /getElementById\("revealWrap"\)\.hidden = false;[\s\S]{0,200}getElementById\("whereLine"\)\.hidden = true/);
+});
