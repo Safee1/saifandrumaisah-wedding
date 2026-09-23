@@ -70,8 +70,39 @@
     }).then(function () { return { id: id }; });
   }
 
+  // "Are you coming?" expression of interest: name, contact, adult/child
+  // counts, how likely, dietary needs, optional note. attending is always
+  // true here — every likelihood tier is still "planning to come" in some
+  // form, so it counts toward the public headcount. guest_count is kept in
+  // sync (adults + children) so rsvp-admin's existing total column still adds up.
+  function submitInterest(row) {
+    var id = newId();
+    var adults = row.adults || 0;
+    var children = row.children || 0;
+    return restInsert("rsvps", {
+      id: id,
+      name: row.name,
+      attending: true,
+      guest_count: adults + children,
+      dietary: row.dietary || null,
+      message: row.note || null,
+      contact: row.contact || null,
+      adults: adults,
+      children: children,
+      likelihood: row.likelihood
+    }).then(function () { return { id: id }; });
+  }
+
+  // Public running headcount only — a single integer via a SECURITY DEFINER
+  // RPC, no names or contact details ever come back.
+  function headcount() {
+    return rpc("rsvp_headcount", {});
+  }
+
   root.RsvpData = {
     submitRsvp: submitRsvp,
+    submitInterest: submitInterest,
+    headcount: headcount,
     rpc: rpc
   };
 })(typeof self !== "undefined" ? self : this);

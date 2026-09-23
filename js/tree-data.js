@@ -97,11 +97,18 @@
     }).then(function () { return { id: id }; });
   }
 
-  // The one gated door onto the tree: person + optional relationship in a
+  // The gated door onto the tree: person + optional relationship in a
   // single RPC that checks the invite code server-side. Direct table
   // inserts (submitPerson/submitRelationship) are refused by the DB now.
   function submitWithInvite(code, person, rel) {
     return rpc("submit_with_invite", { code: code, person: person, rel: rel || null });
+  }
+
+  // The open door: same person + relationship shape, no invite code. Still
+  // lands as 'pending' under RLS — Saif/Rumaisah approve it in tree-admin
+  // same as anything else. The invite-code path above still works too.
+  function submitOpen(person, rel) {
+    return rpc("submit_to_tree", { person: person, rel: rel || null });
   }
 
   root.TreeData = {
@@ -109,6 +116,7 @@
     submitPerson: submitPerson,
     submitRelationship: submitRelationship,
     submitWithInvite: submitWithInvite,
+    submitOpen: submitOpen,
     rpc: rpc,
     restGet: restGet
   };

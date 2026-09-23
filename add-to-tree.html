@@ -71,16 +71,9 @@
   <div class="wrap" role="main">
     <p class="eyebrow">our family tree</p>
     <h1>add someone</h1>
-    <p class="sub">Tell us who they are and how they connect — we'll add them once Saif &amp; Rumaisah approve it.</p>
+    <p class="sub">Anyone in the family can add a name — tell us who they are and how they connect, and we'll add them once Saif &amp; Rumaisah approve it.</p>
 
     <form id="addForm">
-      <div class="field">
-        <label for="inviteCode">Your invite code</label>
-        <input type="text" id="inviteCode" maxlength="12" required autocomplete="off"
-               placeholder="Ask Saif or Rumaisah" style="text-transform: uppercase; letter-spacing: 0.15em;">
-        <p class="hint">Only family with a code from Saif or Rumaisah can add names.</p>
-      </div>
-
       <div class="field">
         <label for="name">Their name</label>
         <input type="text" id="name" maxlength="60" required autocomplete="off">
@@ -134,7 +127,7 @@
     <a class="back" href="index.html#family">&larr; back to the tree</a>
   </div>
 
-  <script src="js/tree-data.js?v=39"></script>
+  <script src="js/tree-data.js?v=40"></script>
   <script>
     (function () {
       var linkTo = document.getElementById("linkTo");
@@ -197,16 +190,15 @@
         statusMsg.className = "status";
         statusMsg.textContent = "Sending…";
 
-        var code = document.getElementById("inviteCode").value.trim();
         var name = document.getElementById("name").value.trim();
         var relType = document.getElementById("relType").value;
         var isKid = document.getElementById("isKid").checked;
         var note = document.getElementById("note").value.trim();
         var anchorId = linkTo.value;
 
-        if (!code || !name || !anchorId) {
+        if (!name || !anchorId) {
           statusMsg.className = "status err";
-          statusMsg.textContent = "Please fill in your invite code, their name and how they connect.";
+          statusMsg.textContent = "Please fill in their name and how they connect.";
           submitBtn.disabled = false;
           return;
         }
@@ -223,7 +215,7 @@
           relArgs = { from_person: anchorId, to_person: "NEW", type: "spouse_of" };
         }
 
-        TreeData.submitWithInvite(code, { name: name, side: side.value, is_kid: isKid, note: note || null }, relArgs)
+        TreeData.submitOpen({ name: name, side: side.value, is_kid: isKid, note: note || null }, relArgs)
           .then(function () {
             statusMsg.className = "status ok";
             statusMsg.textContent = "Thank you — sent for approval.";
@@ -233,9 +225,7 @@
           })
           .catch(function (err) {
             statusMsg.className = "status err";
-            statusMsg.textContent = /invalid code/i.test(err && err.message || "")
-              ? "That code isn't valid — check it with Saif or Rumaisah."
-              : "Something went wrong — please try again.";
+            statusMsg.textContent = "Something went wrong — please try again.";
             submitBtn.disabled = false;
           });
       });

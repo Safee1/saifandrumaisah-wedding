@@ -1,0 +1,66 @@
+// The "are you coming?" expression of interest: submitInterest posts the
+// new fields to rsvps, and headcount() reads back a single integer from
+// the new SECURITY DEFINER RPC — never rows, never names/contacts.
+"use strict";
+
+const test = require("node:test");
+const assert = require("node:assert/strict");
+
+function withFetch(handler, fn) {
+  const real = global.fetch;
+  const realSelf = global.self;
+  global.fetch = handler;
+  delete require.cache[require.resolve("../js/rsvp-data.js")];
+  const RsvpData = require("../js/rsvp-data.js").RsvpData;
+  return Promise.resolve(fn(RsvpData)).finally(() => {
+    global.fetch = real;
+    global.self = realSelf;
+  });
+}
+
+test("submitInterest posts name/contact/adults/children/likelihood and syncs guest_count", () => {
+  let captured;
+  return withFetch((url, opts) => {
+    captured = { url, body: JSON.parse(opts.body) };
+    return Promise.resolve({ ok: true });
+  }, (RsvpData) => RsvpData.submitInterest({
+    name: "Aunt Zainab",
+    contact: "zainab@example.com",
+    likelihood: "definitely",
+    adults: 2,
+    children: 1,
+    dietary: "no nuts",
+    note: "so excited"
+  }).then(() => {
+    assert.match(captured.url, /\/rest\/v1\/rsvps$/);
+    assert.equal(captured.body.name, "Aunt Zainab");
+    assert.equal(captured.body.contact, "zainab@example.com");
+    assert.equal(captured.body.likelihood, "definitely");
+    assert.equal(captured.body.adults, 2);
+    assert.equal(captured.body.children, 1);
+    assert.equal(captured.body.guest_count, 3, "guest_count should be adults + children");
+    assert.equal(captured.body.attending, true);
+    assert.equal(captured.body.dietary, "no nuts");
+    assert.equal(captured.body.message, "so excited");
+  }));
+});
+
+test("headcount() calls the rsvp_headcount RPC and returns the integer it sends back", () => {
+  return withFetch((url) => {
+    assert.match(url, /\/rest\/v1\/rpc\/rsvp_headcount$/);
+    return Promise.resolve({ ok: true, text: () => Promise.resolve("42") });
+  }, (RsvpData) => RsvpData.headcount().then((n) => {
+    assert.equal(n, 42);
+  }));
+});
+
+test("headcount() rejects on a failed request rather than surfacing raw rows", () => {
+  return withFetch(() => Promise.resolve({
+    ok: false,
+    status: 500,
+    json: () => Promise.resolve({ message: "boom" })
+  }), (RsvpData) => RsvpData.headcount().then(
+    () => { throw new Error("expected rejection"); },
+    (err) => { assert.match(err.message, /boom/); }
+  ));
+});
