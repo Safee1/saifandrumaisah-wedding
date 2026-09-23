@@ -21,8 +21,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/envelope.css?v=39">
-<link rel="stylesheet" href="css/travel.css?v=39">
+<link rel="stylesheet" href="css/envelope.css?v=40">
+<link rel="stylesheet" href="css/travel.css?v=40">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   :root {
@@ -890,6 +890,18 @@
         <span class="divider-line"></span>
       </div>
       <p class="where st d5">United Kingdom</p>
+      <div class="reveal-wrap st d5" id="revealWrap" hidden>
+        <p class="when" id="revealText">Date &amp; destination revealing soon</p>
+        <div class="countdown" id="revealCountdown" hidden aria-label="Countdown to the reveal">
+          <div class="cd-cell"><span class="cd-num" id="rv-days">0</span><span class="cd-lab">days</span></div>
+          <span class="cd-sep" aria-hidden="true"></span>
+          <div class="cd-cell"><span class="cd-num" id="rv-hours">00</span><span class="cd-lab">hours</span></div>
+          <span class="cd-sep" aria-hidden="true"></span>
+          <div class="cd-cell"><span class="cd-num" id="rv-mins">00</span><span class="cd-lab">minutes</span></div>
+          <span class="cd-sep" aria-hidden="true"></span>
+          <div class="cd-cell"><span class="cd-num" id="rv-secs">00</span><span class="cd-lab">seconds</span></div>
+        </div>
+      </div>
       <p class="when st d5" id="dateTbc">date to be confirmed</p>
       <div class="countdown st d5" id="countdown" hidden aria-label="Countdown to the wedding">
         <div class="cd-cell"><span class="cd-num" id="cd-days">0</span><span class="cd-lab">days</span></div>
@@ -1045,7 +1057,7 @@
 
   <footer><p class="footer">more details coming soon</p></footer>
 
-  <script src="js/addressee.js?v=39"></script>
+  <script src="js/addressee.js?v=40"></script>
   <script>
     (function () {
       var root = document.documentElement;
@@ -1080,11 +1092,11 @@
       });
     })();
   </script>
-  <script src="js/tree-data.js?v=39"></script>
-  <script src="js/family-plan.js?v=39"></script>
-  <script src="js/family-lines.js?v=39"></script>
-  <script src="js/family-tree.js?v=39"></script>
-  <script src="js/blessings-data.js?v=39"></script>
+  <script src="js/tree-data.js?v=40"></script>
+  <script src="js/family-plan.js?v=40"></script>
+  <script src="js/family-lines.js?v=40"></script>
+  <script src="js/family-tree.js?v=40"></script>
+  <script src="js/blessings-data.js?v=40"></script>
   <script>
     // shared: content grows in as each part reaches the viewport
     function revealOnScroll(scope) {
@@ -1254,13 +1266,39 @@
       });
     })();
   </script>
-  <script src="js/config.js?v=39"></script>
-  <script src="js/countdown.js?v=39"></script>
-  <script src="js/travel.js?v=39"></script>
+  <script src="js/config.js?v=40"></script>
+  <script src="js/countdown.js?v=40"></script>
+  <script src="js/travel.js?v=40"></script>
   <script>
     // the wedding date and travel switch live in js/config.js
     var WEDDING_DATE = WeddingConfig.date;
     var TRAVEL = WeddingConfig.travel;
+    var REVEAL = WeddingConfig.reveal || { at: null, show: false };
+
+    // While the date/destination aren't revealed yet, replace the plain
+    // "date to be confirmed" line with a teaser (optionally counting down
+    // to the reveal moment). Nothing here ever prints the real date/venue —
+    // once REVEAL.show is true this block steps aside and the ordinary
+    // WEDDING_DATE countdown below takes over.
+    (function () {
+      if (REVEAL.show) { return; }
+      document.getElementById("dateTbc").hidden = true;
+      document.getElementById("revealWrap").hidden = false;
+      Countdown.attach(REVEAL.at, {
+        getNow: function () { return Date.now(); },
+        setIntervalFn: function (fn, ms) { return setInterval(fn, ms); },
+        pastText: "revealing very soon ✨",
+        elements: {
+          wrap: document.getElementById("revealCountdown"),
+          fallback: document.getElementById("revealText"),
+          days: document.getElementById("rv-days"),
+          hours: document.getElementById("rv-hours"),
+          minutes: document.getElementById("rv-mins"),
+          seconds: document.getElementById("rv-secs")
+        }
+      });
+    })();
+
     Countdown.attach(WEDDING_DATE, {
       getNow: function () { return Date.now(); },
       setIntervalFn: function (fn, ms) { return setInterval(fn, ms); },

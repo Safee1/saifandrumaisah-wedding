@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#faf7f2">
 <meta name="robots" content="noindex">
 <meta http-equiv="Content-Security-Policy" content="base-uri 'self';">
-<title>RSVP — Saif &amp; Rumaisah</title>
+<title>Are you coming? — Saif &amp; Rumaisah</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,11 +33,17 @@
   .wrap { width: 100%; max-width: 460px; }
   .eyebrow { text-align: center; font-size: 0.75rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--muted); margin: 0 0 0.6rem; font-weight: 500; }
   h1 { text-align: center; font-family: 'Pinyon Script', cursive; font-weight: 400; font-size: clamp(2rem, 8vw, 2.6rem); margin: 0 0 0.3rem; color: var(--ink); }
-  .sub { text-align: center; font-style: italic; color: var(--muted); font-size: 0.95rem; margin: 0 0 2rem; line-height: 1.5; }
+  .sub { text-align: center; font-style: italic; color: var(--muted); font-size: 0.95rem; margin: 0 0 1.2rem; line-height: 1.5; }
+
+  .headcount { text-align: center; font-size: 0.85rem; letter-spacing: 0.03em; color: var(--side); margin: 0 0 1.6rem; }
+  .headcount strong { font-weight: 600; }
+  .headcount[hidden] { display: none; }
 
   form { background: var(--card); border: 1px solid rgba(185,150,104,0.3); border-radius: 18px; padding: 1.75rem 1.5rem; }
   .field { margin-bottom: 1.3rem; }
   .field[hidden] { display: none; }
+  .two-col { display: flex; gap: 0.8rem; }
+  .two-col .field { flex: 1; margin-bottom: 0; }
   label { display: block; font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--side); font-weight: 500; margin-bottom: 0.45rem; }
   input[type="text"], input[type="number"], select, textarea {
     width: 100%; font-family: inherit; font-size: 1rem; color: var(--ink);
@@ -48,10 +54,10 @@
   textarea { resize: vertical; min-height: 3.2rem; }
   .hint { font-size: 0.78rem; color: var(--muted); margin-top: 0.35rem; line-height: 1.4; }
 
-  .choice-row { display: flex; gap: 0.7rem; }
+  .choice-row { display: flex; flex-direction: column; gap: 0.5rem; }
   .choice-row input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
   .choice-row label {
-    flex: 1; text-align: center; margin: 0; padding: 0.65rem 0.5rem;
+    text-align: left; margin: 0; padding: 0.65rem 0.9rem;
     border: 1px solid rgba(64,88,122,0.25); border-radius: 10px;
     font-size: 0.95rem; text-transform: none; letter-spacing: normal; font-weight: 400;
     color: var(--ink); cursor: pointer; background: #fff;
@@ -80,13 +86,16 @@
   .travel-note { margin: -0.4rem auto 1.6rem; max-width: 30rem; padding: 0.8rem 1rem; border-radius: 10px; background: rgba(185,150,104,0.1); box-shadow: inset 0 0 0 1px rgba(185,150,104,0.35); font-size: 0.98rem; line-height: 1.5; color: var(--ink); text-align: center; }
   .travel-note[hidden] { display: none; }
   .travel-note a { color: var(--side); text-decoration: underline; text-underline-offset: 3px; }
+  .booking-note { font-size: 0.82rem; color: var(--muted); line-height: 1.4; margin: -0.6rem 0 1.3rem; text-align: center; }
 </style>
 </head>
 <body>
   <div class="wrap" role="main">
     <p class="eyebrow">our wedding</p>
-    <h1>rsvp</h1>
-    <p class="sub">We'd be so glad to know if you can join us. Let us know below.</p>
+    <h1>are you coming?</h1>
+    <p class="sub">We'd love to know who's hoping to join us. Let us know below — you can always update it later.</p>
+    <p class="headcount" id="headcount" hidden><strong id="headcountNum">0</strong> <span id="headcountLabel">people planning to come so far</span></p>
+    <p class="booking-note">Everyone books and pays for their own flights and rooms — this is just so we know roughly who's coming.</p>
     <p class="travel-note" id="travelNote" hidden>
       <span id="travelNoteText"></span>
       <a id="travelNoteLink" href="/#travel">our travel checklist</a>
@@ -99,18 +108,31 @@
       </div>
 
       <div class="field">
-        <label>Will you be attending?</label>
-        <div class="choice-row">
-          <input type="radio" name="attending" id="attendYes" value="yes">
-          <label for="attendYes">Yes, joyfully</label>
-          <input type="radio" name="attending" id="attendNo" value="no">
-          <label for="attendNo">Sadly, no</label>
+        <label for="contact">Email or phone</label>
+        <input type="text" id="contact" maxlength="120" required autocomplete="email" placeholder="So we can reach you if plans change">
+      </div>
+
+      <div class="field">
+        <label>How likely are you to come?</label>
+        <div class="choice-row" id="likelihoodRow">
+          <input type="radio" name="likelihood" id="likDefinitely" value="definitely">
+          <label for="likDefinitely">Definitely coming</label>
+          <input type="radio" name="likelihood" id="likVeryLikely" value="very_likely">
+          <label for="likVeryLikely">Very likely</label>
+          <input type="radio" name="likelihood" id="likHoping" value="hoping_to">
+          <label for="likHoping">Hoping to make it</label>
         </div>
       </div>
 
-      <div class="field" id="guestField" hidden>
-        <label for="guestCount">Number of guests (including yourself)</label>
-        <input type="number" id="guestCount" min="1" max="10" value="1" inputmode="numeric">
+      <div class="field two-col">
+        <div class="field">
+          <label for="adults">Adults</label>
+          <input type="number" id="adults" min="1" max="20" value="1" inputmode="numeric" required>
+        </div>
+        <div class="field">
+          <label for="children">Children</label>
+          <input type="number" id="children" min="0" max="20" value="0" inputmode="numeric">
+        </div>
       </div>
 
       <div class="field">
@@ -119,8 +141,8 @@
       </div>
 
       <div class="field">
-        <label for="message">A message for the couple</label>
-        <textarea id="message" maxlength="600" placeholder="Optional"></textarea>
+        <label for="note">A note for the couple</label>
+        <textarea id="note" maxlength="600" placeholder="Optional"></textarea>
       </div>
 
       <div style="position:absolute; left:-9999px" aria-hidden="true">
@@ -128,7 +150,7 @@
         <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
       </div>
 
-      <button type="submit" id="submitBtn">Send RSVP</button>
+      <button type="submit" id="submitBtn">Send</button>
       <p class="status" id="statusMsg" aria-live="polite"></p>
     </form>
 
@@ -142,9 +164,9 @@
     <a class="back" href="index.html">&larr; back to the invitation</a>
   </div>
 
-  <script src="js/rsvp-data.js?v=39"></script>
-  <script src="js/config.js?v=39"></script>
-  <script src="js/travel.js?v=39"></script>
+  <script src="js/rsvp-data.js?v=40"></script>
+  <script src="js/config.js?v=40"></script>
+  <script src="js/travel.js?v=40"></script>
   <script>
     // abroad wedding: the reply-by date and a pointer to the travel checklist
     (function () {
@@ -159,75 +181,96 @@
     })();
   </script>
   <script>
+    // public running headcount — a single number, no names or contacts
+    (function () {
+      var el = document.getElementById("headcount");
+      var num = document.getElementById("headcountNum");
+      var label = document.getElementById("headcountLabel");
+      RsvpData.headcount().then(function (n) {
+        if (typeof n !== "number") { return; }
+        num.textContent = String(n);
+        label.textContent = n === 1 ? "person planning to come so far" : "people planning to come so far";
+        el.hidden = false;
+      }).catch(function () { /* headcount is a nice-to-have, fail quietly */ });
+    })();
+  </script>
+  <script>
     (function () {
       var form = document.getElementById("rsvpForm");
       var submitBtn = document.getElementById("submitBtn");
       var statusMsg = document.getElementById("statusMsg");
-      var attendYes = document.getElementById("attendYes");
-      var attendNo = document.getElementById("attendNo");
-      var guestField = document.getElementById("guestField");
-      var guestCount = document.getElementById("guestCount");
       var confirmBox = document.getElementById("confirmBox");
       var confirmText = document.getElementById("confirmText");
-
-      function syncGuestField() {
-        guestField.hidden = !attendYes.checked;
-      }
-      attendYes.addEventListener("change", syncGuestField);
-      attendNo.addEventListener("change", syncGuestField);
 
       var loadedAt = Date.now();
 
       form.addEventListener("submit", function (e) {
         e.preventDefault();
 
-        // silently swallow obvious bot submissions: honeypot filled, or
-        // submitted faster than a human could plausibly fill the form
-        if (document.getElementById("website").value || Date.now() - loadedAt < 2000) {
+        // honeypot: obviously a bot, swallow silently
+        if (document.getElementById("website").value) {
           form.hidden = true;
           confirmBox.hidden = false;
           confirmText.textContent = "Thank you — the pleasure of your company means the world to us, and we can't wait to celebrate together.";
           return;
         }
 
+        // too fast to be a human filling the form — tell them, don't fake success
+        if (Date.now() - loadedAt < 2000) {
+          statusMsg.className = "status err";
+          statusMsg.textContent = "Please wait a moment and try again.";
+          return;
+        }
+
         var name = document.getElementById("name").value.trim();
-        var attending = attendYes.checked ? true : (attendNo.checked ? false : null);
+        var contact = document.getElementById("contact").value.trim();
+        var likelihoodInput = form.querySelector('input[name="likelihood"]:checked');
+        var likelihood = likelihoodInput ? likelihoodInput.value : null;
+        var adults = parseInt(document.getElementById("adults").value, 10);
+        var children = parseInt(document.getElementById("children").value, 10);
         var dietary = document.getElementById("dietary").value.trim();
-        var message = document.getElementById("message").value.trim();
-        var guests = parseInt(guestCount.value, 10);
+        var note = document.getElementById("note").value.trim();
 
         if (!name) {
           statusMsg.className = "status err";
           statusMsg.textContent = "Please tell us your name.";
           return;
         }
-        if (attending === null) {
+        if (!contact) {
           statusMsg.className = "status err";
-          statusMsg.textContent = "Please let us know if you'll be attending.";
+          statusMsg.textContent = "Please leave an email or phone number.";
           return;
         }
-        if (attending && (!Number.isFinite(guests) || guests < 1 || guests > 10)) {
+        if (!likelihood) {
           statusMsg.className = "status err";
-          statusMsg.textContent = "Guest count should be between 1 and 10.";
+          statusMsg.textContent = "Please let us know how likely you are to come.";
           return;
+        }
+        if (!Number.isFinite(adults) || adults < 1 || adults > 20) {
+          statusMsg.className = "status err";
+          statusMsg.textContent = "Number of adults should be between 1 and 20.";
+          return;
+        }
+        if (!Number.isFinite(children) || children < 0 || children > 20) {
+          children = 0;
         }
 
         submitBtn.disabled = true;
         statusMsg.className = "status";
         statusMsg.textContent = "Sending…";
 
-        RsvpData.submitRsvp({
+        RsvpData.submitInterest({
           name: name,
-          attending: attending,
-          guest_count: attending ? guests : null,
+          contact: contact,
+          likelihood: likelihood,
+          adults: adults,
+          children: children,
           dietary: dietary || null,
-          message: message || null
+          note: note || null
         }).then(function () {
           form.hidden = true;
           confirmBox.hidden = false;
-          confirmText.textContent = attending
-            ? "Thank you — the pleasure of your company means the world to us, and we can't wait to celebrate together."
-            : "Thank you for letting us know — you'll be in our thoughts on the day, and we hope to see you again soon.";
+          confirmText.textContent = "Thank you — the pleasure of your company means the world to us, and we can't wait to celebrate together.";
         }).catch(function () {
           statusMsg.className = "status err";
           statusMsg.textContent = "Something went wrong — please try again.";
