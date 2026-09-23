@@ -14,14 +14,25 @@
     // destination e.g. "Bali"; country = the name GOV.UK uses, e.g. "Indonesia".
     travel: { show: false, destination: "", country: "" },
 
-    // "Save the date — coming soon" teaser (home page).
-    // at: an ISO timestamp to count down to a reveal moment, or null for no
-    // countdown (just the "revealing soon" line). Never the real wedding
-    // date/venue — those only ever come from `date`/`travel` above, and
-    // only once `show` is true.
-    // show: false keeps the teaser up (no date, no venue, no country shown
-    // anywhere). Flip to true only once `date` and `travel` are filled in —
-    // that's what actually makes the real details appear.
-    reveal: { at: null, show: false }
+    // Partial "revealing soon" teaser (home page): country + month/year can
+    // be shown now, the exact day and venue stay sealed until later.
+    // at: an ISO timestamp to count down to the full reveal moment, or null
+    // for no countdown.
+    // country/month: safe to announce now — set them and they show on the
+    // home page teaser. day/venue: leave null until confirmed; setting
+    // `day` (e.g. "23") and `venue` (e.g. "Some Resort") completes that
+    // piece of the reveal without needing a code change.
+    // show: false keeps the FULL reveal (this `reveal` block entirely,
+    // including country/month) behind the wax-seal teaser copy. Flip to
+    // true only once `date` and `travel` above are filled in — that's what
+    // actually makes the real details replace the teaser everywhere.
+    reveal: {
+      at: null,
+      show: false,
+      country: "Egypt",
+      month: "July 2027",
+      day: null,
+      venue: null
+    }
   };
 }));

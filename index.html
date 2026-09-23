@@ -21,8 +21,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/envelope.css?v=40">
-<link rel="stylesheet" href="css/travel.css?v=40">
+<link rel="stylesheet" href="css/envelope.css?v=41">
+<link rel="stylesheet" href="css/travel.css?v=41">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   :root {
@@ -413,7 +413,47 @@
   .no-intro .heart { animation: beat 2.8s ease-in-out 3.4s infinite; }
   @keyframes beat { 0%, 100% { transform: scale(1); } 12% { transform: scale(1.22); } 24% { transform: scale(1); } }
   .where { font-size: 0.82rem; letter-spacing: 0.32em; text-transform: uppercase; font-weight: 500; margin: 0 0 0.55rem; }
-  .when { font-family: 'Pinyon Script', cursive; font-size: 1.5rem; color: var(--gold); margin: 0; }
+  .when { font-family: 'Pinyon Script', cursive; font-size: 1.5rem; color: var(--gold); margin: 0.5rem 0 0; }
+
+  .reveal-wrap { display: flex; flex-direction: column; align-items: center; }
+  .reveal-country {
+    font-size: 0.82rem; letter-spacing: 0.32em; text-transform: uppercase;
+    font-weight: 500; margin: 0 0 0.55rem; color: var(--ink);
+    animation: unseal 1.1s ease both;
+  }
+  .reveal-month {
+    font-family: 'Pinyon Script', cursive; font-size: 1.5rem; color: var(--gold);
+    margin: 0; display: flex; align-items: baseline; justify-content: center; gap: 0.4rem;
+    animation: unseal 1.1s ease 0.2s both;
+  }
+  .redact-day {
+    font-family: 'Cormorant Garamond', serif; font-variant-numeric: tabular-nums;
+    font-size: 1rem; padding: 0.05rem 0.5rem; border-radius: 3px;
+    background: linear-gradient(100deg, rgba(185,150,104,0.22) 0%, rgba(185,150,104,0.5) 50%, rgba(185,150,104,0.22) 100%);
+    background-size: 220% 100%; color: var(--gold); letter-spacing: 0.05em;
+    animation: shimmer 2.6s ease-in-out infinite, flicker 3.4s steps(1) infinite;
+  }
+  .reveal-day-known { background: none; animation: none; color: var(--ink); font-weight: 600; }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -20% 0; } }
+  @keyframes flicker { 0%, 40%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+  .reveal-venue { margin: 0.7rem 0 0; }
+  .redact-bar {
+    display: inline-block; width: 9.5rem; max-width: 60vw; height: 0.62rem; border-radius: 3px;
+    background: linear-gradient(100deg, rgba(90,90,90,0.12) 0%, rgba(90,90,90,0.28) 50%, rgba(90,90,90,0.12) 100%);
+    background-size: 220% 100%; animation: shimmer 2.6s ease-in-out infinite;
+    position: relative; vertical-align: middle;
+  }
+  .redact-bar::after {
+    content: "venue \2014 revealing soon"; position: absolute; inset: 0; display: flex;
+    align-items: center; justify-content: center; font-size: 0.56rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--muted); white-space: nowrap;
+  }
+  .reveal-teaser {
+    font-size: 0.78rem; color: var(--muted); font-style: italic; max-width: 22rem;
+    margin: 0.9rem 0 0; line-height: 1.5;
+  }
+  .reveal-teaser a { color: var(--gold); font-style: normal; }
+  @keyframes unseal { from { opacity: 0; transform: translateY(6px); filter: blur(2px); } to { opacity: 1; transform: none; filter: none; } }
   .countdown {
     display: flex;
     align-items: flex-start;
@@ -725,6 +765,7 @@
     .rv { opacity: 1 !important; transform: none !important; transition: none !important; }
     svg.rv-draw path { stroke-dasharray: none !important; stroke-dashoffset: 0 !important; transition: none !important; }
     .has-fold, .plus-mark, .add-link { transition: none !important; }
+    .redact-day, .redact-bar, .reveal-country, .reveal-month { animation: none !important; background-position: 0 0 !important; opacity: 1 !important; filter: none !important; transform: none !important; }
   }
 </style>
 </head>
@@ -891,7 +932,15 @@
       </div>
       <p class="where st d5">United Kingdom</p>
       <div class="reveal-wrap st d5" id="revealWrap" hidden>
-        <p class="when" id="revealText">Date &amp; destination revealing soon</p>
+        <p class="reveal-country" id="revealCountry"></p>
+        <p class="reveal-month" id="revealMonthLine">
+          <span class="redact-day" id="revealDay" aria-hidden="true"></span>
+          <span class="reveal-month-text" id="revealMonthText"></span>
+        </p>
+        <p class="reveal-venue" id="revealVenueLine">
+          <span class="redact-bar" id="revealVenue" aria-hidden="true"></span>
+        </p>
+        <p class="when" id="revealText">The rest is sealed until&hellip;</p>
         <div class="countdown" id="revealCountdown" hidden aria-label="Countdown to the reveal">
           <div class="cd-cell"><span class="cd-num" id="rv-days">0</span><span class="cd-lab">days</span></div>
           <span class="cd-sep" aria-hidden="true"></span>
@@ -901,6 +950,7 @@
           <span class="cd-sep" aria-hidden="true"></span>
           <div class="cd-cell"><span class="cd-num" id="rv-secs">00</span><span class="cd-lab">seconds</span></div>
         </div>
+        <p class="reveal-teaser">Tell us you&rsquo;re coming &mdash; the full reveal goes to those on the list first. <a href="rsvp.html">RSVP</a></p>
       </div>
       <p class="when st d5" id="dateTbc">date to be confirmed</p>
       <div class="countdown st d5" id="countdown" hidden aria-label="Countdown to the wedding">
@@ -1057,7 +1107,7 @@
 
   <footer><p class="footer">more details coming soon</p></footer>
 
-  <script src="js/addressee.js?v=40"></script>
+  <script src="js/addressee.js?v=41"></script>
   <script>
     (function () {
       var root = document.documentElement;
@@ -1092,11 +1142,11 @@
       });
     })();
   </script>
-  <script src="js/tree-data.js?v=40"></script>
-  <script src="js/family-plan.js?v=40"></script>
-  <script src="js/family-lines.js?v=40"></script>
-  <script src="js/family-tree.js?v=40"></script>
-  <script src="js/blessings-data.js?v=40"></script>
+  <script src="js/tree-data.js?v=41"></script>
+  <script src="js/family-plan.js?v=41"></script>
+  <script src="js/family-lines.js?v=41"></script>
+  <script src="js/family-tree.js?v=41"></script>
+  <script src="js/blessings-data.js?v=41"></script>
   <script>
     // shared: content grows in as each part reaches the viewport
     function revealOnScroll(scope) {
@@ -1266,9 +1316,9 @@
       });
     })();
   </script>
-  <script src="js/config.js?v=40"></script>
-  <script src="js/countdown.js?v=40"></script>
-  <script src="js/travel.js?v=40"></script>
+  <script src="js/config.js?v=41"></script>
+  <script src="js/countdown.js?v=41"></script>
+  <script src="js/travel.js?v=41"></script>
   <script>
     // the wedding date and travel switch live in js/config.js
     var WEDDING_DATE = WeddingConfig.date;
@@ -1284,6 +1334,38 @@
       if (REVEAL.show) { return; }
       document.getElementById("dateTbc").hidden = true;
       document.getElementById("revealWrap").hidden = false;
+
+      // Country and month/year are safe to show now; day and venue stay
+      // sealed (a shimmering redacted tile / bar) until those fields are
+      // filled in above. Nothing real ever gets hard-coded in the markup.
+      var countryEl = document.getElementById("revealCountry");
+      var monthEl = document.getElementById("revealMonthText");
+      var dayEl = document.getElementById("revealDay");
+      var venueEl = document.getElementById("revealVenue");
+      var venueLine = document.getElementById("revealVenueLine");
+
+      if (REVEAL.country) { countryEl.textContent = REVEAL.country; }
+      else { countryEl.hidden = true; }
+
+      if (REVEAL.month) { monthEl.textContent = REVEAL.month; }
+      else { document.getElementById("revealMonthLine").hidden = true; }
+
+      if (REVEAL.day) {
+        dayEl.textContent = REVEAL.day;
+        dayEl.classList.remove("redact-day");
+        dayEl.classList.add("reveal-day-known");
+      } else {
+        dayEl.textContent = "2?";
+        dayEl.setAttribute("aria-label", "exact day still sealed");
+      }
+
+      if (REVEAL.venue) {
+        venueEl.textContent = REVEAL.venue;
+        venueEl.classList.remove("redact-bar");
+      } else {
+        venueLine.setAttribute("aria-label", "venue still sealed, revealing soon");
+      }
+
       Countdown.attach(REVEAL.at, {
         getNow: function () { return Date.now(); },
         setIntervalFn: function (fn, ms) { return setInterval(fn, ms); },
