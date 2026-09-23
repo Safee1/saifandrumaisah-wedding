@@ -161,6 +161,10 @@
 
       function csvField(value) {
         var s = value == null ? "" : String(value);
+        // CSV/formula-injection guard: a leading =, +, -, @, tab or CR lets a
+        // cell be read as a formula by Excel/Sheets when the file is opened —
+        // neutralise it with a leading apostrophe before any quoting.
+        if (/^[=+\-@\t\r]/.test(s)) { s = "'" + s; }
         if (/[",\n]/.test(s)) { s = '"' + s.replace(/"/g, '""') + '"'; }
         return s;
       }
