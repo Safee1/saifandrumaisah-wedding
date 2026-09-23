@@ -152,6 +152,10 @@
   // entirely — iOS cancels the tap's click when a hover handler
   // mutates the page, which would leave the fold unpinned.
   // A little caret on the card points back at its owner.
+  // families that stay unfolded from the start — a tap on the owner
+  // still folds them away, but tapping elsewhere or Escape won't
+  var KEEP_OPEN = ["arisha", "tayyibah"];
+
   function attachFoldToggle(node, wrap, label) {
     foldSeq++;
     wrap.id = wrap.id || ("fold-" + foldSeq);
@@ -163,6 +167,8 @@
     node.setAttribute("aria-label", label);
     node.setAttribute("title", label);
     var name = node.querySelector(".node-name");
+    var keepOpen = !!name && KEEP_OPEN.indexOf(name.textContent.trim().toLowerCase()) !== -1;
+    if (keepOpen) { wrap.setAttribute("data-keep-open", "1"); }
     if (name) { name.appendChild(svgUse("plus-mark", "0 0 24 24", "#plus-shape", 13)); }
 
     var card = wrap.firstChild;
@@ -248,15 +254,16 @@
 
     var downEv = hasPE ? "pointerdown" : "mousedown";
     document.addEventListener(downEv, function (e) {
-      if (fullMode || wrap.hidden) { return; }
+      if (fullMode || wrap.hidden || (keepOpen && isPinned())) { return; }
       if (node.contains(e.target) || wrap.contains(e.target)) { return; }
       setOpen(false);
     });
     document.addEventListener("keydown", function (e) {
-      if (!fullMode && e.key === "Escape" && !wrap.hidden) { setOpen(false); }
+      if (!fullMode && e.key === "Escape" && !wrap.hidden && !(keepOpen && isPinned())) { setOpen(false); }
     });
     wrap.foldOpen = function () { setOpen(true, true); };
-    wrap.foldClose = function () { setOpen(false); };
+    wrap.foldClose = function () { if (keepOpen) { setOpen(true, true); } else { setOpen(false); } };
+    if (keepOpen) { afterPaint(function () { setOpen(true, true); }); }
     wrap.foldPlace = function () { if (!wrap.hidden) { placeFold(); placeCaret(); } };
   }
 
