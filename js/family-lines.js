@@ -150,6 +150,12 @@
       chart.insertBefore(svg, chart.firstChild);
     }
     while (svg.firstChild) { svg.removeChild(svg.firstChild); }
+    // shrink the overlay before measuring: its own previous width/height
+    // attributes would otherwise still be part of chart.scrollWidth/Height,
+    // so every redraw could only ever grow, never shrink back down once
+    // something (a since-collapsed fold, a font swap) had made it wider
+    svg.setAttribute("width", 0);
+    svg.setAttribute("height", 0);
     var w = chart.scrollWidth, h = chart.scrollHeight;
     svg.setAttribute("width", w);
     svg.setAttribute("height", h);

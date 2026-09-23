@@ -183,7 +183,7 @@
 
     // the popover hangs just beneath its owner, wherever they sit
     function placeFold() {
-      if (fullMode) { wrap.style.top = ""; return; }
+      if (fullMode || keepOpen) { wrap.style.top = ""; return; }
       var parent = wrap.offsetParent;
       if (!parent) { return; }
       var nb = offsetWithin(node, parent);
@@ -450,7 +450,7 @@
     }
 
     if (plan.loners.length) {
-      sideEl.appendChild(makeEl("p", "fu-cap rv", "family & friends"));
+      sideEl.appendChild(makeEl("p", "fu-cap loners-cap rv", "family & friends"));
       var lonersRow = makeEl("div", "kids-row rv");
       plan.loners.forEach(function (p) { lonersRow.appendChild(buildNode(p, crown, false, false)); });
       sideEl.appendChild(lonersRow);

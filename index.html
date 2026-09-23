@@ -21,8 +21,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/envelope.css?v=44">
-<link rel="stylesheet" href="css/travel.css?v=44">
+<link rel="stylesheet" href="css/envelope.css?v=46">
+<link rel="stylesheet" href="css/travel.css?v=46">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   :root {
@@ -568,6 +568,8 @@
   .p-node, .k-node {
     background: var(--card); border: 1px solid rgba(34,48,73,0.22); border-radius: 5px;
     padding: 0.5rem 0.55rem; text-align: center; box-shadow: 0 2px 6px rgba(90,70,60,0.06);
+    /* a foldable box is the tap target: keep it >=44px tall so it's easy to hit on mobile */
+    min-height: 44px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center;
   }
   .k-node { width: 98px; }
   .p-node { width: 118px; padding: 0.6rem 0.65rem; }
@@ -610,6 +612,12 @@
   .fold { position: absolute; left: 0; right: 0; margin-top: 0.55rem; z-index: 6; }
   .fold[hidden] { display: none; }
   .add-link[hidden] { display: none; }
+  /* families kept open by default (KEEP_OPEN in family-tree.js) render IN FLOW,
+     pushing the rest of the page down, instead of floating over it like a
+     normal popover fold — same treatment the whole-family view gives every fold */
+  .fold[data-keep-open="1"] { position: static; width: 100%; margin: 1.1rem auto 0; z-index: auto; }
+  .fold[data-keep-open="1"] .fold-caret { display: none; }
+  .fold[data-keep-open="1"] .fold-card { width: 100%; }
   /* "see the whole family": folds sit inline in the tree instead of floating */
   .tree-full .fold { position: static; width: 100%; margin: 1.1rem auto 0; z-index: auto; }
   .tree-full .fold-caret { display: none; }
@@ -653,6 +661,10 @@
   /* boxes never get squeezed in a branch row — names wrap by word, not by letter */
   .fu-couple > *, .fu-kids > * { flex-shrink: 0; }
   .fu-cap { position: relative; z-index: 1; margin: 0.8rem 0 -0.35rem; padding: 0 0.55rem; background: var(--bg); font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; color: var(--side); font-size: 0.95rem; }
+  /* the "family & friends" loners heading isn't straddling a box border like
+     a couple's caption is, so it keeps its usual bottom margin instead of
+     the negative pull-up that lets an in-card caption overlap the box below it */
+  .loners-cap { margin-bottom: 0.8rem; }
   .fu-rootdot { display: block; width: 8px; height: 8px; border-radius: 50%; background: rgba(185,150,104,0.95); margin: 0 auto 2px; box-shadow: 0 0 0 3px rgba(185,150,104,0.18); }
 
   /* the fold card — a sibling's own family, or a parent's whole branch */
@@ -673,11 +685,13 @@
 
   .tree-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.7rem; margin: 2.9rem auto 0; }
   .add-link {
-    display: inline-block; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: 0.76rem; letter-spacing: 0.16em;
+    display: inline-flex; align-items: center; justify-content: center; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: 0.76rem; letter-spacing: 0.16em;
     text-transform: uppercase; color: var(--side); text-decoration: none;
     border: 1px solid rgba(185,150,104,0.5); border-radius: 999px; padding: 0.6rem 1.15rem;
     background: var(--card); box-shadow: 0 4px 12px rgba(90,70,60,0.07);
     transition: color 0.25s ease, border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+    /* keep the tap target >=44px tall even though the label text is short */
+    min-height: 44px; box-sizing: border-box;
   }
   button.add-link { cursor: pointer; line-height: normal; }
   .add-link:hover { color: var(--seal); border-color: var(--seal); transform: translateY(-2px); box-shadow: 0 8px 18px rgba(90,70,60,0.12); }
@@ -1284,7 +1298,7 @@
 
   <footer><p class="footer">more details coming soon</p></footer>
 
-  <script src="js/addressee.js?v=44"></script>
+  <script src="js/addressee.js?v=46"></script>
   <script>
     (function () {
       var root = document.documentElement;
@@ -1319,11 +1333,11 @@
       });
     })();
   </script>
-  <script src="js/tree-data.js?v=44"></script>
-  <script src="js/family-plan.js?v=44"></script>
-  <script src="js/family-lines.js?v=44"></script>
-  <script src="js/family-tree.js?v=44"></script>
-  <script src="js/blessings-data.js?v=44"></script>
+  <script src="js/tree-data.js?v=46"></script>
+  <script src="js/family-plan.js?v=46"></script>
+  <script src="js/family-lines.js?v=46"></script>
+  <script src="js/family-tree.js?v=46"></script>
+  <script src="js/blessings-data.js?v=46"></script>
   <script>
     // shared: content grows in as each part reaches the viewport
     function revealOnScroll(scope) {
@@ -1493,9 +1507,9 @@
       });
     })();
   </script>
-  <script src="js/config.js?v=44"></script>
-  <script src="js/countdown.js?v=44"></script>
-  <script src="js/travel.js?v=44"></script>
+  <script src="js/config.js?v=46"></script>
+  <script src="js/countdown.js?v=46"></script>
+  <script src="js/travel.js?v=46"></script>
   <script>
     // the wedding date and travel switch live in js/config.js
     var WEDDING_DATE = WeddingConfig.date;
