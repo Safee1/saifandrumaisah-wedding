@@ -30,13 +30,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Read one approved row
+      - name: Call public_tree() (anon RPC, no direct table read)
         run: |
           url=$(grep -o 'https://[a-z0-9]*\.supabase\.co' js/tree-data.js | head -1)
           key=$(sed -n 's/.*SUPABASE_ANON_KEY = "\([^"]*\)".*/\1/p' js/tree-data.js | head -1)
           test -n "$url" && test -n "$key" || { echo "could not read Supabase URL/key from js/tree-data.js"; exit 1; }
-          status=$(curl -s -o body.json -w '%{http_code}' "$url/rest/v1/people?select=id&limit=1" \
-            -H "apikey: $key" -H "Authorization: Bearer $key")
+          status=$(curl -s -o body.json -w '%{http_code}' -X POST "$url/rest/v1/rpc/public_tree" \
+            -H "apikey: $key" -H "Authorization: Bearer $key" -H "Content-Type: application/json" -d '{}')
           echo "HTTP $status"; cat body.json; echo
           test "$status" = "200" || { echo "::error::Supabase did not answer 200 — the project may be paused"; exit 1; }
 

@@ -102,7 +102,7 @@ export const TREE_PEOPLE = [
   { id: "p-tayyibah", name: "Tayyibah", side: "saif", is_kid: false, relation: "sibling" },
   { id: "p-tayyibah-h", name: "Tayyibah's Husband", side: "saif", is_kid: false, relation: "sibling-in-law" },
   { id: "p-longname", name: "Muhammad Abdur-Rahman Al-Husseini-Chowdhury", side: "rumaisah", is_kid: false, relation: "sibling" },
-  { id: "p-kid", name: "Little One", side: "rumaisah", is_kid: true, relation: "child" },
+  { id: "p-kid", name: "Little one", side: "rumaisah", is_kid: true, relation: null },
   { id: "p-cousin", name: "Cousin Zahra", side: "saif", is_kid: false, relation: "sibling" },
   { id: "p-cousin-h", name: "Zahra's Husband", side: "saif", is_kid: false, relation: "sibling-in-law" }
 ];
@@ -123,8 +123,7 @@ export const TREE_RELATIONSHIPS = [
 
 export async function mockTreeFetch(page, extraHandlers = {}) {
   await mockSupabase(page, {
-    "GET /rest/v1/people": TREE_PEOPLE,
-    "GET /rest/v1/relationships": TREE_RELATIONSHIPS,
+    "POST /rest/v1/rpc/public_tree": { people: TREE_PEOPLE, relationships: TREE_RELATIONSHIPS },
     "POST /rest/v1/rpc/rsvp_headcount": 12,
     "GET /rest/v1/blessings": [],
     ...extraHandlers

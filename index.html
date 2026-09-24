@@ -24,8 +24,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/envelope.css?v=46">
-<link rel="stylesheet" href="css/travel.css?v=46">
+<link rel="stylesheet" href="css/envelope.css?v=47">
+<link rel="stylesheet" href="css/travel.css?v=47">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   :root {
@@ -1176,10 +1176,10 @@
     </header>
 
     <div id="treeContainer">
-      <p class="status">gathering the family&hellip;</p>
+      <p class="status">tap below to meet the families</p>
     </div>
 
-    <button type="button" class="unlock-btn" id="unlockFamily" hidden>
+    <button type="button" class="unlock-btn" id="unlockFamily">
       <svg class="unlock-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#lock-shape"></use></svg>
       <span class="unlock-label">unlock our families</span>
       <span class="unlock-sub">tap to meet everyone</span>
@@ -1305,7 +1305,7 @@
 
   <footer><p class="footer">more details coming soon &middot; <a href="privacy.html">privacy</a></p></footer>
 
-  <script src="js/addressee.js?v=46"></script>
+  <script src="js/addressee.js?v=47"></script>
   <script>
     (function () {
       var root = document.documentElement;
@@ -1340,11 +1340,11 @@
       });
     })();
   </script>
-  <script src="js/tree-data.js?v=46"></script>
-  <script src="js/family-plan.js?v=46"></script>
-  <script src="js/family-lines.js?v=46"></script>
-  <script src="js/family-tree.js?v=46"></script>
-  <script src="js/blessings-data.js?v=46"></script>
+  <script src="js/tree-data.js?v=47"></script>
+  <script src="js/family-plan.js?v=47"></script>
+  <script src="js/family-lines.js?v=47"></script>
+  <script src="js/family-tree.js?v=47"></script>
+  <script src="js/blessings-data.js?v=47"></script>
   <script>
     // shared: content grows in as each part reaches the viewport
     function revealOnScroll(scope) {
@@ -1369,57 +1369,65 @@
     (function () {
       var container = document.getElementById("treeContainer");
       var calm = function () { return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches; };
+      var legend = document.querySelector(".legend");
+      var actions = document.querySelector(".tree-actions");
+      var unlockBtn = document.getElementById("unlockFamily");
+      var toggle = document.getElementById("viewToggle");
+      var loading = false;
 
-      TreeData.fetchApprovedTree().then(function (data) {
-        FamilyTree.render(container, data, {
-          captions: { saif: "brothers & sisters", rumaisah: "sisters" },
-          onRendered: revealOnScroll
-        });
-
-        // the picture is just the two of you until "unlock" is pressed —
-        // hide the families the instant they're built, before anything
-        // paints, so there's no flash of the full tree first
-        var sides = container.querySelector(".sides");
-        var legend = document.querySelector(".legend");
-        var actions = document.querySelector(".tree-actions");
-        var unlockBtn = document.getElementById("unlockFamily");
-        var toggle = document.getElementById("viewToggle");
-        toggle.hidden = !container.querySelector(".fold");
-
-        if (sides) {
-          sides.hidden = true;
-          unlockBtn.hidden = false;
-          unlockBtn.addEventListener("click", function () {
-            sides.hidden = false;
-            legend.hidden = false;
-            actions.hidden = false;
-            unlockBtn.hidden = true;
-            // the scroll-reveal observer never saw these while hidden —
-            // bring them in by hand, gently staggered
-            var els = sides.querySelectorAll(".rv, .rv-draw");
-            for (var i = 0; i < els.length; i++) {
-              els[i].style.transitionDelay = Math.min(i * 45, 500) + "ms";
-              els[i].classList.add("in");
-            }
-            FamilyTree.redraw(container);
-            sides.scrollIntoView({ block: "start", behavior: calm() ? "auto" : "smooth" });
-          });
-        }
-
-        var full = false;
-        toggle.addEventListener("click", function () {
-          full = !full;
-          FamilyTree.setFullView(container, full);
-          toggle.textContent = full ? "back to the picture" : "see the whole family";
-          // bring the top of the tree back into view either way
-          container.scrollIntoView({ block: "start", behavior: calm() ? "auto" : "smooth" });
-        });
-      }).catch(function () {
+      // No tree data is fetched until "unlock our families" is tapped —
+      // nothing about the tree, kids included, goes over the network on
+      // page load.
+      unlockBtn.addEventListener("click", function () {
+        if (loading) { return; }
+        loading = true;
+        unlockBtn.disabled = true;
         container.textContent = "";
         var status = document.createElement("p");
         status.className = "status";
-        status.textContent = "couldn’t load the tree right now — please try again in a few minutes";
+        status.textContent = "unlocking the families…";
         container.appendChild(status);
+
+        TreeData.fetchApprovedTree().then(function (data) {
+          FamilyTree.render(container, data, {
+            captions: { saif: "brothers & sisters", rumaisah: "sisters" },
+            onRendered: revealOnScroll
+          });
+
+          var sides = container.querySelector(".sides");
+          toggle.hidden = !container.querySelector(".fold");
+
+          if (sides) { sides.hidden = false; }
+          legend.hidden = false;
+          actions.hidden = false;
+          unlockBtn.hidden = true;
+
+          var els = container.querySelectorAll(".rv, .rv-draw");
+          for (var i = 0; i < els.length; i++) {
+            els[i].style.transitionDelay = Math.min(i * 45, 500) + "ms";
+            els[i].classList.add("in");
+          }
+          FamilyTree.redraw(container);
+          container.scrollIntoView({ block: "start", behavior: calm() ? "auto" : "smooth" });
+
+          var full = false;
+          toggle.addEventListener("click", function () {
+            full = !full;
+            FamilyTree.setFullView(container, full);
+            toggle.textContent = full ? "back to the picture" : "see the whole family";
+            // bring the top of the tree back into view either way
+            container.scrollIntoView({ block: "start", behavior: calm() ? "auto" : "smooth" });
+          });
+        }).catch(function () {
+          container.textContent = "";
+          var errStatus = document.createElement("p");
+          errStatus.className = "status";
+          errStatus.textContent = "couldn’t load the tree right now — please try again in a few minutes";
+          container.appendChild(errStatus);
+          unlockBtn.hidden = false;
+          unlockBtn.disabled = false;
+          loading = false;
+        });
       });
     })();
 
@@ -1514,9 +1522,9 @@
       });
     })();
   </script>
-  <script src="js/config.js?v=46"></script>
-  <script src="js/countdown.js?v=46"></script>
-  <script src="js/travel.js?v=46"></script>
+  <script src="js/config.js?v=47"></script>
+  <script src="js/countdown.js?v=47"></script>
+  <script src="js/travel.js?v=47"></script>
   <script>
     // the wedding date and travel switch live in js/config.js
     var WEDDING_DATE = WeddingConfig.date;

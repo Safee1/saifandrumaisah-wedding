@@ -58,13 +58,12 @@
     });
   }
 
+  // Public tree data now comes from a single SECURITY DEFINER RPC. Direct
+  // REST reads of people/relationships are blocked at the DB (no more
+  // public SELECT policy) so kids' real names never appear in a network
+  // response — public_tree() returns "Little one" for is_kid rows instead.
   function fetchApprovedTree() {
-    return Promise.all([
-      restGet("people?select=id,name,side,is_kid,relation&status=eq.approved&order=sort_order.asc,name.asc"),
-      restGet("relationships?select=id,from_person,to_person,type&status=eq.approved")
-    ]).then(function (results) {
-      return { people: results[0], relationships: results[1] };
-    });
+    return rpc("public_tree", {});
   }
 
   function newId() {
