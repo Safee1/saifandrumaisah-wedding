@@ -8,12 +8,18 @@ name: keep-db-awake
 # so they live in one place. The anon key is already public (the site
 # ships it), so no repository secret is needed.
 #
-# Note: GitHub switches off scheduled workflows in a repo with no commits
-# for 60 days. If the tree ever goes blank, check the Actions tab first.
+# Note: GitHub switches off *scheduled* workflows in a repo with no commits
+# for 60 days (workflow_dispatch still works manually, and the Actions tab
+# would show the schedule as disabled). The monthly job below is a
+# safeguard against that: it makes a trivial commit (a timestamp file) once
+# a month, which counts as repo activity and keeps the 3-day schedule from
+# ever being auto-disabled by inactivity. If the tree ever goes blank,
+# check the Actions tab first.
 
 on:
   schedule:
     - cron: "17 6 */3 * *"
+    - cron: "5 6 1 * *" # monthly heartbeat commit, see heartbeat job below
   workflow_dispatch:
 
 permissions:
@@ -33,3 +39,26 @@ jobs:
             -H "apikey: $key" -H "Authorization: Bearer $key")
           echo "HTTP $status"; cat body.json; echo
           test "$status" = "200" || { echo "::error::Supabase did not answer 200 — the project may be paused"; exit 1; }
+
+  heartbeat:
+    # Runs only on the 1st-of-month cron (or a manual dispatch), so the
+    # 3-day ping above doesn't get a needless commit every run.
+    if: github.event.schedule == '5 6 1 * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Touch heartbeat file and commit
+        run: |
+          mkdir -p .github
+          date -u +"%Y-%m-%dT%H:%M:%SZ" > .github/keep-alive-heartbeat.txt
+          if git diff --quiet -- .github/keep-alive-heartbeat.txt; then
+            echo "no change, skipping commit"
+            exit 0
+          fi
+          git config user.name "keep-db-awake bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add .github/keep-alive-heartbeat.txt
+          git commit -m "chore: monthly keep-alive heartbeat (prevents 60-day scheduled-workflow auto-disable)"
+          git push

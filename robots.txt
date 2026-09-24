@@ -1,2 +1,3 @@
 User-agent: *
-Disallow: /
+Disallow: /tree-admin.html
+Disallow: /rsvp-admin.html

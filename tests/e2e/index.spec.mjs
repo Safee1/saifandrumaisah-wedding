@@ -327,7 +327,7 @@ test.describe("index.html — general hygiene", () => {
     const hrefs = await page.locator('a[href]').evaluateAll((els) => els.map((e) => e.getAttribute("href")));
     for (const href of hrefs) {
       if (!href || href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("#")) continue;
-      expect(["add-to-tree.html", "rsvp.html"].some((p) => href.startsWith(p) || href.includes(p))).toBeTruthy();
+      expect(["add-to-tree.html", "rsvp.html", "privacy.html"].some((p) => href.startsWith(p) || href.includes(p))).toBeTruthy();
     }
   });
 

@@ -6,9 +6,12 @@
 <meta name="theme-color" content="#faf7f2">
 <meta name="robots" content="noindex">
 <meta name="description" content="Add yourself to Saif &amp; Rumaisah's family tree.">
-<meta http-equiv="Content-Security-Policy" content="base-uri 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://rfopieelzxvnmfhdvqqf.supabase.co; base-uri 'self'; form-action 'self'; object-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Add to the family tree — Saif &amp; Rumaisah</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="manifest" href="site.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Add to the family tree — Saif &amp; Rumaisah">
@@ -70,6 +73,8 @@
   button[type="submit"]:not(:disabled):hover { background: #324567; }
 
   .status { text-align: center; font-size: 0.9rem; margin-top: 1rem; min-height: 1.2em; }
+  .privacy-note { text-align: center; font-size: 0.78rem; color: var(--muted); margin-top: 0.6rem; }
+  .privacy-note a { color: var(--side); }
   .status.ok { color: var(--good); }
   .status.err { color: var(--bad); }
 
@@ -146,6 +151,7 @@
 
       <button type="submit" id="submitBtn" disabled>Send for approval</button>
       <p class="status" id="statusMsg" aria-live="polite"></p>
+      <p class="privacy-note">We only use this to build the family tree, and delete it a few months after the wedding. See our <a href="privacy.html">privacy note</a>.</p>
     </form>
 
     <a class="back" href="index.html#family">&larr; back to the tree</a>
