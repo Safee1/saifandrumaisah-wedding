@@ -109,6 +109,8 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23b99668' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat; background-position: right 1rem center; background-size: 12px 8px; }
   input[type="checkbox"] { accent-color: #3f5679; }
+  label.consent { text-transform: none; letter-spacing: 0; font-size: 0.85rem; margin-top: 0.5rem; display: flex; gap: 0.5rem; align-items: flex-start; }
+  label.consent[hidden], #countsRow[hidden] { display: none; }
   button[type="submit"] { border-radius: 999px !important; letter-spacing: 0.18em;
     background: linear-gradient(180deg, #4a6189 0%, #3f5679 100%) !important;
     box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset, 0 6px 16px rgba(52,72,106,0.28);
@@ -142,7 +144,7 @@
       </div>
 
       <div class="field">
-        <label>How likely are you to come?</label>
+        <label>Can you come?</label>
         <div class="choice-row" id="likelihoodRow">
           <input type="radio" name="likelihood" id="likDefinitely" value="definitely">
           <label for="likDefinitely">Definitely coming</label>
@@ -150,10 +152,12 @@
           <label for="likVeryLikely">Very likely</label>
           <input type="radio" name="likelihood" id="likHoping" value="hoping_to">
           <label for="likHoping">Hoping to make it</label>
+          <input type="radio" name="likelihood" id="likNo" value="no">
+          <label for="likNo">Sorry, we can't make it</label>
         </div>
       </div>
 
-      <div class="field two-col">
+      <div class="field two-col" id="countsRow">
         <div class="field">
           <label for="adults">Adults</label>
           <input type="number" id="adults" min="1" max="20" value="1" inputmode="numeric" required>
@@ -164,9 +168,15 @@
         </div>
       </div>
 
-      <div class="field">
+      <div class="field" id="agesField" hidden>
+        <label for="childrenAges">Children's ages</label>
+        <input type="text" id="childrenAges" maxlength="200" placeholder="e.g. 2, 7 and 12 (helps with hotel rooms)">
+      </div>
+
+      <div class="field" id="dietaryField">
         <label for="dietary">Dietary requirements / allergies</label>
         <textarea id="dietary" maxlength="400" placeholder="Anything we should know — optional"></textarea>
+        <label class="consent" id="consentRow" hidden><input type="checkbox" id="dietaryConsent"> I'm happy for you to keep this so the venue can cater for us</label>
       </div>
 
       <div class="field">
@@ -194,9 +204,9 @@
     <a class="back" href="index.html">&larr; back to the invitation</a>
   </div>
 
-  <script src="js/rsvp-data.js?v=41"></script>
-  <script src="js/config.js?v=41"></script>
-  <script src="js/travel.js?v=41"></script>
+  <script src="js/rsvp-data.js?v=42"></script>
+  <script src="js/config.js?v=42"></script>
+  <script src="js/travel.js?v=42"></script>
   <script>
     // abroad wedding: the reply-by date and a pointer to the travel checklist
     (function () {
@@ -237,6 +247,22 @@
 
       var loadedAt = Date.now();
 
+      var countsRow = document.getElementById("countsRow");
+      var agesField = document.getElementById("agesField");
+      var consentRow = document.getElementById("consentRow");
+      var dietaryField = document.getElementById("dietaryField");
+      function syncFields() {
+        var pick = form.querySelector('input[name="likelihood"]:checked');
+        var declined = !!pick && pick.value === "no";
+        countsRow.hidden = declined;
+        dietaryField.hidden = declined;
+        var kids = parseInt(document.getElementById("children").value, 10);
+        agesField.hidden = declined || !(kids > 0);
+        consentRow.hidden = declined || !document.getElementById("dietary").value.trim();
+      }
+      form.addEventListener("input", syncFields);
+      form.addEventListener("change", syncFields);
+
       form.addEventListener("submit", function (e) {
         e.preventDefault();
 
@@ -263,6 +289,8 @@
         var children = parseInt(document.getElementById("children").value, 10);
         var dietary = document.getElementById("dietary").value.trim();
         var note = document.getElementById("note").value.trim();
+        var childrenAges = document.getElementById("childrenAges").value.trim();
+        var consent = document.getElementById("dietaryConsent").checked;
 
         if (!name) {
           statusMsg.className = "status err";
@@ -279,13 +307,21 @@
           statusMsg.textContent = "Please let us know how likely you are to come.";
           return;
         }
-        if (!Number.isFinite(adults) || adults < 1 || adults > 20) {
+        var declined = likelihood === "no";
+        if (declined) {
+          adults = 0; children = 0; childrenAges = ""; dietary = "";
+        } else if (dietary && !consent) {
+          statusMsg.className = "status err";
+          statusMsg.textContent = "Please tick the box under dietary needs so we can keep them (or clear that box).";
+          return;
+        }
+        if (!declined && (!Number.isFinite(adults) || adults < 1 || adults > 20)) {
           statusMsg.className = "status err";
           statusMsg.textContent = "Number of adults should be between 1 and 20.";
           return;
         }
         var childrenRaw = document.getElementById("children").value.trim();
-        if (childrenRaw === "") {
+        if (declined || childrenRaw === "") {
           children = 0;
         } else if (!Number.isFinite(children) || children < 0 || children > 20) {
           statusMsg.className = "status err";
@@ -303,12 +339,16 @@
           likelihood: likelihood,
           adults: adults,
           children: children,
+          childrenAges: children > 0 ? (childrenAges || null) : null,
+          dietaryConsent: !!dietary && consent,
           dietary: dietary || null,
           note: note || null
         }).then(function () {
           form.hidden = true;
           confirmBox.hidden = false;
-          confirmText.textContent = "Thank you — the pleasure of your company means the world to us, and we can't wait to celebrate together.";
+          confirmText.textContent = declined
+            ? "Thank you for letting us know. You'll be missed, and we'll be thinking of you."
+            : "Thank you — the pleasure of your company means the world to us, and we can't wait to celebrate together.";
           if (typeof window.loadHeadcount === "function") { window.loadHeadcount(); }
         }).catch(function () {
           statusMsg.className = "status err";
