@@ -33,15 +33,20 @@
   function validate(row) {
     var name = (row.name || "").trim();
     var message = (row.message || "").trim();
+    var email = (row.email || "").trim();
     if (!name) { return "Please tell us your name."; }
     if (name.length > 60) { return "That name is a little long — 60 letters at most."; }
     if (!message) { return "Please write a few words first."; }
     if (message.length > 280) { return "Please keep it under 280 letters — short and sweet."; }
+    if (email) {
+      if (email.length > 200) { return "That email is a little long."; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { return "That email doesn't look quite right."; }
+    }
     return null;
   }
 
   function fetchApproved() {
-    return fetch(SUPABASE_URL + "/rest/v1/blessings?select=id,name,message,created_at&status=eq.approved&order=created_at.desc&limit=60", {
+    return fetch(SUPABASE_URL + "/rest/v1/blessings?select=id,name,message,created_at,theme&status=eq.approved&order=created_at.desc&limit=60", {
       headers: restHeaders()
     }).then(function (r) {
       if (!r.ok) { throw new Error("Request failed (" + r.status + ")"); }
@@ -56,30 +61,41 @@
     var problem = validate(row);
     if (problem) { return Promise.reject(new Error(problem)); }
     var id = newId();
+    var name = row.name.trim();
+    var message = row.message.trim();
+    var email = (row.email || "").trim();
+    var body = { id: id, name: name, message: message };
+    if (email) { body.email = email; }
     return fetch(SUPABASE_URL + "/rest/v1/blessings", {
       method: "POST",
       headers: restHeaders({ "Prefer": "return=minimal" }),
-      body: JSON.stringify({ id: id, name: row.name.trim(), message: row.message.trim() })
+      body: JSON.stringify(body)
     }).then(function (r) {
       if (!r.ok) {
-        return r.json().catch(function () { return null; }).then(function (body) {
-          var msg = (body && (body.message || body.hint)) || ("Request failed (" + r.status + ")");
+        return r.json().catch(function () { return null; }).then(function (body2) {
+          var msg = (body2 && (body2.message || body2.hint)) || ("Request failed (" + r.status + ")");
           throw new Error(msg);
         });
       }
-      notify("blessing_submitted", "New blessing from " + row.name.trim() + " — awaiting approval");
+      // Server-side moderation decides held vs auto-approved; the guest
+      // never learns which — same warm message either way.
+      notify({ kind: "blessing_submitted", summary: "New blessing from " + name });
+      if (email) {
+        notify({ kind: "blessing_thanks", email: email, name: name, message: message });
+      }
       return { id: id };
     });
   }
 
-  // Fire-and-forget ops email; activity_log is already written server-side
-  // by a DB trigger regardless of this call, so a failure here is harmless.
-  function notify(kind, summary) {
+  // Fire-and-forget email calls; activity_log is already written server-side
+  // by a DB trigger regardless of this call, so a failure here is harmless
+  // and never blocks or fails the guest's own submission.
+  function notify(payload) {
     try {
       fetch(SUPABASE_URL + "/functions/v1/notify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind: kind, summary: String(summary || "").slice(0, 300) })
+        body: JSON.stringify(payload)
       }).catch(function () {});
     } catch (e) {}
   }

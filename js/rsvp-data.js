@@ -91,21 +91,27 @@
       children: children,
       likelihood: row.likelihood
     }).then(function () {
-      notify("rsvp_submitted", row.name + " RSVP'd (" + adults + " adult" + (adults === 1 ? "" : "s") +
+      var summary = row.name + " RSVP'd (" + adults + " adult" + (adults === 1 ? "" : "s") +
         (children > 0 ? ", " + children + " child" + (children === 1 ? "" : "ren") : "") +
-        (row.likelihood ? ", " + row.likelihood : "") + ")");
+        (row.likelihood ? ", " + row.likelihood : "") + ")";
+      notify({ kind: "rsvp_submitted", summary: summary, adminPath: "rsvp-admin.html" });
+      var email = (row.contact || "").trim();
+      if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        notify({ kind: "rsvp_confirmation", email: email, name: row.name, summary: summary });
+      }
       return { id: id };
     });
   }
 
-  // Fire-and-forget ops email; activity_log is already written server-side
-  // by a DB trigger regardless of this call, so a failure here is harmless.
-  function notify(kind, summary) {
+  // Fire-and-forget email calls; activity_log is already written server-side
+  // by a DB trigger regardless of this call, so a failure here is harmless
+  // and never blocks or fails the guest's own RSVP.
+  function notify(payload) {
     try {
       fetch(SUPABASE_URL + "/functions/v1/notify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind: kind, summary: String(summary || "").slice(0, 300) })
+        body: JSON.stringify(payload)
       }).catch(function () {});
     } catch (e) {}
   }

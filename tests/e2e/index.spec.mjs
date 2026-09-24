@@ -248,7 +248,7 @@ test.describe("index.html — blessings form", () => {
     await page.locator("#bfName").fill("Khala");
     await page.locator("#bfMsg").fill(tricky);
     await page.locator("#bfSend").click();
-    await expect(page.locator("#bfStatus")).toContainText(/sent with love|will read it first/i);
+    await expect(page.locator("#bfStatus")).toContainText(/on their way to us/i);
     expect(sentBody).toBeTruthy();
     expect(sentBody.message).toContain("<script>"); // stored as literal text
     const html = await page.content();
@@ -288,7 +288,7 @@ test.describe("index.html — blessings form", () => {
     await page.locator("#bfName").fill("Bot");
     await page.locator("#bfMsg").fill("Buy now");
     await page.locator("#bfSend").click();
-    await expect(page.locator("#bfStatus")).toContainText(/sent with love/i);
+    await expect(page.locator("#bfStatus")).toContainText(/on their way to us/i);
     expect(posted).toBe(false);
   });
 

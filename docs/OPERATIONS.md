@@ -30,51 +30,94 @@ lockouts), and a CSV export button. Linked from the headers of
 `robots.txt`, same as the other two admin pages — that's obscurity, not
 real access control; the password is what actually protects it.
 
-## Notifications (dormant until Saif adds keys)
+## Notifications & guest emails (dormant until Saif adds keys)
 
-Edge Function `notify` (deployed, `supabase/functions/notify/index.ts`) is
-called two ways:
+Edge Function `notify` (deployed, `supabase/functions/notify/index.ts`) now
+sends real templated emails, not just ops alerts. It's called several ways:
 
 1. **Fire-and-forget from the guest's own browser**, right after an RSVP,
    tree submission or blessing succeeds (see `TreeData.notify` /
    `RsvpData` / `BlessingsData` in `js/*.js`). It never blocks or can fail
    the guest's own action — it's a bare `fetch(...).catch(() => {})`.
-2. **A daily digest**, triggered by POSTing `{"digest": true}` with header
+   - `rsvp_submitted` / `tree_submitted` / `blessing_submitted` → a short
+     ops alert to `NOTIFY_TO` (the couple), linking only to the relevant
+     admin page.
+   - `blessing_thanks` → sent only if the guest gave an email with their
+     blessing; the exact thank-you copy in the spec; max once per email
+     per 24h (checked against `email_log`).
+   - `rsvp_confirmation` → sent only if the guest's RSVP has an
+     email-shaped contact; a personal summary of what they told us.
+2. **`message_all`**, called from admin-activity.html's "Message all
+   guests" tab: `adminPw` is checked via `admin_check` (same as every
+   other admin action) before anything happens. `test: true` sends only to
+   `NOTIFY_TO`; a real send goes to every distinct email on file in
+   `rsvps` (via `admin_list_rsvp_emails`), deduped, ~6-7/second, logged.
+   Never auto-sends — the admin UI requires a successful test send first,
+   then an explicit browser `confirm()`.
+3. **A daily digest**, triggered by POSTing `{"digest": true}` with header
    `X-Digest-Secret: <DIGEST_SECRET>` — reads the last 24h of
-   `activity_log` (via the function's own service-role credentials, which
-   Supabase provides automatically) and emails a summary.
+   `activity_log` and emails a summary.
 
-**Right now, with no secrets set, every call returns
+Edge Function `resend-webhook` (deployed,
+`supabase/functions/resend-webhook/index.ts`) receives Resend's delivery
+events (delivered/bounced/complained) and updates the matching `email_log`
+row by `provider_id`. Dormant until `RESEND_WEBHOOK_SECRET` is set.
+
+**Right now, with no secrets set, every call to `notify` returns
 `{"ok": true, "sent": false, "reason": "notifications not configured"}`
 and does nothing else.** This was verified live after deploy.
 
+### Every email is logged
+
+Table `email_log` (RLS on, no policies — read only via the admin RPC
+`admin_list_email_log`, same pattern as `activity_log`). Every send/skip/
+fail is written here: `to_email`, `kind`, `status`
+(sent/skipped/failed/delivered/bounced/complained), `provider_id`, `error`.
+Shown as the **Emails** tab on `admin-activity.html`.
+
 ### To switch email on, Saif needs to:
 
-1. **Create a Resend account** (resend.com) and add the domain
-   `saifandrumaisah.com`. Resend will show a set of DNS records (SPF,
-   DKIM, and it will ask for a `Return-Path`/tracking subdomain — Resend's
-   own onboarding gives the exact current records; don't copy them from
-   memory, they change).
-2. **Add those DNS records in Namecheap → Advanced DNS.** This needs to
-   coexist with whatever inbound mail setup the household picks for
-   `23082026@saifandrumaisah.com` (Namecheap Private Email, per the
-   Saif&Ruru brain file) — Resend's records are for *sending* mail from a
-   subdomain or the apex, inbound mail (MX) is separate. If both use the
-   apex domain, check for MX/record conflicts before adding either; when
-   in doubt, send from a subdomain (e.g. a `mail.` or `notifications.`
-   subdomain) so the two never collide. Get the exact final record set
-   from Resend's own domain-verify screen at the time, not from this doc.
-3. **Set two Supabase secrets** for the `notify` function: `RESEND_API_KEY`
-   (from Resend) and `NOTIFY_TO` (comma-separated email address(es) that
-   should get alerts — e.g. both Saif and Rumaisah's own addresses).
-   Optionally set `DIGEST_SECRET` (any random string) to enable the daily
-   digest, and set up something to call it once a day — a GitHub Action on
-   a cron schedule, POSTing to
-   `https://rfopieelzxvnmfhdvqqf.supabase.co/functions/v1/notify` with
-   `{"digest": true}` and the `X-Digest-Secret` header, is the simplest
-   option (`pg_cron`/`pg_net` are not currently enabled on this project).
-4. That's it — no code changes needed. The function checks for the secrets
-   on every call and only sends once they exist.
+1. **Namecheap:** buy **Private Email** and create the shared mailbox
+   `hello@saifandrumaisah.com` for Saif & Rumaisah (replaces the current
+   `eforward1-5.registrar-servers.com` forwarding MX — that has to come
+   off first). This is the reply-to address on every email the site sends.
+2. **Resend:** create a **new Resend account for the wedding only**
+   (never reuse a TestNow or RDS HUB account) and add the domain
+   `saifandrumaisah.com`, sending from the subdomain
+   `send.saifandrumaisah.com` (so it never collides with the Private
+   Email MX on the apex domain).
+3. **Namecheap → Advanced DNS**, final record set (get the exact current
+   values from each provider's own dashboard at setup time — these move):
+   - **MX** on the apex (`@`) → Namecheap Private Email's mail servers
+     (for `hello@saifandrumaisah.com` inbound).
+   - **SPF (TXT)** on the apex, covering Private Email
+     (`include:spf.privateemail.com` or current equivalent).
+   - **DKIM (TXT)**, **SPF (TXT)** and **MX** on `send.saifandrumaisah.com`
+     → exactly what Resend's domain-verify screen shows for that
+     subdomain (Resend needs its own MX on the sending subdomain for
+     bounce handling; this does not touch the apex MX above).
+   - **DMARC (TXT)** on `_dmarc.saifandrumaisah.com`:
+     `v=DMARC1; p=quarantine; rua=mailto:hello@saifandrumaisah.com`.
+4. **Supabase secrets** (Project Settings → Edge Functions → Secrets, or
+   `supabase secrets set`) for both functions:
+   - `RESEND_API_KEY` — from the wedding-only Resend account.
+   - `NOTIFY_TO` — comma-separated address(es) for the couple's own alerts
+     (e.g. both Saif's and Rumaisah's personal addresses, or
+     `hello@saifandrumaisah.com` once it exists).
+   - `RESEND_WEBHOOK_SECRET` — set this in Resend's webhook config
+     (pointing at `.../functions/v1/resend-webhook`) and here, matching.
+   - Optionally `DIGEST_SECRET` (any random string) for the daily digest,
+     plus something to call it once a day — a GitHub Action on a cron
+     schedule, POSTing `{"digest": true}` with the `X-Digest-Secret`
+     header, is the simplest option.
+5. **Test both directions**: send a blessing/RSVP with a real email and
+   confirm the thank-you/confirmation arrives; use the "Send test to us"
+   button on admin-activity.html's Message-all tab before ever sending to
+   all guests; check the Emails tab shows `sent` (and later `delivered`
+   once the webhook fires).
+
+No code changes needed for any of this — every function already checks
+for its secrets on each call and only sends once they exist.
 
 ### What each notification event means
 
@@ -83,18 +126,42 @@ and does nothing else.** This was verified live after deploy.
 | `rsvp_submitted` | Someone submits the RSVP/interest form |
 | `tree_submitted` | Someone adds themselves/a relative to the tree |
 | `blessing_submitted` | Someone leaves a blessing (before approval) |
+| `blessing_thanks` | Guest-facing thank-you, if they gave an email |
+| `rsvp_confirmation` | Guest-facing RSVP confirmation, if they gave an email |
+| `message_all` | Admin broadcast from admin-activity.html |
 | `admin_lockout` | 5 failed admin password attempts in 15 minutes |
 
-No contact details, dietary notes or free-text messages ever go in a
-summary or email — just names and counts.
+Ops alerts to the couple never include contact details or free-text
+messages — just names and counts, and a link to the relevant admin page.
 
 ## Mailbox plan (separate from the above)
 
-Per the Saif&Ruru brain file, the household mailbox
-`23082026@saifandrumaisah.com` is going on **Namecheap Private Email**
-(paid, IMAP) — that's for the couple to receive real mail, and is
-unrelated to the `notify` function above (which only *sends*, via Resend).
-Buying/creating that mailbox needs Saif's Namecheap login.
+Per the Saif&Ruru brain file, the household mailbox now planned as
+`hello@saifandrumaisah.com` is going on **Namecheap Private Email** (paid,
+IMAP) — that's for the couple to receive real mail (including replies to
+guest emails), and is the same mailbox the `notify` function sends *from*
+and replies *to* via Resend. Buying/creating it needs Saif's Namecheap
+login.
+
+## Wall of Love (moderation, theming)
+
+- New blessings run through the `blessing_moderate` trigger
+  (`before insert on blessings`) before they're ever written: links,
+  emails, phone numbers, profanity/abusive terms (English + common
+  romanised Urdu/Punjabi/Arabic), ALL-CAPS shouting and repeated-character/
+  word spam all hold a blessing at `status = 'pending'` with a
+  `moderation_reason`; anything clean is auto-approved instantly. The
+  guest always sees the same warm message either way — never told it was
+  flagged.
+- The same trigger runs a lightweight keyword classifier into a `theme`
+  column (`congratulations` / `cant_wait` / `will_be_there` / `duas` /
+  `love`) — admins can override it from the Blessings tab.
+- `admin_set_blessing_status(pw, target, new_status, new_theme)` now
+  supports `approved` / `hidden` / `pending`, and hiding no longer
+  deletes the row — it's restorable from the Blessings tab.
+- `email` and `moderation_reason` are never selectable by `anon`/
+  `authenticated` (column-level `REVOKE`), even via an explicit
+  `?select=email` — only through the admin RPCs.
 
 ## Security notes
 

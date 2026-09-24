@@ -57,6 +57,30 @@
   .row .kind { flex: 0 0 150px; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--side); }
   .row .summary { flex: 1; font-size: 0.98rem; overflow-wrap: anywhere; }
   .row.bad .kind { color: var(--bad); }
+
+  .tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1.5rem; }
+  .tabs button { font-family: inherit; font-size: 0.85rem; padding: 0.45rem 0.9rem; border-radius: 999px; border: 1px solid rgba(64,88,122,0.3); background: #fff; color: var(--side); cursor: pointer; }
+  .tabs button.active { background: var(--side); color: #fff; border-color: var(--side); }
+  .pane { display: none; }
+  .pane.active { display: block; }
+
+  .bl-row { display: flex; gap: 0.9rem; align-items: flex-start; padding: 0.75rem 0; border-bottom: 1px solid rgba(185,150,104,0.2); }
+  .bl-row .bl-main { flex: 1; }
+  .bl-row .bl-name { font-weight: 600; }
+  .bl-row .bl-msg { font-size: 0.95rem; color: var(--ink); margin: 0.2rem 0; overflow-wrap: anywhere; }
+  .bl-row .bl-meta { font-size: 0.75rem; color: var(--muted); }
+  .bl-row .bl-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .bl-row .bl-actions button { font-family: inherit; font-size: 0.8rem; padding: 0.35rem 0.6rem; border-radius: 8px; border: 1px solid rgba(64,88,122,0.3); background: #fff; cursor: pointer; }
+  .bl-row .bl-actions select { font-family: inherit; font-size: 0.78rem; padding: 0.3rem; border-radius: 8px; border: 1px solid rgba(64,88,122,0.3); }
+  .bl-status-pending .bl-name::after { content: " (held)"; color: var(--bad); font-weight: 400; font-size: 0.75rem; }
+  .bl-status-hidden .bl-name::after { content: " (hidden)"; color: var(--muted); font-weight: 400; font-size: 0.75rem; }
+
+  .ma-box textarea { width: 100%; min-height: 140px; font-family: inherit; font-size: 0.95rem; padding: 0.7rem; border-radius: 10px; border: 1px solid rgba(64,88,122,0.3); }
+  .ma-box input[type="text"] { width: 100%; font-family: inherit; font-size: 0.95rem; padding: 0.6rem 0.7rem; border-radius: 10px; border: 1px solid rgba(64,88,122,0.3); margin-bottom: 0.6rem; }
+  .ma-box button { font-family: inherit; font-size: 0.9rem; padding: 0.55rem 1rem; border-radius: 8px; border: none; background: var(--side); color: #fff; cursor: pointer; margin-right: 0.5rem; margin-top: 0.6rem; }
+  .ma-box button.secondary { background: none; color: var(--side); border: 1px solid var(--side); }
+  .ma-status { font-size: 0.85rem; margin-top: 0.6rem; min-height: 1.2em; }
+  .ma-preview { border: 1px dashed rgba(185,150,104,0.4); border-radius: 10px; padding: 0.9rem; margin-top: 0.8rem; display: none; }
 </style>
 </head>
 <body>
@@ -77,28 +101,70 @@
       <a href="rsvp-admin.html">RSVPs</a>
     </nav>
 
-    <div class="stats" id="stats"></div>
-
-    <div class="controls">
-      <select id="kindFilter">
-        <option value="">All kinds</option>
-        <option value="rsvp_submitted">RSVP submitted</option>
-        <option value="tree_submitted">Tree submission</option>
-        <option value="blessing_submitted">Blessing submitted</option>
-        <option value="person_approved">Person approved</option>
-        <option value="person_rejected">Person rejected</option>
-        <option value="person_restored">Person restored</option>
-        <option value="blessing_approved">Blessing approved</option>
-        <option value="blessing_hidden">Blessing hidden</option>
-        <option value="admin_login_ok">Admin login ok</option>
-        <option value="admin_login_failed">Admin login failed</option>
-        <option value="admin_lockout">Admin lockout</option>
-      </select>
-      <button id="refreshBtn" class="secondary">Refresh</button>
-      <button id="csvBtn" class="secondary">Export CSV</button>
+    <div class="tabs">
+      <button type="button" class="tab-btn active" data-tab="activity">Activity</button>
+      <button type="button" class="tab-btn" data-tab="blessings">Blessings</button>
+      <button type="button" class="tab-btn" data-tab="emails">Emails</button>
+      <button type="button" class="tab-btn" data-tab="messageall">Message all guests</button>
     </div>
 
-    <div id="list"></div>
+    <div class="pane active" id="pane-activity">
+      <div class="stats" id="stats"></div>
+
+      <div class="controls">
+        <select id="kindFilter">
+          <option value="">All kinds</option>
+          <option value="rsvp_submitted">RSVP submitted</option>
+          <option value="tree_submitted">Tree submission</option>
+          <option value="blessing_submitted">Blessing submitted</option>
+          <option value="person_approved">Person approved</option>
+          <option value="person_rejected">Person rejected</option>
+          <option value="person_restored">Person restored</option>
+          <option value="blessing_approved">Blessing approved</option>
+          <option value="blessing_hidden">Blessing hidden</option>
+          <option value="admin_login_ok">Admin login ok</option>
+          <option value="admin_login_failed">Admin login failed</option>
+          <option value="admin_lockout">Admin lockout</option>
+        </select>
+        <button id="refreshBtn" class="secondary">Refresh</button>
+        <button id="csvBtn" class="secondary">Export CSV</button>
+      </div>
+
+      <div id="list"></div>
+    </div>
+
+    <div class="pane" id="pane-blessings">
+      <div class="controls">
+        <select id="blFilter">
+          <option value="pending">Pending (held)</option>
+          <option value="approved">Approved</option>
+          <option value="hidden">Hidden</option>
+        </select>
+        <button id="blRefresh" class="secondary">Refresh</button>
+      </div>
+      <div id="blList"></div>
+    </div>
+
+    <div class="pane" id="pane-emails">
+      <div class="controls">
+        <button id="emRefresh" class="secondary">Refresh</button>
+      </div>
+      <div id="emList"></div>
+    </div>
+
+    <div class="pane" id="pane-messageall">
+      <div class="ma-box">
+        <input type="text" id="maSubject" placeholder="Subject">
+        <textarea id="maBody" placeholder="Write the message… (plain text is fine, we'll wrap it in the wedding template)"></textarea>
+        <div>
+          <button id="maPreviewBtn" class="secondary" type="button">Preview</button>
+          <button id="maTestBtn" class="secondary" type="button">Send test to us</button>
+          <button id="maSendBtn" type="button">Send to all guests</button>
+        </div>
+        <p class="ma-status" id="maStatus"></p>
+        <div class="ma-preview" id="maPreview"></div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -254,6 +320,201 @@
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+      });
+
+      // --- tabs ---
+      var tabButtons = document.querySelectorAll(".tab-btn");
+      var panes = document.querySelectorAll(".pane");
+      tabButtons.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          tabButtons.forEach(function (b) { b.classList.remove("active"); });
+          panes.forEach(function (p) { p.classList.remove("active"); });
+          btn.classList.add("active");
+          document.getElementById("pane-" + btn.getAttribute("data-tab")).classList.add("active");
+          if (btn.getAttribute("data-tab") === "blessings") { loadBlessings(); }
+          if (btn.getAttribute("data-tab") === "emails") { loadEmails(); }
+        });
+      });
+
+      // --- blessings moderation ---
+      var THEME_OPTIONS = [
+        ["congratulations", "congratulations"], ["cant_wait", "can't wait"],
+        ["will_be_there", "will be there"], ["duas", "duas & prayers"], ["love", "love"]
+      ];
+      var blList = document.getElementById("blList");
+      var blFilter = document.getElementById("blFilter");
+      document.getElementById("blRefresh").addEventListener("click", loadBlessings);
+      blFilter.addEventListener("change", loadBlessings);
+
+      function loadBlessings() {
+        if (!pw) { return; }
+        blList.innerHTML = "<p class=\"empty\">Loading…</p>";
+        var status = blFilter.value;
+        // Anon has no SELECT on pending/hidden rows or on email/moderation_reason,
+        // so this goes through a SECURITY DEFINER RPC gated by admin_check,
+        // same pattern as every other admin list on this site.
+        rpc("admin_list_blessings_full", { pw: pw, filter_status: status }).then(function (rows) {
+          renderBlessings(rows || []);
+        }).catch(function () {
+          blList.innerHTML = "<p class=\"empty\">Couldn&rsquo;t load &mdash; tap Refresh to try again.</p>";
+        });
+      }
+
+      function renderBlessings(rows) {
+        blList.innerHTML = "";
+        if (!rows.length) { blList.innerHTML = "<p class=\"empty\">Nothing here.</p>"; return; }
+        rows.forEach(function (row) {
+          var el = document.createElement("div");
+          el.className = "bl-row bl-status-" + row.status;
+          var main = document.createElement("div");
+          main.className = "bl-main";
+          var name = document.createElement("div");
+          name.className = "bl-name";
+          name.textContent = row.name;
+          var msg = document.createElement("div");
+          msg.className = "bl-msg";
+          msg.textContent = row.message;
+          var meta = document.createElement("div");
+          meta.className = "bl-meta";
+          meta.textContent = new Date(row.created_at).toLocaleString() + (row.moderation_reason ? " — held for: " + row.moderation_reason : "");
+          main.appendChild(name); main.appendChild(msg); main.appendChild(meta);
+
+          var actions = document.createElement("div");
+          actions.className = "bl-actions";
+          var themeSel = document.createElement("select");
+          THEME_OPTIONS.forEach(function (t) {
+            var o = document.createElement("option");
+            o.value = t[0]; o.textContent = t[1];
+            if (row.theme === t[0]) { o.selected = true; }
+            themeSel.appendChild(o);
+          });
+          actions.appendChild(themeSel);
+
+          function act(status) {
+            rpc("admin_set_blessing_status", { pw: pw, target: row.id, new_status: status, new_theme: themeSel.value })
+              .then(loadBlessings)
+              .catch(function () { alert("Couldn't update that blessing."); });
+          }
+          if (row.status !== "approved") {
+            var approveBtn = document.createElement("button");
+            approveBtn.textContent = "Approve";
+            approveBtn.addEventListener("click", function () { act("approved"); });
+            actions.appendChild(approveBtn);
+          }
+          if (row.status !== "hidden") {
+            var hideBtn = document.createElement("button");
+            hideBtn.textContent = "Hide";
+            hideBtn.addEventListener("click", function () { act("hidden"); });
+            actions.appendChild(hideBtn);
+          }
+          if (row.status === "hidden") {
+            var restoreBtn = document.createElement("button");
+            restoreBtn.textContent = "Restore";
+            restoreBtn.addEventListener("click", function () { act("approved"); });
+            actions.appendChild(restoreBtn);
+          }
+          var saveThemeBtn = document.createElement("button");
+          saveThemeBtn.textContent = "Save theme";
+          saveThemeBtn.addEventListener("click", function () { act(row.status); });
+          actions.appendChild(saveThemeBtn);
+
+          el.appendChild(main);
+          el.appendChild(actions);
+          blList.appendChild(el);
+        });
+      }
+
+      // --- emails tab ---
+      var emList = document.getElementById("emList");
+      document.getElementById("emRefresh").addEventListener("click", loadEmails);
+      function loadEmails() {
+        if (!pw) { return; }
+        emList.innerHTML = "<p class=\"empty\">Loading…</p>";
+        rpc("admin_list_email_log", { pw: pw, limit_n: 300 }).then(function (rows) {
+          emList.innerHTML = "";
+          if (!rows || !rows.length) { emList.innerHTML = "<p class=\"empty\">No emails sent yet.</p>"; return; }
+          rows.forEach(function (r) {
+            var el = document.createElement("div");
+            el.className = "row" + (r.status === "failed" || r.status === "bounced" || r.status === "complained" ? " bad" : "");
+            var when = document.createElement("span");
+            when.className = "when";
+            when.textContent = new Date(r.created_at).toLocaleString();
+            var kind = document.createElement("span");
+            kind.className = "kind";
+            kind.textContent = r.kind.replace(/_/g, " ") + " — " + r.status;
+            var summary = document.createElement("span");
+            summary.className = "summary";
+            summary.textContent = r.to_email;
+            el.appendChild(when); el.appendChild(kind); el.appendChild(summary);
+            emList.appendChild(el);
+          });
+        }).catch(function () {
+          emList.innerHTML = "<p class=\"empty\">Couldn&rsquo;t load &mdash; tap Refresh to try again.</p>";
+        });
+      }
+
+      // --- message all guests: preview -> test -> explicit confirm -> send ---
+      var maSubject = document.getElementById("maSubject");
+      var maBody = document.getElementById("maBody");
+      var maPreviewBtn = document.getElementById("maPreviewBtn");
+      var maTestBtn = document.getElementById("maTestBtn");
+      var maSendBtn = document.getElementById("maSendBtn");
+      var maStatus = document.getElementById("maStatus");
+      var maPreview = document.getElementById("maPreview");
+      var testSentOk = false;
+
+      function wrapMessage(bodyText) {
+        var escaped = String(bodyText || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        var html = escaped.split(/\n{2,}/).map(function (p) {
+          return "<p style=\"line-height:1.7;margin:0 0 14px;\">" + p.replace(/\n/g, "<br>") + "</p>";
+        }).join("");
+        return (
+          "<div style=\"background:#f7f1e6;padding:32px 16px;font-family:'Cormorant Garamond',Georgia,serif;color:#3b332a;\">" +
+          "<div style=\"max-width:520px;margin:0 auto;background:#fffdf8;border:1px solid rgba(185,150,104,0.35);border-radius:14px;padding:36px 28px;\">" +
+          html +
+          "<div style=\"height:1px;margin:22px 0;background:linear-gradient(90deg,transparent,rgba(185,150,104,0.55),transparent);\"></div>" +
+          "<p style=\"text-align:center;font-size:0.85rem;color:#8a7f6f;margin:0;\">&mdash; two families, one story &mdash;<br>saifandrumaisah.com</p>" +
+          "</div></div>"
+        );
+      }
+
+      maPreviewBtn.addEventListener("click", function () {
+        maPreview.innerHTML = wrapMessage(maBody.value);
+        maPreview.style.display = "block";
+      });
+
+      function callNotify(payload) {
+        return fetch(SUPABASE_URL + "/functions/v1/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        }).then(function (r) { return r.json().catch(function () { return {}; }); });
+      }
+
+      maTestBtn.addEventListener("click", function () {
+        if (!pw || !maSubject.value || !maBody.value) { maStatus.textContent = "Write a subject and message first."; return; }
+        maStatus.textContent = "Sending test…";
+        callNotify({ kind: "message_all", adminPw: pw, subject: maSubject.value, html: wrapMessage(maBody.value), text: maBody.value, test: true })
+          .then(function (res) {
+            if (res.sent) { testSentOk = true; maStatus.textContent = "Test sent to us. Check it, then Send to all guests when ready."; }
+            else { maStatus.textContent = res.reason === "notifications not configured" ? "Email isn't switched on yet (no RESEND_API_KEY) — nothing was sent." : "Test didn't send — try again."; }
+          })
+          .catch(function () { maStatus.textContent = "Test didn't send — try again."; });
+      });
+
+      maSendBtn.addEventListener("click", function () {
+        if (!pw || !maSubject.value || !maBody.value) { maStatus.textContent = "Write a subject and message first."; return; }
+        if (!testSentOk) { maStatus.textContent = "Send yourself a test first, and check it, before sending to every guest."; return; }
+        if (!confirm("Send \"" + maSubject.value + "\" to every guest who gave an email? This can't be undone.")) { return; }
+        maSendBtn.disabled = true;
+        maStatus.textContent = "Sending to all guests…";
+        callNotify({ kind: "message_all", adminPw: pw, subject: maSubject.value, html: wrapMessage(maBody.value), text: maBody.value, test: false })
+          .then(function (res) {
+            maSendBtn.disabled = false;
+            if (res.sent) { maStatus.textContent = "Sent to " + (res.sentCount || 0) + " of " + (res.count || 0) + " guests."; testSentOk = false; }
+            else { maStatus.textContent = res.reason || "Didn't send — try again."; }
+          })
+          .catch(function () { maSendBtn.disabled = false; maStatus.textContent = "Didn't send — try again."; });
       });
     })();
   </script>
