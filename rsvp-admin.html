@@ -141,10 +141,18 @@
             try { sessionStorage.setItem("rsvpAdminPw", candidate); } catch (e) {}
             render(rows);
           })
-          .catch(function () {
-            gateErr.textContent = "Wrong password.";
+          .catch(function (err) {
+            gateErr.textContent = lockoutMessage(err) || "Wrong password.";
             pwSubmit.disabled = false;
           });
+      }
+
+      // The DB-side lockout (5 failed admin_check calls in 15 minutes)
+      // raises a specific message; surface it as-is instead of the generic
+      // "Wrong password." so people know it's a timed lockout, not a typo.
+      function lockoutMessage(err) {
+        var msg = err && err.message;
+        return msg && msg.indexOf("Too many attempts") !== -1 ? msg : null;
       }
 
       pwSubmit.addEventListener("click", unlock);
@@ -161,6 +169,10 @@
 
       function csvField(value) {
         var s = value == null ? "" : String(value);
+        // CSV/formula-injection guard: a leading =, +, -, @, tab or CR lets a
+        // cell be read as a formula by Excel/Sheets when the file is opened —
+        // neutralise it with a leading apostrophe before any quoting.
+        if (/^[=+\-@\t\r]/.test(s)) { s = "'" + s; }
         if (/[",\n]/.test(s)) { s = '"' + s.replace(/"/g, '""') + '"'; }
         return s;
       }

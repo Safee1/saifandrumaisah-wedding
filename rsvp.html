@@ -275,8 +275,13 @@
           statusMsg.textContent = "Number of adults should be between 1 and 20.";
           return;
         }
-        if (!Number.isFinite(children) || children < 0 || children > 20) {
+        var childrenRaw = document.getElementById("children").value.trim();
+        if (childrenRaw === "") {
           children = 0;
+        } else if (!Number.isFinite(children) || children < 0 || children > 20) {
+          statusMsg.className = "status err";
+          statusMsg.textContent = "Number of children should be between 0 and 20.";
+          return;
         }
 
         submitBtn.disabled = true;

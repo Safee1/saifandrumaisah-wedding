@@ -167,7 +167,12 @@
     node.setAttribute("aria-label", label);
     node.setAttribute("title", label);
     var name = node.querySelector(".node-name");
-    var keepOpen = !!name && KEEP_OPEN.indexOf(name.textContent.trim().toLowerCase()) !== -1;
+    // .node-name can carry a trailing relation-tag <span> (e.g. "sibling")
+    // appended as a sibling DOM node — only the leading text node is the
+    // person's own name, so read that instead of the whole textContent
+    // (which would wrongly concatenate the tag's text, e.g. "Arishasibling").
+    var ownName = name && name.firstChild && name.firstChild.nodeType === 3 ? name.firstChild.nodeValue : (name ? name.textContent : "");
+    var keepOpen = !!name && KEEP_OPEN.indexOf(ownName.trim().toLowerCase()) !== -1;
     if (keepOpen) { wrap.setAttribute("data-keep-open", "1"); }
     if (name) { name.appendChild(svgUse("plus-mark", "0 0 24 24", "#plus-shape", 13)); }
 
@@ -178,7 +183,7 @@
 
     // the popover hangs just beneath its owner, wherever they sit
     function placeFold() {
-      if (fullMode) { wrap.style.top = ""; return; }
+      if (fullMode || keepOpen) { wrap.style.top = ""; return; }
       var parent = wrap.offsetParent;
       if (!parent) { return; }
       var nb = offsetWithin(node, parent);
@@ -445,7 +450,7 @@
     }
 
     if (plan.loners.length) {
-      sideEl.appendChild(makeEl("p", "fu-cap rv", "family & friends"));
+      sideEl.appendChild(makeEl("p", "fu-cap loners-cap rv", "family & friends"));
       var lonersRow = makeEl("div", "kids-row rv");
       plan.loners.forEach(function (p) { lonersRow.appendChild(buildNode(p, crown, false, false)); });
       sideEl.appendChild(lonersRow);
