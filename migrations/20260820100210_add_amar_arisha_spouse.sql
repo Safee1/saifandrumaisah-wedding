@@ -1,0 +1,12 @@
+-- Reconstructed from live DB on 2026-09-24 — idempotent
+-- Matches live migration 20260820100210_add_amar_arisha_spouse.
+-- Data-only / one-off maintenance migration: no lasting schema object
+-- (table/column/function/trigger/policy/grant) to reconstruct. It either
+-- seeded or corrected specific rows in people/relationships/blessings, or
+-- was a QA/smoke-test insert immediately followed by its own cleanup
+-- migration, or (reset_admin_password) rotated admin_config.password_hash.
+-- Current row content already reflects the net effect live; replaying
+-- row-level DML here would either be a no-op against current data or risk
+-- duplicating/clobbering rows that have since been edited by hand in
+-- tree-admin. Left intentionally empty of DDL/DML for that reason — see
+-- migrations/SCHEMA_SNAPSHOT.md for the full mapping.
