@@ -162,10 +162,39 @@ test.describe("index.html — family tree", () => {
 
   test("tree fetch failure shows a friendly error, not a blank page", async ({ page }) => {
     await mockSupabase(page, {
-      "GET /rest/v1/people": (route) => route.fulfill({ status: 500, body: "error" })
+      "POST /rest/v1/rpc/public_tree": (route) => route.fulfill({ status: 500, body: "error" })
     });
     await page.goto("/index.html#family");
+    await page.locator("#unlockFamily").click();
     await expect(page.locator("#treeContainer .status")).toContainText(/couldn.t load/i);
+  });
+
+  test("no request to people/relationships tables, and no tree data fetched, before unlock is tapped", async ({ page }) => {
+    let sawDirectTableRead = false;
+    let sawTreeRpc = false;
+    await mockTreeFetch(page, {
+      "GET /rest/v1/people": (route) => { sawDirectTableRead = true; route.fulfill({ status: 404, body: "" }); },
+      "GET /rest/v1/relationships": (route) => { sawDirectTableRead = true; route.fulfill({ status: 404, body: "" }); },
+      "POST /rest/v1/rpc/public_tree": (route) => {
+        sawTreeRpc = true;
+        return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ people: [], relationships: [] }) });
+      }
+    });
+    await page.goto("/index.html#family");
+    await page.waitForTimeout(300);
+    expect(sawDirectTableRead).toBe(false);
+    expect(sawTreeRpc).toBe(false);
+    await page.locator("#unlockFamily").click();
+    await expect(page.locator("#unlockFamily")).toBeHidden();
+    expect(sawTreeRpc).toBe(true);
+    expect(sawDirectTableRead).toBe(false);
+  });
+
+  test("a kid row from public_tree renders as 'Little one', never a real name", async ({ page }) => {
+    await mockTreeFetch(page);
+    await page.goto("/index.html#family");
+    await page.locator("#unlockFamily").click();
+    await expect(page.locator("#treeContainer")).toContainText("Little one");
   });
 });
 

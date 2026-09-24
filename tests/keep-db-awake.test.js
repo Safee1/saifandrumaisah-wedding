@@ -17,8 +17,9 @@ test("tree-data.js still exposes the URL and key in the shape the ping reads", (
   assert.match(src, /SUPABASE_ANON_KEY = "[^"]{20,}"/);
 });
 
-test("the ping runs at least every 3 days and reads the database, not just a health URL", () => {
+test("the ping runs at least every 3 days and calls the public_tree RPC, not a direct table read", () => {
   assert.match(wf, /cron: "[^"]*\*\/3 \* \*"/);
-  assert.match(wf, /\/rest\/v1\/people\?select=id&limit=1/);
+  assert.match(wf, /\/rest\/v1\/rpc\/public_tree/);
+  assert.doesNotMatch(wf, /\/rest\/v1\/people\?select=/);
   assert.match(wf, /workflow_dispatch/);
 });

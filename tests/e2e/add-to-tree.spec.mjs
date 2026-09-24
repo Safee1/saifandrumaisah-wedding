@@ -148,7 +148,7 @@ test.describe("add-to-tree.html — form & dropdowns", () => {
 
   test("tree fetch failure disables submit and shows an error", async ({ page }) => {
     await mockSupabase(page, {
-      "GET /rest/v1/people": (route) => route.fulfill({ status: 500, body: "err" })
+      "POST /rest/v1/rpc/public_tree": (route) => route.fulfill({ status: 500, body: "err" })
     });
     await page.goto("/add-to-tree.html");
     await expect(page.locator("#statusMsg")).toContainText(/couldn.t load the tree/i);
@@ -156,8 +156,19 @@ test.describe("add-to-tree.html — form & dropdowns", () => {
   });
 
   test("empty approved tree shows a placeholder option, submit stays disabled-safe", async ({ page }) => {
-    await mockSupabase(page, { "GET /rest/v1/people": [], "GET /rest/v1/relationships": [] });
+    await mockSupabase(page, { "POST /rest/v1/rpc/public_tree": { people: [], relationships: [] } });
     await page.goto("/add-to-tree.html");
     await expect(page.locator("#linkTo option")).toContainText(/no one on the tree yet/i);
+  });
+
+  test("no direct request to people/relationships tables from add-to-tree.html", async ({ page }) => {
+    let sawDirectTableRead = false;
+    await mockTreeFetch(page, {
+      "GET /rest/v1/people": (route) => { sawDirectTableRead = true; route.fulfill({ status: 404, body: "" }); },
+      "GET /rest/v1/relationships": (route) => { sawDirectTableRead = true; route.fulfill({ status: 404, body: "" }); }
+    });
+    await page.goto("/add-to-tree.html");
+    await expect(page.locator("#submitBtn")).toBeEnabled();
+    expect(sawDirectTableRead).toBe(false);
   });
 });
