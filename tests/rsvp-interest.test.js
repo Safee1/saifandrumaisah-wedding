@@ -20,7 +20,13 @@ function withFetch(handler, fn) {
 
 test("submitInterest posts name/contact/adults/children/likelihood and syncs guest_count", () => {
   let captured;
+  // submitInterest also fires a best-effort notify() call to the Edge
+  // Function after the rsvps insert resolves — ignore that one here and
+  // only capture the actual rsvps insert this test cares about.
   return withFetch((url, opts) => {
+    if (String(url).includes("/functions/v1/notify")) {
+      return Promise.resolve({ ok: true });
+    }
     captured = { url, body: JSON.parse(opts.body) };
     return Promise.resolve({ ok: true });
   }, (RsvpData) => RsvpData.submitInterest({

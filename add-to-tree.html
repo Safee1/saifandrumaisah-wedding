@@ -157,7 +157,7 @@
     <a class="back" href="index.html#family">&larr; back to the tree</a>
   </div>
 
-  <script src="js/tree-data.js?v=41"></script>
+  <script src="js/tree-data.js?v=48"></script>
   <script>
     (function () {
       var linkTo = document.getElementById("linkTo");
@@ -247,6 +247,7 @@
 
         TreeData.submitOpen({ name: name, side: side.value, is_kid: isKid, note: note || null }, relArgs)
           .then(function () {
+            TreeData.notify("tree_submitted", name + " added to the tree (" + side.value + " side) — awaiting approval");
             statusMsg.className = "status ok";
             statusMsg.textContent = "Thank you — sent for approval.";
             form.reset();

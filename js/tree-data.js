@@ -110,12 +110,27 @@
     return rpc("submit_to_tree", { person: person, rel: rel || null });
   }
 
+  // Fire-and-forget ops notification. The activity_log row is already
+  // written server-side by a DB trigger regardless of this call — this
+  // just tries to also email the couple if notifications are configured.
+  // Never awaited by callers, never allowed to affect their own flow.
+  function notify(kind, summary) {
+    try {
+      fetch(SUPABASE_URL + "/functions/v1/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: kind, summary: String(summary || "").slice(0, 300) })
+      }).catch(function () { /* best-effort only */ });
+    } catch (e) { /* best-effort only */ }
+  }
+
   root.TreeData = {
     fetchApprovedTree: fetchApprovedTree,
     submitPerson: submitPerson,
     submitRelationship: submitRelationship,
     submitWithInvite: submitWithInvite,
     submitOpen: submitOpen,
+    notify: notify,
     rpc: rpc,
     restGet: restGet
   };
