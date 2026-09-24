@@ -6,9 +6,12 @@
 <meta name="theme-color" content="#faf7f2">
 <meta name="robots" content="noindex">
 <meta name="description" content="RSVP for Saif &amp; Rumaisah's wedding.">
-<meta http-equiv="Content-Security-Policy" content="base-uri 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://rfopieelzxvnmfhdvqqf.supabase.co; base-uri 'self'; form-action 'self'; object-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Are you coming? — Saif &amp; Rumaisah</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="manifest" href="site.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Are you coming? — Saif &amp; Rumaisah">
@@ -84,6 +87,8 @@
   button[type="submit"]:not(:disabled):hover { background: #324567; }
 
   .status { text-align: center; font-size: 0.9rem; margin-top: 1rem; min-height: 1.2em; }
+  .privacy-note { text-align: center; font-size: 0.78rem; color: var(--muted); margin-top: 0.6rem; }
+  .privacy-note a { color: var(--side); }
   .status.ok { color: var(--good); }
   .status.err { color: var(--bad); }
 
@@ -176,6 +181,7 @@
 
       <button type="submit" id="submitBtn">Send</button>
       <p class="status" id="statusMsg" aria-live="polite"></p>
+      <p class="privacy-note">We only use this to plan the wedding, and delete it a few months after. See our <a href="privacy.html">privacy note</a>.</p>
     </form>
 
     <div class="confirm" id="confirmBox" hidden>
@@ -205,18 +211,21 @@
     })();
   </script>
   <script>
-    // public running headcount — a single number, no names or contacts
-    (function () {
+    // public running headcount — a single number, no names or contacts.
+    // Exposed on window so the submit handler can refresh it after a
+    // successful RSVP, instead of leaving the guest's own count invisible.
+    window.loadHeadcount = function () {
       var el = document.getElementById("headcount");
       var num = document.getElementById("headcountNum");
       var label = document.getElementById("headcountLabel");
-      RsvpData.headcount().then(function (n) {
+      return RsvpData.headcount().then(function (n) {
         if (typeof n !== "number") { return; }
         num.textContent = String(n);
         label.textContent = n === 1 ? "person planning to come so far" : "people planning to come so far";
-        el.hidden = false;
+        el.hidden = n <= 0;
       }).catch(function () { /* headcount is a nice-to-have, fail quietly */ });
-    })();
+    };
+    window.loadHeadcount();
   </script>
   <script>
     (function () {
@@ -300,6 +309,7 @@
           form.hidden = true;
           confirmBox.hidden = false;
           confirmText.textContent = "Thank you — the pleasure of your company means the world to us, and we can't wait to celebrate together.";
+          if (typeof window.loadHeadcount === "function") { window.loadHeadcount(); }
         }).catch(function () {
           statusMsg.className = "status err";
           statusMsg.textContent = "Something went wrong — please try again.";

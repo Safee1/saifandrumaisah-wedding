@@ -31,7 +31,9 @@ for (const page of pages) {
     assert.match(head, /<title>[^<]+<\/title>/, "missing <title>");
     assert.match(head, /<meta name="description" content="[^"]+"/, "missing meta description");
     assert.match(head, /<link rel="icon" href="favicon\.svg"/, "missing favicon");
+    assert.match(head, /<link rel="icon" href="favicon\.ico"/, "missing favicon.ico fallback");
     assert.match(head, /<link rel="apple-touch-icon" href="apple-touch-icon\.png">/, "missing apple-touch-icon");
+    assert.match(head, /<link rel="manifest" href="site\.webmanifest">/, "missing manifest link");
     assert.match(head, /<meta name="theme-color" content="#[0-9a-f]+">/i, "missing theme-color");
   });
 
@@ -69,4 +71,27 @@ test("404.html exists and is styled (not the GitHub Pages default)", () => {
   const html = fs.readFileSync(path.join(root, "404.html"), "utf8");
   assert.match(html, /<style>/, "404.html has no inline styling");
   assert.match(html, /<a href="\/">/, "404.html has no link back to the site");
+});
+
+test("favicon.ico is a real multi-size ICO file", () => {
+  const buf = fs.readFileSync(path.join(root, "favicon.ico"));
+  assert.strictEqual(buf.readUInt16LE(2), 1, "not an ICO file (type field)");
+  const count = buf.readUInt16LE(4);
+  assert.ok(count >= 3, "expected at least 3 sizes (16/32/48) in favicon.ico");
+});
+
+test("site.webmanifest is valid JSON with icons and theme_color", () => {
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "site.webmanifest"), "utf8"));
+  assert.ok(Array.isArray(manifest.icons) && manifest.icons.length >= 2);
+  assert.match(manifest.theme_color, /^#[0-9a-f]{6}$/i);
+});
+
+test("robots.txt only disallows admin pages, not the public site", () => {
+  const robots = fs.readFileSync(path.join(root, "robots.txt"), "utf8");
+  assert.match(robots, /Disallow: \/tree-admin\.html/);
+  assert.match(robots, /Disallow: \/rsvp-admin\.html/);
+  assert.doesNotMatch(robots, /Disallow: \/\s*$/m, "robots.txt must not blanket-disallow the whole site (breaks link previews)");
+  assert.doesNotMatch(robots, /Disallow: \/index\.html/);
+  assert.doesNotMatch(robots, /Disallow: \/rsvp\.html/);
+  assert.doesNotMatch(robots, /Disallow: \/add-to-tree\.html/);
 });

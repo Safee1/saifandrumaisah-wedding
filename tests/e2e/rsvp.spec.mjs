@@ -227,6 +227,28 @@ test.describe("rsvp.html — submit flow", () => {
     await expect(page.locator("#headcountNum")).toHaveText("42");
   });
 
+  test("headcount refreshes after a successful submit instead of staying stale", async ({ page }) => {
+    let headcountCalls = 0;
+    await gotoReady(page, {
+      "POST /rest/v1/rpc/rsvp_headcount": (route) => {
+        headcountCalls += 1;
+        route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(headcountCalls === 1 ? 0 : 1) });
+      },
+      "POST /rest/v1/rsvps": (route) => route.fulfill({ status: 201, body: "" })
+    });
+    // first load: count is 0, so the block stays hidden
+    await expect(page.locator("#headcount")).toBeHidden();
+
+    await fillValid(page);
+    await page.locator("#submitBtn").click();
+    await expect(page.locator("#confirmBox")).toBeVisible();
+
+    // after a successful RSVP the count is re-fetched and now shows 1
+    await expect(page.locator("#headcount")).toBeVisible();
+    await expect(page.locator("#headcountNum")).toHaveText("1");
+    expect(headcountCalls).toBeGreaterThanOrEqual(2);
+  });
+
   test("headcount RPC failure fails quietly, form still usable", async ({ page }) => {
     await mockSupabase(page, { "POST /rest/v1/rpc/rsvp_headcount": (route) => route.fulfill({ status: 500, body: "err" }) });
     await page.goto("/rsvp.html");

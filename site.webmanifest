@@ -1,0 +1,11 @@
+{
+  "name": "Saif & Rumaisah",
+  "short_name": "Saif & Rumaisah",
+  "icons": [
+    { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "favicon.ico", "sizes": "16x16 32x32 48x48", "type": "image/x-icon" }
+  ],
+  "theme_color": "#faf7f2",
+  "background_color": "#faf7f2",
+  "display": "standalone"
+}
