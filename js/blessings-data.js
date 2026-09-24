@@ -67,8 +67,21 @@
           throw new Error(msg);
         });
       }
+      notify("blessing_submitted", "New blessing from " + row.name.trim() + " — awaiting approval");
       return { id: id };
     });
+  }
+
+  // Fire-and-forget ops email; activity_log is already written server-side
+  // by a DB trigger regardless of this call, so a failure here is harmless.
+  function notify(kind, summary) {
+    try {
+      fetch(SUPABASE_URL + "/functions/v1/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: kind, summary: String(summary || "").slice(0, 300) })
+      }).catch(function () {});
+    } catch (e) {}
   }
 
   function rpc(fn, args) {

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#faf7f2">
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="Private ops activity log for Saif &amp; Rumaisah's wedding site.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://rfopieelzxvnmfhdvqqf.supabase.co; base-uri 'self'; form-action 'self'; object-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Activity log — Saif &amp; Rumaisah</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="manifest" href="site.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :root {
+    --bg: #faf7f2; --card: #fffdf9; --ink: #223049; --muted: #636c7c;
+    --accent: #7d95b5; --gold: #b99668; --side: #40587a;
+    --good: #4d7a5a; --bad: #a1503f;
+  }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Cormorant Garamond', Georgia, serif; background: var(--bg); color: var(--ink); min-height: 100svh; }
+
+  .gate { min-height: 100svh; display: flex; align-items: center; justify-content: center; padding: 2rem 1.25rem; }
+  .gate-box { width: 100%; max-width: 340px; text-align: center; }
+  .gate-box h1 { font-family: 'Pinyon Script', cursive; font-weight: 400; font-size: 2.2rem; margin: 0 0 1.4rem; }
+  .gate-box input { width: 100%; font-family: inherit; font-size: 1rem; padding: 0.7rem 0.9rem; border-radius: 10px; border: 1px solid rgba(64,88,122,0.3); margin-bottom: 0.8rem; }
+  .gate-box button { width: 100%; padding: 0.75rem; border: none; border-radius: 10px; background: var(--side); color: #fff; font-family: inherit; font-size: 1rem; letter-spacing: 0.05em; cursor: pointer; }
+  .gate-err { color: var(--bad); font-size: 0.85rem; margin-top: 0.6rem; min-height: 1.2em; }
+
+  .app { display: none; max-width: 780px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+  .app.show { display: block; }
+  .eyebrow { text-align: center; font-size: 0.75rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--muted); margin: 0 0 0.4rem; }
+  h1.title { text-align: center; font-family: 'Pinyon Script', cursive; font-weight: 400; font-size: 2.2rem; margin: 0 0 1.5rem; }
+  nav.admin-nav { text-align: center; margin-bottom: 1.5rem; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; }
+  nav.admin-nav a { color: var(--side); text-decoration: none; margin: 0 0.6rem; }
+  nav.admin-nav a:hover { text-decoration: underline; }
+
+  .stats { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .stat { flex: 1 1 140px; background: var(--card); border: 1px solid rgba(185,150,104,0.3); border-radius: 12px; padding: 0.9rem 1rem; text-align: center; }
+  .stat .num { font-size: 1.6rem; font-weight: 600; color: var(--side); display: block; }
+  .stat .label { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+  .controls { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; margin-bottom: 1.25rem; }
+  .controls select, .controls button { font-family: inherit; font-size: 0.88rem; padding: 0.45rem 0.7rem; border-radius: 8px; border: 1px solid rgba(64,88,122,0.3); background: #fff; }
+  .controls button { cursor: pointer; background: var(--side); color: #fff; border: none; }
+  .controls button.secondary { background: none; color: var(--side); border: 1px solid var(--side); }
+
+  .empty { text-align: center; color: var(--muted); font-style: italic; padding: 3rem 1rem; }
+  .row { display: flex; gap: 1rem; align-items: baseline; padding: 0.6rem 0; border-bottom: 1px solid rgba(185,150,104,0.2); }
+  .row .when { flex: 0 0 130px; font-size: 0.78rem; color: var(--muted); }
+  .row .kind { flex: 0 0 150px; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--side); }
+  .row .summary { flex: 1; font-size: 0.98rem; overflow-wrap: anywhere; }
+  .row.bad .kind { color: var(--bad); }
+</style>
+</head>
+<body>
+  <div class="gate" id="gate">
+    <div class="gate-box">
+      <h1>activity</h1>
+      <input type="password" id="pw" placeholder="Password" autocomplete="current-password">
+      <button id="pwSubmit">Unlock</button>
+      <p class="gate-err" id="gateErr"></p>
+    </div>
+  </div>
+
+  <div class="app" id="app">
+    <p class="eyebrow">how the site is doing</p>
+    <h1 class="title">activity log</h1>
+    <nav class="admin-nav">
+      <a href="tree-admin.html">Tree review</a>
+      <a href="rsvp-admin.html">RSVPs</a>
+    </nav>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="controls">
+      <select id="kindFilter">
+        <option value="">All kinds</option>
+        <option value="rsvp_submitted">RSVP submitted</option>
+        <option value="tree_submitted">Tree submission</option>
+        <option value="blessing_submitted">Blessing submitted</option>
+        <option value="person_approved">Person approved</option>
+        <option value="person_rejected">Person rejected</option>
+        <option value="person_restored">Person restored</option>
+        <option value="blessing_approved">Blessing approved</option>
+        <option value="blessing_hidden">Blessing hidden</option>
+        <option value="admin_login_ok">Admin login ok</option>
+        <option value="admin_login_failed">Admin login failed</option>
+        <option value="admin_lockout">Admin lockout</option>
+      </select>
+      <button id="refreshBtn" class="secondary">Refresh</button>
+      <button id="csvBtn" class="secondary">Export CSV</button>
+    </div>
+
+    <div id="list"></div>
+  </div>
+
+  <script>
+    (function () {
+      var SUPABASE_URL = "https://rfopieelzxvnmfhdvqqf.supabase.co";
+      var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmb3BpZWVsenh2bm1maGR2cXFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3NDA4MDcsImV4cCI6MjEwMjMxNjgwN30.B7QgmJbG4CC457U4KP3OtCjrveJ7kpFjk2y2GtL5b24";
+
+      function rpc(fn, args) {
+        return fetch(SUPABASE_URL + "/rest/v1/rpc/" + fn, {
+          method: "POST",
+          headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY, "Content-Type": "application/json" },
+          body: JSON.stringify(args || {})
+        }).then(function (r) {
+          if (!r.ok) {
+            return r.json().catch(function () { return null; }).then(function (body) {
+              var msg = (body && (body.message || body.hint)) || ("Request failed (" + r.status + ")");
+              throw new Error(msg);
+            });
+          }
+          return r.text().then(function (t) { return t ? JSON.parse(t) : null; });
+        });
+      }
+
+      var pw = null;
+      var allRows = [];
+      var gate = document.getElementById("gate");
+      var app = document.getElementById("app");
+      var pwInput = document.getElementById("pw");
+      var pwSubmit = document.getElementById("pwSubmit");
+      var gateErr = document.getElementById("gateErr");
+      var list = document.getElementById("list");
+      var statsEl = document.getElementById("stats");
+      var kindFilter = document.getElementById("kindFilter");
+      var refreshBtn = document.getElementById("refreshBtn");
+      var csvBtn = document.getElementById("csvBtn");
+
+      function lockoutMessage(err) {
+        var msg = err && err.message;
+        return msg && msg.indexOf("Too many attempts") !== -1 ? msg : null;
+      }
+
+      function unlock() {
+        var candidate = pwInput.value;
+        if (!candidate) { return; }
+        pwSubmit.disabled = true;
+        gateErr.textContent = "";
+        rpc("admin_list_activity", { pw: candidate, p_limit: 1000 })
+          .then(function (rows) {
+            pw = candidate;
+            gate.style.display = "none";
+            app.classList.add("show");
+            render(rows);
+          })
+          .catch(function (err) {
+            gateErr.textContent = lockoutMessage(err) || "Wrong password.";
+            pwSubmit.disabled = false;
+          });
+      }
+
+      pwSubmit.addEventListener("click", unlock);
+      pwInput.addEventListener("keydown", function (e) { if (e.key === "Enter") { unlock(); } });
+
+      function load() {
+        list.innerHTML = "<p class=\"empty\">Loading…</p>";
+        rpc("admin_list_activity", { pw: pw, p_limit: 1000 })
+          .then(render)
+          .catch(function () { list.innerHTML = "<p class=\"empty\">Couldn&rsquo;t load &mdash; tap Refresh to try again.</p>"; });
+      }
+      refreshBtn.addEventListener("click", load);
+      kindFilter.addEventListener("change", function () { renderList(); });
+
+      function render(rows) {
+        allRows = rows || [];
+        renderStats();
+        renderList();
+      }
+
+      function renderStats() {
+        var now = Date.now();
+        var day = 24 * 60 * 60 * 1000;
+        var today = allRows.filter(function (r) { return now - new Date(r.created_at).getTime() < day; });
+        var week = allRows.filter(function (r) { return now - new Date(r.created_at).getTime() < 7 * day; });
+        function count(rows, kind) { return rows.filter(function (r) { return r.kind === kind; }).length; }
+
+        var cards = [
+          { label: "New RSVPs (today)", num: count(today, "rsvp_submitted") },
+          { label: "New RSVPs (7 days)", num: count(week, "rsvp_submitted") },
+          { label: "Tree pending", num: count(week, "tree_submitted") },
+          { label: "Failed logins (7 days)", num: count(week, "admin_login_failed") + count(week, "admin_lockout") }
+        ];
+        statsEl.innerHTML = "";
+        cards.forEach(function (c) {
+          var el = document.createElement("div");
+          el.className = "stat";
+          var num = document.createElement("span");
+          num.className = "num";
+          num.textContent = c.num;
+          var label = document.createElement("span");
+          label.className = "label";
+          label.textContent = c.label;
+          el.appendChild(num);
+          el.appendChild(label);
+          statsEl.appendChild(el);
+        });
+      }
+
+      function renderList() {
+        var filter = kindFilter.value;
+        var rows = filter ? allRows.filter(function (r) { return r.kind === filter; }) : allRows;
+        list.innerHTML = "";
+        if (!rows.length) {
+          list.innerHTML = "<p class=\"empty\">Nothing here yet.</p>";
+          return;
+        }
+        rows.forEach(function (r) {
+          var el = document.createElement("div");
+          el.className = "row" + (r.kind.indexOf("failed") !== -1 || r.kind.indexOf("lockout") !== -1 || r.kind.indexOf("rejected") !== -1 ? " bad" : "");
+          var when = document.createElement("span");
+          when.className = "when";
+          when.textContent = new Date(r.created_at).toLocaleString();
+          var kind = document.createElement("span");
+          kind.className = "kind";
+          kind.textContent = r.kind.replace(/_/g, " ");
+          var summary = document.createElement("span");
+          summary.className = "summary";
+          summary.textContent = r.summary;
+          el.appendChild(when);
+          el.appendChild(kind);
+          el.appendChild(summary);
+          list.appendChild(el);
+        });
+      }
+
+      function csvEscape(v) {
+        var s = String(v == null ? "" : v);
+        if (/[",\n]/.test(s)) { s = '"' + s.replace(/"/g, '""') + '"'; }
+        return s;
+      }
+
+      csvBtn.addEventListener("click", function () {
+        var filter = kindFilter.value;
+        var rows = filter ? allRows.filter(function (r) { return r.kind === filter; }) : allRows;
+        var lines = ["created_at,kind,summary,ref_id"];
+        rows.forEach(function (r) {
+          lines.push([csvEscape(r.created_at), csvEscape(r.kind), csvEscape(r.summary), csvEscape(r.ref_id)].join(","));
+        });
+        var blob = new Blob([lines.join("\n")], { type: "text/csv" });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = "activity-log-" + new Date().toISOString().slice(0, 10) + ".csv";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+    })();
+  </script>
+</body>
+</html>
