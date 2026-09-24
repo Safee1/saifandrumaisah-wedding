@@ -59,6 +59,11 @@
   .item-actions button:disabled { opacity: 0.5; cursor: default; }
 
   .refresh { display: block; margin: 0 auto 1.5rem; font-family: inherit; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--side); background: none; border: 1px solid var(--side); border-radius: 8px; padding: 0.5rem 1rem; cursor: pointer; }
+
+  .item.is-dupe { opacity: 0.72; }
+  .dupe-badge { display: inline-block; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--bad); border: 1px solid var(--bad); border-radius: 6px; padding: 0.15rem 0.5rem; margin: 0 0 0.35rem; cursor: help; }
+  .latest-badge { display: inline-block; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--good); border: 1px solid var(--good); border-radius: 6px; padding: 0.15rem 0.5rem; margin: 0 0 0.35rem; }
+  .dupe-note { text-align: center; color: var(--muted); font-size: 0.78rem; font-style: italic; margin: -1rem 0 1.5rem; }
 </style>
 </head>
 <body>
@@ -87,6 +92,7 @@
       <div class="stat"><span class="stat-num" id="statVeryLikely">0</span><span class="stat-lab">very likely</span></div>
       <div class="stat"><span class="stat-num" id="statHopingTo">0</span><span class="stat-lab">hoping to</span></div>
     </div>
+    <p class="dupe-note" id="dupeNote" style="display:none"></p>
 
     <div style="display:flex; gap:0.6rem; justify-content:center; margin-bottom:1.5rem; flex-wrap:wrap;">
       <button class="refresh" id="refreshBtn" style="margin-bottom:0">Refresh</button>
@@ -95,7 +101,8 @@
     <div id="list"></div>
   </div>
 
-  <script src="js/rsvp-data.js?v=40"></script>
+  <script src="js/rsvp-dupes.js?v=41"></script>
+  <script src="js/rsvp-data.js?v=41"></script>
   <script>
     (function () {
       var pw = null;
@@ -115,7 +122,9 @@
       var statDefinitely = document.getElementById("statDefinitely");
       var statVeryLikely = document.getElementById("statVeryLikely");
       var statHopingTo = document.getElementById("statHopingTo");
+      var dupeNote = document.getElementById("dupeNote");
       var lastRows = [];
+      var lastEntries = []; // parallel to lastRows: { row, isKeeper, duplicateOf, groupSize }
 
       var LIKELIHOOD_LABEL = {
         definitely: "Definitely",
@@ -181,9 +190,11 @@
       }
 
       function exportCsv() {
-        var header = ["Name", "Attending", "Contact", "Adults", "Children", "Guests", "Likelihood", "Dietary", "Note", "Submitted"];
+        var header = ["Name", "Attending", "Contact", "Adults", "Children", "Guests", "Likelihood", "Dietary", "Note", "Submitted", "duplicate_of"];
         var lines = [header.join(",")];
-        lastRows.forEach(function (row) {
+        lastEntries.forEach(function (entry) {
+          var row = entry.row;
+          var dupOf = entry.duplicateOf ? (entry.duplicateOf.name + " (" + fmtDate(entry.duplicateOf.created_at) + ")") : "";
           lines.push([
             csvField(row.name),
             csvField(row.attending ? "Yes" : "No"),
@@ -194,7 +205,8 @@
             csvField(LIKELIHOOD_LABEL[row.likelihood] || row.likelihood),
             csvField(row.dietary),
             csvField(row.message),
-            csvField(fmtDate(row.created_at))
+            csvField(fmtDate(row.created_at)),
+            csvField(dupOf)
           ].join(","));
         });
         var blob = new Blob([lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
@@ -212,13 +224,20 @@
 
       function render(rows) {
         lastRows = rows;
-        var totalResponses = rows.length;
+        var entries = RsvpDupes.groupDuplicates(rows);
+        lastEntries = entries;
+
+        var totalResponses = 0;
         var totalAttendingGuests = 0;
         var totalAdults = 0;
         var totalChildren = 0;
         var totalDeclined = 0;
+        var excludedCount = 0;
         var byLikelihood = { definitely: 0, very_likely: 0, hoping_to: 0 };
-        rows.forEach(function (row) {
+        entries.forEach(function (entry) {
+          if (!entry.isKeeper) { excludedCount += 1; return; }
+          var row = entry.row;
+          totalResponses += 1;
           if (row.attending) {
             totalAttendingGuests += (row.guest_count || 0);
             totalAdults += (row.adults || 0);
@@ -239,17 +258,44 @@
         statVeryLikely.textContent = byLikelihood.very_likely;
         statHopingTo.textContent = byLikelihood.hoping_to;
 
+        if (excludedCount > 0) {
+          dupeNote.textContent = excludedCount + " possible duplicate" + (excludedCount === 1 ? "" : "s") + " excluded";
+          dupeNote.style.display = "";
+        } else {
+          dupeNote.textContent = "";
+          dupeNote.style.display = "none";
+        }
+
         list.innerHTML = "";
         if (!rows.length) {
           list.innerHTML = "<p class=\"empty\">No RSVPs yet.</p>";
           return;
         }
-        rows.forEach(function (row) {
+        entries.forEach(function (entry) {
+          var row = entry.row;
           var el = document.createElement("div");
-          el.className = "item";
+          el.className = "item" + (entry.isKeeper ? "" : " is-dupe");
 
           var info = document.createElement("div");
           info.className = "item-info";
+
+          if (!entry.isKeeper && entry.duplicateOf) {
+            var dupeBadge = document.createElement("span");
+            dupeBadge.className = "dupe-badge";
+            dupeBadge.textContent = "Possible duplicate";
+            dupeBadge.title = "of " + entry.duplicateOf.name;
+            info.appendChild(dupeBadge);
+            var dupeOfText = document.createElement("p");
+            dupeOfText.className = "item-note";
+            dupeOfText.style.margin = "0 0 0.3rem";
+            dupeOfText.textContent = "of " + entry.duplicateOf.name;
+            info.appendChild(dupeOfText);
+          } else if (entry.isKeeper && entry.groupSize > 1) {
+            var latestBadge = document.createElement("span");
+            latestBadge.className = "latest-badge";
+            latestBadge.textContent = "latest";
+            info.appendChild(latestBadge);
+          }
 
           var kind = document.createElement("p");
           kind.className = "item-kind " + (row.attending ? "yes" : "no");
