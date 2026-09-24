@@ -24,8 +24,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/envelope.css?v=48">
-<link rel="stylesheet" href="css/travel.css?v=48">
+<link rel="stylesheet" href="css/envelope.css?v=49">
+<link rel="stylesheet" href="css/travel.css?v=49">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   :root {
@@ -753,6 +753,14 @@
   }
   .bless-empty { font-style: italic; color: var(--muted); column-span: all; text-align: center; }
 
+  .bless-summary { max-width: 640px; margin: 0 auto 1.4rem; text-align: center; font-style: italic; color: var(--muted); font-size: 0.95rem; }
+  .bless-summary-name { background: none; border: none; padding: 0; font: inherit; font-style: normal; color: var(--side); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+  .bless-more {
+    display: block; margin: -1.2rem auto 2rem; padding: 0.55rem 1.4rem; border-radius: 999px;
+    border: 1px solid rgba(185,150,104,0.4); background: transparent; color: var(--ink);
+    font-family: inherit; font-size: 0.9rem; cursor: pointer;
+  }
+
   .bless-form {
     position: relative; max-width: 460px; margin: 0 auto; padding: 1.5rem 1.4rem 1.35rem;
     background: var(--card); border-radius: 16px; text-align: left;
@@ -1231,7 +1239,10 @@
       <p class="tree-sub">a few words from the people we love</p>
     </header>
 
+    <p class="bless-summary" id="blessSummary" aria-live="polite" hidden></p>
+
     <div id="blessWall" class="bless-wall"></div>
+    <button type="button" class="bless-more" id="blessMore" hidden>Read more blessings</button>
 
     <form id="blessForm" class="bless-form">
       <p class="bf-cap">leave one for the happy couple</p>
@@ -1244,13 +1255,17 @@
         <textarea id="bfMsg" maxlength="280"></textarea>
         <p class="bf-count" id="bfCount" aria-hidden="true">280</p>
       </div>
+      <div class="bf-field">
+        <label for="bfEmail">Your email (so we can thank you) — optional</label>
+        <input id="bfEmail" type="email" maxlength="200" autocomplete="email">
+      </div>
       <div style="position:absolute; left:-9999px" aria-hidden="true">
         <label for="bfWebsite">Leave this field blank</label>
         <input type="text" id="bfWebsite" name="website" tabindex="-1" autocomplete="off">
       </div>
       <button type="submit" class="bf-send" id="bfSend">Send blessing</button>
       <p class="status bf-status" id="bfStatus" aria-live="polite"></p>
-      <p class="privacy-note">Blessings are reviewed before they appear. See our <a href="privacy.html">privacy note</a>.</p>
+      <p class="privacy-note">Your blessing is checked automatically and usually appears right away. See our <a href="privacy.html">privacy note</a>.</p>
     </form>
     <noscript><p class="status">This page needs JavaScript turned on to show and send blessings.</p></noscript>
   </section>
@@ -1305,7 +1320,7 @@
 
   <footer><p class="footer">more details coming soon &middot; <a href="privacy.html">privacy</a></p></footer>
 
-  <script src="js/addressee.js?v=48"></script>
+  <script src="js/addressee.js?v=49"></script>
   <script>
     (function () {
       var root = document.documentElement;
@@ -1340,11 +1355,11 @@
       });
     })();
   </script>
-  <script src="js/tree-data.js?v=48"></script>
-  <script src="js/family-plan.js?v=48"></script>
-  <script src="js/family-lines.js?v=48"></script>
-  <script src="js/family-tree.js?v=48"></script>
-  <script src="js/blessings-data.js?v=48"></script>
+  <script src="js/tree-data.js?v=49"></script>
+  <script src="js/family-plan.js?v=49"></script>
+  <script src="js/family-lines.js?v=49"></script>
+  <script src="js/family-tree.js?v=49"></script>
+  <script src="js/blessings-data.js?v=49"></script>
   <script>
     // shared: content grows in as each part reaches the viewport
     function revealOnScroll(scope) {
@@ -1433,23 +1448,36 @@
 
     (function () {
       var wall = document.getElementById("blessWall");
+      var summaryEl = document.getElementById("blessSummary");
+      var moreBtn = document.getElementById("blessMore");
       var form = document.getElementById("blessForm");
       var nameInput = document.getElementById("bfName");
       var msgInput = document.getElementById("bfMsg");
+      var emailInput = document.getElementById("bfEmail");
       var count = document.getElementById("bfCount");
       var sendBtn = document.getElementById("bfSend");
       var statusMsg = document.getElementById("bfStatus");
       var loadedAt = Date.now();
+      var PAGE_SIZE = 12;
+      var allRows = [];
+      var shown = 0;
+
+      function firstName(fullName) {
+        var s = String(fullName || "").trim();
+        if (!s) { return "Someone"; }
+        return s.split(/\s+/)[0];
+      }
 
       function cardFor(row) {
         var card = document.createElement("figure");
         card.className = "bless-card rv";
+        card.id = "bless-" + row.id;
         var msg = document.createElement("blockquote");
         msg.className = "bless-msg";
         msg.textContent = row.message;
         var name = document.createElement("figcaption");
         name.className = "bless-name";
-        name.textContent = "— " + row.name;
+        name.textContent = "— " + firstName(row.name);
         var seal = document.createElement("span");
         seal.className = "bless-seal";
         seal.textContent = "S&R";
@@ -1460,19 +1488,58 @@
         return card;
       }
 
+      function nameLink(row) {
+        var a = document.createElement("button");
+        a.type = "button";
+        a.className = "bless-summary-name";
+        a.textContent = firstName(row.name);
+        a.addEventListener("click", function () {
+          var target = document.getElementById("bless-" + row.id);
+          if (target) { target.scrollIntoView({ behavior: "smooth", block: "center" }); }
+        });
+        return a;
+      }
+
+      function renderSummary(rows) {
+        summaryEl.textContent = "";
+        if (!rows.length) { summaryEl.hidden = true; return; }
+        var shownRows = rows.slice(0, 2);
+        shownRows.forEach(function (r, i) {
+          if (i > 0) { summaryEl.appendChild(document.createTextNode(", ")); }
+          summaryEl.appendChild(nameLink(r));
+        });
+        var extra = rows.length - shownRows.length;
+        var tail = extra > 0 ? " and " + extra + " other" + (extra === 1 ? "" : "s") : "";
+        summaryEl.appendChild(document.createTextNode(tail + " sent their congratulations"));
+        summaryEl.hidden = false;
+      }
+
+      function renderMore() {
+        var next = allRows.slice(shown, shown + PAGE_SIZE);
+        next.forEach(function (row) { wall.appendChild(cardFor(row)); });
+        shown += next.length;
+        revealOnScroll(wall);
+        moreBtn.hidden = shown >= allRows.length;
+      }
+
+      moreBtn.addEventListener("click", renderMore);
+
       revealOnScroll(document.querySelector(".close-section"));
 
       BlessingsData.fetchApproved().then(function (rows) {
         wall.textContent = "";
-        if (!rows.length) {
+        allRows = rows || [];
+        shown = 0;
+        if (!allRows.length) {
           var empty = document.createElement("p");
           empty.className = "status bless-empty";
           empty.textContent = "be the first to leave the newly-weds a blessing…";
           wall.appendChild(empty);
+          summaryEl.hidden = true;
           return;
         }
-        rows.forEach(function (row) { wall.appendChild(cardFor(row)); });
-        revealOnScroll(wall);
+        renderSummary(allRows);
+        renderMore();
       }).catch(function () {
         wall.textContent = ""; // the form still works; the wall just waits
       });
@@ -1490,12 +1557,12 @@
         // submitted faster than a human could plausibly type a blessing
         if (document.getElementById("bfWebsite").value || Date.now() - loadedAt < 2000) {
           statusMsg.className = "status bf-status ok";
-          statusMsg.textContent = "Thank you — sent with love.";
+          statusMsg.textContent = "Thank you — your words are on their way to us.";
           form.reset();
           return;
         }
 
-        var row = { name: nameInput.value, message: msgInput.value };
+        var row = { name: nameInput.value, message: msgInput.value, email: emailInput.value };
         var problem = BlessingsData.validate(row);
         if (problem) {
           statusMsg.className = "status bf-status err";
@@ -1508,8 +1575,10 @@
         statusMsg.textContent = "Sending…";
 
         BlessingsData.submit(row).then(function () {
+          // Same warm message whether it's held for a quick check or
+          // already on its way to the wall — the guest never sees which.
           statusMsg.className = "status bf-status ok";
-          statusMsg.textContent = "Thank you — Saif & Rumaisah will read it first, then it joins the wall.";
+          statusMsg.textContent = "Thank you — your words are on their way to us.";
           form.reset();
           count.textContent = "280";
           count.className = "bf-count";
@@ -1522,9 +1591,9 @@
       });
     })();
   </script>
-  <script src="js/config.js?v=48"></script>
-  <script src="js/countdown.js?v=48"></script>
-  <script src="js/travel.js?v=48"></script>
+  <script src="js/config.js?v=49"></script>
+  <script src="js/countdown.js?v=49"></script>
+  <script src="js/travel.js?v=49"></script>
   <script>
     // the wedding date and travel switch live in js/config.js
     var WEDDING_DATE = WeddingConfig.date;
