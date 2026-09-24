@@ -102,8 +102,8 @@
     <div id="list"></div>
   </div>
 
-  <script src="js/rsvp-dupes.js?v=41"></script>
-  <script src="js/rsvp-data.js?v=41"></script>
+  <script src="js/rsvp-dupes.js?v=42"></script>
+  <script src="js/rsvp-data.js?v=42"></script>
   <script>
     (function () {
       var pw = null;
@@ -191,7 +191,7 @@
       }
 
       function exportCsv() {
-        var header = ["Name", "Attending", "Contact", "Adults", "Children", "Guests", "Likelihood", "Dietary", "Note", "Submitted", "duplicate_of"];
+        var header = ["Name", "Attending", "Contact", "Adults", "Children", "Children ages", "Guests", "Likelihood", "Dietary", "Note", "Submitted", "duplicate_of"];
         var lines = [header.join(",")];
         lastEntries.forEach(function (entry) {
           var row = entry.row;
@@ -202,6 +202,7 @@
             csvField(row.contact),
             csvField(row.adults),
             csvField(row.children),
+            csvField(row.children_ages),
             csvField(row.attending ? row.guest_count : ""),
             csvField(LIKELIHOOD_LABEL[row.likelihood] || row.likelihood),
             csvField(row.dietary),
@@ -320,7 +321,8 @@
             guests.className = "item-detail";
             guests.textContent = "Adults: " + (row.adults != null ? row.adults : "—") +
               "  ·  Children: " + (row.children != null ? row.children : "—") +
-              "  ·  Total: " + row.guest_count;
+              "  ·  Total: " + row.guest_count +
+              (row.children_ages ? "  ·  Ages: " + row.children_ages : "");
             info.appendChild(guests);
           }
           if (row.contact) {

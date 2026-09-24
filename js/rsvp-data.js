@@ -77,21 +77,26 @@
   // sync (adults + children) so rsvp-admin's existing total column still adds up.
   function submitInterest(row) {
     var id = newId();
-    var adults = row.adults || 0;
-    var children = row.children || 0;
+    var declined = row.likelihood === "no";
+    var adults = declined ? 0 : (row.adults || 0);
+    var children = declined ? 0 : (row.children || 0);
+    var consent = !declined && !!row.dietary && !!row.dietaryConsent;
     return restInsert("rsvps", {
       id: id,
       name: row.name,
-      attending: true,
-      guest_count: adults + children,
+      attending: !declined,
+      guest_count: declined ? null : adults + children,
       dietary: row.dietary || null,
       message: row.note || null,
       contact: row.contact || null,
       adults: adults,
       children: children,
-      likelihood: row.likelihood
+      likelihood: declined ? null : row.likelihood,
+      children_ages: declined ? null : (row.childrenAges || null),
+      dietary_consent: consent,
+      dietary_consent_at: consent ? new Date().toISOString() : null
     }).then(function () {
-      var summary = row.name + " RSVP'd (" + adults + " adult" + (adults === 1 ? "" : "s") +
+      var summary = declined ? row.name + " can't make it" : row.name + " RSVP'd (" + adults + " adult" + (adults === 1 ? "" : "s") +
         (children > 0 ? ", " + children + " child" + (children === 1 ? "" : "ren") : "") +
         (row.likelihood ? ", " + row.likelihood : "") + ")";
       notify({ kind: "rsvp_submitted", summary: summary, adminPath: "rsvp-admin.html" });
