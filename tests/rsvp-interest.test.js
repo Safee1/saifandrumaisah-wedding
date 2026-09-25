@@ -70,3 +70,42 @@ test("headcount() rejects on a failed request rather than surfacing raw rows", (
     (err) => { assert.match(err.message, /boom/); }
   ));
 });
+
+// Regression (24 Sep 2026): the DB requires dietary_consent=true whenever
+// dietary is filled; the form used to omit it and every allergy RSVP failed.
+function captureInsert(row) {
+  let body;
+  return withFetch((url, opts) => {
+    if (String(url).includes("/functions/v1/notify")) { return Promise.resolve({ ok: true }); }
+    body = JSON.parse(opts.body);
+    return Promise.resolve({ ok: true });
+  }, (RsvpData) => RsvpData.submitInterest(row)).then(() => body);
+}
+
+test("dietary + consent sends dietary_consent=true with a timestamp", () =>
+  captureInsert({ name: "A", contact: "a@b.co", likelihood: "definitely", adults: 1, children: 1,
+    childrenAges: "4", dietary: "nut allergy", dietaryConsent: true }).then((b) => {
+    assert.equal(b.dietary_consent, true);
+    assert.ok(b.dietary_consent_at);
+    assert.equal(b.children_ages, "4");
+  }));
+
+test("no dietary sends dietary_consent=false and no timestamp", () =>
+  captureInsert({ name: "A", contact: "a@b.co", likelihood: "definitely", adults: 1, children: 0 }).then((b) => {
+    assert.equal(b.dietary_consent, false);
+    assert.equal(b.dietary_consent_at, null);
+  }));
+
+test("can't make it: attending=false, guest_count null, no likelihood", () =>
+  captureInsert({ name: "A", contact: "a@b.co", likelihood: "no", adults: 3, children: 2 }).then((b) => {
+    assert.equal(b.attending, false);
+    assert.equal(b.guest_count, null);
+    assert.equal(b.likelihood, null);
+    assert.equal(b.adults, 0);
+    assert.equal(b.children, 0);
+  }));
+
+test("a household of 15 is sent as guest_count 15 (DB cap is 40)", () =>
+  captureInsert({ name: "A", contact: "a@b.co", likelihood: "very_likely", adults: 10, children: 5 }).then((b) => {
+    assert.equal(b.guest_count, 15);
+  }));
