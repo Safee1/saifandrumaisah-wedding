@@ -2,17 +2,15 @@
 // NEVER let any of these hit the live network — every Supabase call in
 // every spec must be routed through mockSupabase() or an explicit route().
 
+import { createRequire } from "node:module";
+
 export const SUPABASE_URL = "https://rfopieelzxvnmfhdvqqf.supabase.co";
 
 // Strings that must never appear in any page this site serves — the venue,
 // city, resort and exact day are meant to stay sealed until REVEAL.show
 // flips to true (js/config.js). Keep this list in sync with what's actually
 // still secret; it is deliberately case-insensitive substring matching.
-export const LEAK_STRINGS = [
-  "Rixos", "Seagate", "Nabq Bay", "Sharm El Sheikh", "Sharm el-Sheikh",
-  "Regnum", "Carya", "Belek", "Hurghada", "Sahl Hasheesh", "Albatros",
-  "Sunrise Mamlouk"
-];
+export const LEAK_STRINGS = createRequire(import.meta.url)("../leak-terms.js").LEAK_TERMS;
 
 export function assertNoLeaks(text) {
   const lower = text.toLowerCase();

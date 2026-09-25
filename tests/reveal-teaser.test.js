@@ -15,7 +15,7 @@ const Config = require("../js/config.js");
 // Real venue/city/resort names that must never appear anywhere in source,
 // regardless of reveal state. Country (Egypt) and month/year (July 2027)
 // are deliberately NOT in this list — those are the allowed partial reveal.
-const FORBIDDEN_VENUE_WORDS = /Sharm|Nabq|Rixos|Seagate|Hurghada|Red Sea|Sahl Hasheesh/i;
+const FORBIDDEN_VENUE_WORDS = require("./leak-terms.js").leakRegex();
 
 test("config: reveal has the fields index.html reads, and starts hidden with no real date", () => {
   assert.equal(typeof Config.reveal, "object");

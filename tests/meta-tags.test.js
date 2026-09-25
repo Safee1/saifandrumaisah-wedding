@@ -17,11 +17,7 @@ const pages = [
   "404.html",
 ];
 
-const leakTerms = [
-  "sharm", "nabq", "rixos", "seagate", "hurghada", "sahl hasheesh",
-  "soma bay", "baron palace", "kempinski", "regnum", "carya", "belek",
-  "mardan palace", "albatros", "mamlouk",
-];
+const leakTerms = require("./leak-terms.js").LEAK_TERMS.map((t) => t.toLowerCase());
 
 for (const page of pages) {
   const html = fs.readFileSync(path.join(root, page), "utf8");
