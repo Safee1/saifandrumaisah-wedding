@@ -774,7 +774,10 @@
   .bless-form::after { content: ""; position: absolute; inset: 4px; border: 1px solid rgba(185,150,104,0.18); border-radius: 12px; pointer-events: none; }
   .bf-cap { text-align: center; font-style: italic; color: var(--side); font-size: 1.02rem; margin: 0 0 1.1rem; }
   .bf-field { margin-bottom: 1rem; }
-  .bf-field label { display: block; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--side); font-weight: 500; margin-bottom: 0.4rem; }
+  .bf-field label { display: block; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 0.95rem; letter-spacing: 0.01em; color: var(--ink); font-weight: 600; margin-bottom: 0.4rem; }
+  .rsvp-cta-wrap { text-align: center; margin: 1.2rem 0 0.4rem; }
+  .rsvp-cta { display: inline-block; min-height: 48px; box-sizing: border-box; padding: 0.85rem 3.2rem; border-radius: 999px; background: linear-gradient(180deg, #4a6388, #3f5679); color: #fff; text-decoration: none; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.05rem; letter-spacing: 0.12em; text-transform: uppercase; box-shadow: 0 6px 18px rgba(63,86,121,0.25); }
+  .rsvp-cta:focus-visible { outline: 3px solid rgba(125,149,181,0.6); outline-offset: 3px; }
   .bf-field input, .bf-field textarea {
     width: 100%; font-family: inherit; font-size: 1rem; color: var(--ink);
     background: #fff; border: 1px solid rgba(64,88,122,0.25); border-radius: 10px;
@@ -1160,7 +1163,8 @@
           <span class="cd-sep" aria-hidden="true"></span>
           <div class="cd-cell"><span class="cd-num" id="rv-secs">00</span><span class="cd-lab">seconds</span></div>
         </div>
-        <p class="reveal-teaser">Tell us you&rsquo;re coming &mdash; the full reveal goes to those on the list first. <a href="rsvp.html">RSVP</a></p>
+        <p class="reveal-teaser">Tell us you&rsquo;re coming &mdash; the full reveal goes to those on the list first.</p>
+        <p class="rsvp-cta-wrap"><a class="rsvp-cta" href="rsvp.html">RSVP</a></p>
       </div>
       <p class="when st d5" id="dateTbc">date to be confirmed</p>
       <div class="countdown st d5" id="countdown" hidden aria-label="Countdown to the wedding">
