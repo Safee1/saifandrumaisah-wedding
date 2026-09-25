@@ -22,3 +22,14 @@ test("validate: length limits match the database constraints", () => {
 test("validate: surrounding whitespace does not count against the limits", () => {
   assert.equal(BlessingsData.validate({ name: "  Abu  ", message: "  " + "y".repeat(280) + "  " }), null);
 });
+
+// Regression (25 Sep 2026): the page accepted emails the DB check refuses,
+// so the whole blessing failed. The page rule now matches the DB exactly.
+test("validate: emails the DB would refuse are caught on the page", () => {
+  for (const bad of ["o'brien@example.com", "josé@example.com", "a@b.c", "a b@example.com"]) {
+    assert.ok(BlessingsData.validate({ name: "A", message: "Hi", email: bad }), bad);
+  }
+  for (const ok of ["aunt.z@example.co.uk", "A+b@Example.COM"]) {
+    assert.equal(BlessingsData.validate({ name: "A", message: "Hi", email: ok }), null, ok);
+  }
+});
