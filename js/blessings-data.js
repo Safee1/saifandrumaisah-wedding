@@ -40,7 +40,9 @@
     if (message.length > 280) { return "Please keep it under 280 letters — short and sweet."; }
     if (email) {
       if (email.length > 200) { return "That email is a little long."; }
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { return "That email doesn't look quite right."; }
+      // Same rule as the DB check on blessings.email, so a guest gets this
+      // message instead of the whole blessing failing server-side.
+      if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email)) { return "That email doesn't look quite right — or just leave it blank."; }
     }
     return null;
   }
