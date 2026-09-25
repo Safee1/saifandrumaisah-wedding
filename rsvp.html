@@ -44,7 +44,7 @@
     padding: 2.5rem 1.25rem;
   }
   .wrap { width: 100%; max-width: 460px; }
-  .eyebrow { text-align: center; font-size: 0.75rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--muted); margin: 0 0 0.6rem; font-weight: 500; }
+  .eyebrow { text-align: center; font-size: 0.85rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--muted); margin: 0 0 0.6rem; font-weight: 500; }
   h1 { text-align: center; font-family: 'Pinyon Script', cursive; font-weight: 400; font-size: clamp(2rem, 8vw, 2.6rem); margin: 0 0 0.3rem; color: var(--ink); }
   .sub { text-align: center; font-style: italic; color: var(--muted); font-size: 0.95rem; margin: 0 0 1.2rem; line-height: 1.5; }
 
@@ -57,7 +57,7 @@
   .field[hidden] { display: none; }
   .two-col { display: flex; gap: 0.8rem; }
   .two-col .field { flex: 1; margin-bottom: 0; }
-  label { display: block; font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--side); font-weight: 500; margin-bottom: 0.45rem; }
+  label { display: block; font-size: 0.95rem; letter-spacing: 0.01em; color: var(--ink); font-weight: 600; margin-bottom: 0.45rem; }
   input[type="text"], input[type="number"], select, textarea {
     width: 100%; font-family: inherit; font-size: 1rem; color: var(--ink);
     background: #fff; border: 1px solid rgba(64,88,122,0.25); border-radius: 10px;
@@ -70,7 +70,7 @@
   .choice-row { display: flex; flex-direction: column; gap: 0.5rem; }
   .choice-row input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
   .choice-row label {
-    text-align: left; margin: 0; padding: 0.65rem 0.9rem;
+    text-align: left; margin: 0; padding: 0.65rem 0.9rem; min-height: 44px; box-sizing: border-box;
     border: 1px solid rgba(64,88,122,0.25); border-radius: 10px;
     font-size: 0.95rem; text-transform: none; letter-spacing: normal; font-weight: 400;
     color: var(--ink); cursor: pointer; background: #fff;
@@ -96,7 +96,7 @@
   .confirm p { font-style: italic; color: var(--muted); font-size: 1.02rem; line-height: 1.6; margin: 0 0 0.5rem; }
   .confirm .heart { width: 15px; height: 15px; color: var(--accent); margin: 0.2rem auto 1.1rem; display: block; }
 
-  .back { display: block; text-align: center; margin-top: 0.9rem; padding: 0.7rem 0; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-decoration: none; }
+  .back { display: block; text-align: center; margin-top: 0.9rem; padding: 0.7rem 0; min-height: 44px; box-sizing: border-box; font-size: 0.9rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-decoration: none; }
   .back:hover { color: var(--side); }
   .travel-note { margin: -0.4rem auto 1.6rem; max-width: 30rem; padding: 0.8rem 1rem; border-radius: 10px; background: rgba(185,150,104,0.1); box-shadow: inset 0 0 0 1px rgba(185,150,104,0.35); font-size: 0.98rem; line-height: 1.5; color: var(--ink); text-align: center; }
   .travel-note[hidden] { display: none; }
@@ -109,6 +109,7 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23b99668' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat; background-position: right 1rem center; background-size: 12px 8px; }
   input[type="checkbox"] { accent-color: #3f5679; }
+  .confirm-summary { font-size: 0.95rem; color: var(--ink); margin-top: 0.8rem; }
   label.consent { text-transform: none; letter-spacing: 0; font-size: 0.85rem; margin-top: 0.5rem; display: flex; gap: 0.5rem; align-items: flex-start; }
   label.consent[hidden], #countsRow[hidden] { display: none; }
   button[type="submit"] { border-radius: 999px !important; letter-spacing: 0.18em;
@@ -199,6 +200,8 @@
         <path d="M12 21s-7-4.35-9.5-9.27C.92 8.36 2.5 4 6.5 4 9 4 10.5 5.5 12 7.5 13.5 5.5 15 4 17.5 4c4 0 5.58 4.36 4 7.73C19 16.65 12 21 12 21z"/>
       </svg>
       <p id="confirmText">Thank you — the pleasure of your company means the world to us, and we can't wait to celebrate together.</p>
+      <p class="confirm-summary" id="confirmSummary"></p>
+      <p class="confirm-summary">Made a mistake? Just send the form again. We'll keep your latest reply.</p>
     </div>
 
     <a class="back" href="index.html">&larr; back to the invitation</a>
@@ -349,6 +352,11 @@
           confirmText.textContent = declined
             ? "Thank you for letting us know. You'll be missed, and we'll be thinking of you."
             : "Thank you — the pleasure of your company means the world to us, and we can't wait to celebrate together.";
+          document.getElementById("confirmSummary").textContent = "We got: " + name + " — " + (declined
+            ? "can't make it."
+            : adults + " adult" + (adults === 1 ? "" : "s") +
+              (children > 0 ? ", " + children + " child" + (children === 1 ? "" : "ren") + (childrenAges ? " (ages " + childrenAges + ")" : "") : "") +
+              (dietary ? ". Dietary: " + dietary : "") + ".");
           if (typeof window.loadHeadcount === "function") { window.loadHeadcount(); }
         }).catch(function () {
           statusMsg.className = "status err";
