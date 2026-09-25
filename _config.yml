@@ -1,0 +1,15 @@
+# GitHub Pages (Jekyll) — publish only the site. Everything below is
+# back-office (tests, DB migrations, edge functions, docs) and must 404.
+exclude:
+  - AGENTS.md
+  - README.md
+  - package.json
+  - package-lock.json
+  - playwright.config.mjs
+  - docs/
+  - migrations/
+  - supabase/
+  - tests/
+  - scripts/
+  - test-results/
+  - node_modules/
