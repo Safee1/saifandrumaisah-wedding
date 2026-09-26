@@ -186,8 +186,8 @@
       </div>
 
       <div style="position:absolute; left:-9999px" aria-hidden="true">
-        <label for="website">Leave this field blank</label>
-        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+        <label for="fx_extra">Leave this field blank</label>
+        <input type="text" id="fx_extra" name="fx_extra" tabindex="-1" autocomplete="off">
       </div>
 
       <button type="submit" id="submitBtn">Send</button>
@@ -270,7 +270,7 @@
         e.preventDefault();
 
         // honeypot: obviously a bot, swallow silently
-        if (document.getElementById("website").value) {
+        if (document.getElementById("fx_extra").value) {
           form.hidden = true;
           confirmBox.hidden = false;
           confirmText.textContent = "Thank you — the pleasure of your company means the world to us, and we can't wait to celebrate together.";
@@ -303,6 +303,14 @@
         if (!contact) {
           statusMsg.className = "status err";
           statusMsg.textContent = "Please leave an email or phone number.";
+          return;
+        }
+        // must be reachable: an email, or at least 7 digits once spaces/+/-/() are stripped
+        var looksEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact);
+        var looksPhone = contact.replace(/[\s+\-().]/g, "").replace(/\D/g, "").length >= 7 && !/[A-Za-z]{3,}/.test(contact);
+        if (!looksEmail && !looksPhone) {
+          statusMsg.className = "status err";
+          statusMsg.textContent = "Please give an email or phone number we can reach you on.";
           return;
         }
         if (!likelihood) {

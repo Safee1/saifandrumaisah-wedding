@@ -197,7 +197,7 @@ test.describe("rsvp.html — submit flow", () => {
     await gotoReady(page, {
       "POST /rest/v1/rsvps": (route) => { posted = true; route.fulfill({ status: 201, body: "" }); }
     });
-    await page.locator("#website").fill("http://spam.example");
+    await page.locator("#fx_extra").fill("http://spam.example");
     await fillValid(page);
     await page.locator("#submitBtn").click();
     await expect(page.locator("#confirmBox")).toBeVisible();
@@ -205,6 +205,8 @@ test.describe("rsvp.html — submit flow", () => {
   });
 
   test("submitting inside the 2s gate is rejected with a wait message", async ({ page }) => {
+    // freeze Date.now so the 2s gate is measured in page time, not wall time (slow emulated phones took >2s to get here)
+    await page.addInitScript(() => { const t0 = Date.now(); Date.now = () => t0; });
     let posted = false;
     await mockSupabase(page, {
       "POST /rest/v1/rpc/rsvp_headcount": 5,

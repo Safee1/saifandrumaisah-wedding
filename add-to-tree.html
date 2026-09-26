@@ -145,8 +145,8 @@
       </div>
 
       <div style="position:absolute; left:-9999px" aria-hidden="true">
-        <label for="website">Leave this field blank</label>
-        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+        <label for="fx_extra">Leave this field blank</label>
+        <input type="text" id="fx_extra" name="fx_extra" tabindex="-1" autocomplete="off">
       </div>
 
       <button type="submit" id="submitBtn" disabled>Send for approval</button>
@@ -209,7 +209,7 @@
 
         // silently swallow obvious bot submissions: honeypot filled, or
         // submitted faster than a human could plausibly fill the form
-        if (document.getElementById("website").value || Date.now() - loadedAt < 2000) {
+        if (document.getElementById("fx_extra").value || Date.now() - loadedAt < 2000) {
           statusMsg.className = "status ok";
           statusMsg.textContent = "Thank you — sent for approval.";
           form.reset();

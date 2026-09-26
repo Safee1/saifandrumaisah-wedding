@@ -18,7 +18,8 @@ test("no invite code field or copy remains on the public add-to-tree form", () =
 });
 
 test("the honeypot field and time-gate are still present", () => {
-  assert.match(html, /id="website"[^>]*tabindex="-1"/);
+  assert.match(html, /id="fx_extra"[^>]*tabindex="-1"/);
+  assert.doesNotMatch(html, /id="website"|name="website"/);
   assert.match(html, /loadedAt = Date\.now\(\)/);
   assert.match(html, /Date\.now\(\) - loadedAt < 2000/);
 });

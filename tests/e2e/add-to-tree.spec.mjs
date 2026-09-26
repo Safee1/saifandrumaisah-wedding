@@ -117,7 +117,7 @@ test.describe("add-to-tree.html — form & dropdowns", () => {
     });
     await page.goto("/add-to-tree.html");
     await expect(page.locator("#submitBtn")).toBeEnabled();
-    await page.locator("#website").fill("http://spam.example");
+    await page.locator("#fx_extra").fill("http://spam.example");
     await page.locator("#name").fill("Bot Person");
     await page.locator("#submitBtn").click();
     await expect(page.locator("#statusMsg")).toContainText(/sent for approval/i);
@@ -125,6 +125,8 @@ test.describe("add-to-tree.html — form & dropdowns", () => {
   });
 
   test("submitting within the 2s time-gate also silently 'succeeds' (no network call)", async ({ page }) => {
+    // freeze Date.now so the 2s gate is measured in page time, not wall time (slow emulated phones took >2s to get here)
+    await page.addInitScript(() => { const t0 = Date.now(); Date.now = () => t0; });
     let posted = false;
     await mockTreeFetch(page, {
       "POST /rest/v1/rpc/submit_to_tree": (route) => { posted = true; route.fulfill({ status: 200, contentType: "application/json", body: "null" }); }
