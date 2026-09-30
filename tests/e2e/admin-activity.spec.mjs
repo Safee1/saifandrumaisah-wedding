@@ -38,8 +38,17 @@ test.describe("admin-activity.html", () => {
     await page.locator("#pwSubmit").click();
     await expect(page.locator("#app")).toHaveClass(/show/);
 
-    // both recent rows show today, the 10-day-old failed login does not count today
-    await expect(page.locator("#stats")).toContainText("2");
+    // four stat tiles, in the fixed order renderStats() builds them:
+    // New RSVPs (today), New RSVPs (7 days), Tree pending, Failed logins (7 days).
+    // Only Alice's rsvp_submitted is both "today" and an RSVP; Bob's
+    // tree_submitted is today but only counts under "Tree pending"; the
+    // 10-day-old admin_login_failed falls outside every 7-day window.
+    const statNums = page.locator(".stat .num");
+    await expect(statNums).toHaveCount(4);
+    await expect(statNums.nth(0)).toHaveText("1"); // New RSVPs (today)
+    await expect(statNums.nth(1)).toHaveText("1"); // New RSVPs (7 days)
+    await expect(statNums.nth(2)).toHaveText("1"); // Tree pending
+    await expect(statNums.nth(3)).toHaveText("0"); // Failed logins (7 days)
     await expect(page.locator(".row")).toHaveCount(3);
 
     await page.locator("#kindFilter").selectOption("rsvp_submitted");

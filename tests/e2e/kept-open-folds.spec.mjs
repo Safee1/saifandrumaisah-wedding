@@ -149,6 +149,12 @@ test.describe("kept-open folds render in flow, not as floating popovers", () => 
 });
 
 test.describe("kept-open folds — mobile / small viewports", () => {
+  // Serial: these all drive the same kind of layout-measurement flow at
+  // different viewport sizes, and running them one at a time avoids the
+  // cross-test flake seen when several shared-browser workers raced to
+  // resize/measure at once.
+  test.describe.configure({ mode: "serial" });
+
   const viewports = [
     { name: "iphone-se-320", width: 320, height: 568 },
     { name: "android-360", width: 360, height: 800 },
@@ -163,6 +169,17 @@ test.describe("kept-open folds — mobile / small viewports", () => {
       await page.goto("/index.html#family");
       await page.locator("#unlockFamily").click();
       await page.waitForTimeout(300);
+
+      // Make sure the elements we're about to measure have actually
+      // rendered and settled before reading their boxes — measuring too
+      // early was the source of the flaky false-overlap reports. (Note:
+      // #unlockFamily itself hides once the family view unlocks, so it's
+      // not part of this visibility wait.)
+      const keptOpenLocator = page.locator('.fold[data-keep-open="1"]:not([hidden])');
+      const keptOpenCount = await keptOpenLocator.count();
+      for (let i = 0; i < keptOpenCount; i++) {
+        await expect(keptOpenLocator.nth(i)).toBeVisible();
+      }
 
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow).toBeLessThanOrEqual(2);
