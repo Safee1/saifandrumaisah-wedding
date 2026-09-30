@@ -150,7 +150,8 @@
 
   // B.1 mirror — client/admin-side moderation preview only; the DB trigger
   // is the source of truth (this never gates what actually saves).
-  var BAD_WORDS = /(fuck|shit|bitch|asshole|bastard|cunt|whore|slut|rape|kill yourself|kys|randi|chutiya|harami|madarchod|behenchod|bhosdi|gandu|kanjar|sharmuta)/i;
+  // whole words only, same as the DB trigger: "Scunthorpe" / "assassin" don't trip it
+  var BAD_WORDS = /\b(fuck|shit|bitch|asshole|bastard|cunt|whore|slut|rape|kill yourself|kys|randi|chutiya|harami|madarchod|behenchod|bhosdi|gandu|kanjar|sharmuta)\b/i;
   function moderationFlags(name, message) {
     var reasons = [];
     var msg = String(message || "");
