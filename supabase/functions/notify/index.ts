@@ -8,10 +8,14 @@
 // POST bodies:
 //   { "kind": "rsvp_submitted" | "tree_submitted" | "blessing_submitted", "summary": "...", "adminPath": "rsvp-admin.html" }
 //     -> ops alert to NOTIFY_TO (couple)
-//   { "kind": "blessing_thanks", "email": "...", "name": "...", "message": "..." }
-//     -> guest-facing thank-you, only if email given, max 1/email/24h
-//   { "kind": "rsvp_confirmation", "email": "...", "name": "...", "summary": "..." }
-//     -> guest-facing RSVP confirmation, only if email given
+//   { "kind": "blessing_thanks", "email": "..." }
+//     -> guest-facing thank-you; name/message ignored and rebuilt from the
+//        newest blessings row for that email in the last 10 minutes; one
+//        send per row, capped at 5/email/hour
+//   { "kind": "rsvp_confirmation", "email": "..." }
+//     -> guest-facing RSVP confirmation; name/summary ignored and rebuilt
+//        from the newest rsvps row for that email in the last 10 minutes;
+//        one send per row, capped at 5/email/hour
 //   { "kind": "message_all", "adminPw": "...", "subject": "...", "html": "...", "text": "...", "test": true|false }
 //     -> admin broadcast; test=true sends only to NOTIFY_TO; otherwise to
 //        every distinct RSVP email, deduped, rate-limited, logged
@@ -32,11 +36,115 @@ const EVENT_LABELS: Record<string, string> = {
   admin_lockout: "Admin login lockout",
 };
 
+// CORS: this function is only ever called from the live site's own pages
+// (guest-facing fetches + the admin broadcast), so the origin is pinned
+// rather than reflected/wildcarded. Applied to every response, including
+// error responses and the OPTIONS preflight.
+const CORS_HEADERS: Record<string, string> = {
+  "Access-Control-Allow-Origin": SITE,
+  "Access-Control-Allow-Headers": "content-type",
+  "Access-Control-Allow-Methods": "POST",
+};
+
 function ok(body: Record<string, unknown> = { ok: true }) {
   return new Response(JSON.stringify(body), {
     status: 200,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...CORS_HEADERS },
   });
+}
+
+function fail(body: Record<string, unknown>, status: number) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json", ...CORS_HEADERS },
+  });
+}
+
+const TEN_MINUTES_MS = 10 * 60 * 1000;
+const ONE_HOUR_MS = 60 * 60 * 1000;
+const OPS_ALERT_HOURLY_CAP = 20;
+const GUEST_FACING_HOURLY_CAP = 5;
+
+function minutesAgoIso(ms: number): string {
+  return new Date(Date.now() - ms).toISOString();
+}
+
+// Ops alerts (rsvp_submitted / tree_submitted / blessing_submitted /
+// admin_lockout) only ever fire off the back of a real, recent row in
+// activity_log — never from an arbitrary POST body alone.
+async function hasRecentActivity(sb: ReturnType<typeof createClient>, kind: string): Promise<boolean> {
+  const { data } = await sb
+    .from("activity_log")
+    .select("id")
+    .eq("kind", kind)
+    .gte("created_at", minutesAgoIso(TEN_MINUTES_MS))
+    .limit(1);
+  return !!(data && data.length);
+}
+
+async function opsAlertsOverCap(sb: ReturnType<typeof createClient>): Promise<boolean> {
+  const { count } = await sb
+    .from("email_log")
+    .select("id", { count: "exact", head: true })
+    .like("kind", "couple_alert_%")
+    .gte("created_at", minutesAgoIso(ONE_HOUR_MS));
+  return (count ?? 0) >= OPS_ALERT_HOURLY_CAP;
+}
+
+// Guest-facing kinds (blessing_thanks / rsvp_confirmation) are capped per
+// recipient regardless of dedupe-by-row, so a burst of legitimate-looking
+// rows for one address still can't turn into an email flood.
+async function guestFacingOverCap(sb: ReturnType<typeof createClient>, email: string): Promise<boolean> {
+  const { count } = await sb
+    .from("email_log")
+    .select("id", { count: "exact", head: true })
+    .eq("to_email", email)
+    .in("kind", ["blessing_thanks", "rsvp_confirmation"])
+    .gte("created_at", minutesAgoIso(ONE_HOUR_MS));
+  return (count ?? 0) >= GUEST_FACING_HOURLY_CAP;
+}
+
+async function alreadySentForRef(sb: ReturnType<typeof createClient>, kind: string, refId: string): Promise<boolean> {
+  const { data } = await sb.from("email_log").select("id").eq("kind", kind).eq("ref_id", refId).limit(1);
+  return !!(data && data.length);
+}
+
+// The newest rsvps row for this contact in the last 10 minutes — the
+// email body is built entirely from this row, never from request text,
+// so a caller can't forge an arbitrary confirmation summary.
+async function findRecentRsvp(sb: ReturnType<typeof createClient>, contact: string) {
+  const { data } = await sb
+    .from("rsvps")
+    .select("*")
+    .eq("contact", contact)
+    .gte("created_at", minutesAgoIso(TEN_MINUTES_MS))
+    .order("created_at", { ascending: false })
+    .limit(1);
+  return data && data.length ? data[0] : null;
+}
+
+// Same pattern against blessings, keyed by email.
+async function findRecentBlessing(sb: ReturnType<typeof createClient>, email: string) {
+  const { data } = await sb
+    .from("blessings")
+    .select("*")
+    .eq("email", email)
+    .gte("created_at", minutesAgoIso(TEN_MINUTES_MS))
+    .order("created_at", { ascending: false })
+    .limit(1);
+  return data && data.length ? data[0] : null;
+}
+
+function rsvpRowSummary(row: Record<string, unknown>): string {
+  const name = String(row.name || "");
+  if (!row.attending) return `${name} can't make it`;
+  const adults = Number(row.adults || 0);
+  const children = Number(row.children || 0);
+  let s = `${name} RSVP'd (${adults} adult${adults === 1 ? "" : "s"}`;
+  if (children > 0) s += `, ${children} child${children === 1 ? "" : "ren"}`;
+  if (row.likelihood) s += `, ${row.likelihood}`;
+  s += ")";
+  return s;
 }
 
 function escapeHtml(s: unknown): string {
@@ -186,6 +294,10 @@ async function logEmail(toEmail: string, kind: string, status: string, providerI
 }
 
 Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: CORS_HEADERS });
+  }
+
   try {
     const apiKey = Deno.env.get("RESEND_API_KEY");
     const notifyTo = Deno.env.get("NOTIFY_TO") || "hello@saifandrumaisah.com";
@@ -203,7 +315,7 @@ Deno.serve(async (req: Request) => {
     if (isDigestRequest) {
       if (!apiKey) return ok({ ok: true, sent: false, reason: "notifications not configured" });
       if (!digestSecret || req.headers.get("X-Digest-Secret") !== digestSecret) {
-        return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), { status: 401 });
+        return fail({ ok: false, error: "unauthorized" }, 401);
       }
       return await sendDigest(apiKey, toList);
     }
@@ -219,34 +331,47 @@ Deno.serve(async (req: Request) => {
       const email = typeof payload.email === "string" ? payload.email.trim() : "";
       if (!email) return ok({ ok: true, sent: false, reason: "no email given" });
       const sb = supabaseAdmin();
-      if (sb) {
-        const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-        const { count } = await sb
-          .from("email_log")
-          .select("id", { count: "exact", head: true })
-          .eq("to_email", email)
-          .eq("kind", "blessing_thanks")
-          .gte("created_at", since);
-        if ((count ?? 0) > 0) {
-          return ok({ ok: true, sent: false, reason: "already thanked in the last 24h" });
-        }
+      if (!sb) return ok({ ok: true, sent: false, reason: "no service credentials" });
+
+      const row = await findRecentBlessing(sb, email);
+      if (!row) return ok({ ok: true, sent: false, reason: "no matching blessing in the last 10 minutes" });
+
+      if (await alreadySentForRef(sb, "blessing_thanks", String(row.id))) {
+        return ok({ ok: true, sent: false, reason: "already thanked for this blessing" });
       }
-      const name = typeof payload.name === "string" ? payload.name : "";
-      const message = typeof payload.message === "string" ? payload.message : "";
-      const { subject, html, text } = blessingThanksEmail(name, message);
+      if (await guestFacingOverCap(sb, email)) {
+        return ok({ ok: true, sent: false, reason: "rate limited" });
+      }
+
+      // Body built entirely from the DB row — request text (name/message)
+      // is ignored so a caller can't forge an arbitrary thank-you email.
+      const { subject, html, text } = blessingThanksEmail(String(row.name || ""), String(row.message || ""));
       const res = await sendEmail(apiKey, [email], subject, html, text);
-      await logEmail(email, "blessing_thanks", res.ok ? "sent" : "failed", res.providerId, res.ok ? null : `status ${res.status}`, null);
+      await logEmail(email, "blessing_thanks", res.ok ? "sent" : "failed", res.providerId, res.ok ? null : `status ${res.status}`, String(row.id));
       return ok({ ok: true, sent: res.ok });
     }
 
     if (kind === "rsvp_confirmation") {
       const email = typeof payload.email === "string" ? payload.email.trim() : "";
       if (!email) return ok({ ok: true, sent: false, reason: "no email given" });
-      const name = typeof payload.name === "string" ? payload.name : "";
-      const summary = typeof payload.summary === "string" ? payload.summary : "";
-      const { subject, html, text } = rsvpConfirmationEmail(name, summary);
+      const sb = supabaseAdmin();
+      if (!sb) return ok({ ok: true, sent: false, reason: "no service credentials" });
+
+      const row = await findRecentRsvp(sb, email);
+      if (!row) return ok({ ok: true, sent: false, reason: "no matching rsvp in the last 10 minutes" });
+
+      if (await alreadySentForRef(sb, "rsvp_confirmation", String(row.id))) {
+        return ok({ ok: true, sent: false, reason: "already sent for this rsvp" });
+      }
+      if (await guestFacingOverCap(sb, email)) {
+        return ok({ ok: true, sent: false, reason: "rate limited" });
+      }
+
+      // Name and summary rebuilt from the DB row — request text is ignored.
+      const summary = rsvpRowSummary(row);
+      const { subject, html, text } = rsvpConfirmationEmail(String(row.name || ""), summary);
       const res = await sendEmail(apiKey, [email], subject, html, text);
-      await logEmail(email, "rsvp_confirmation", res.ok ? "sent" : "failed", res.providerId, res.ok ? null : `status ${res.status}`, null);
+      await logEmail(email, "rsvp_confirmation", res.ok ? "sent" : "failed", res.providerId, res.ok ? null : `status ${res.status}`, String(row.id));
       return ok({ ok: true, sent: res.ok });
     }
 
@@ -259,11 +384,27 @@ Deno.serve(async (req: Request) => {
     if (!kind || !summary) return ok({ ok: true, sent: false, reason: "missing kind/summary" });
     if (toList.length === 0) return ok({ ok: true, sent: false, reason: "NOTIFY_TO empty" });
 
+    const sb = supabaseAdmin();
+    if (!sb) return ok({ ok: true, sent: false, reason: "no service credentials" });
+    if (!(await hasRecentActivity(sb, kind))) {
+      return ok({ ok: true, sent: false, reason: "no matching activity_log row in the last 10 minutes" });
+    }
+    if (await opsAlertsOverCap(sb)) {
+      return ok({ ok: true, sent: false, reason: "rate limited" });
+    }
+
     const label = EVENT_LABELS[kind] || kind;
     const adminPath = typeof payload.adminPath === "string" ? payload.adminPath : "admin-activity.html";
     const emoji = kind === "blessing_submitted" ? "💌 " : "";
     const { subject, html, text } = coupleAlertEmail(`${emoji}${label}`, summary, `${SITE}/${adminPath}`);
-    const alertKind = kind === "blessing_submitted" ? "couple_alert_blessing" : kind === "rsvp_submitted" ? "couple_alert_rsvp" : "couple_alert_tree";
+    const alertKind =
+      kind === "blessing_submitted"
+        ? "couple_alert_blessing"
+        : kind === "rsvp_submitted"
+          ? "couple_alert_rsvp"
+          : kind === "admin_lockout"
+            ? "couple_alert_lockout"
+            : "couple_alert_tree";
     const res = await sendEmail(apiKey, toList, subject, html, text);
     await logEmail(toList.join(","), alertKind, res.ok ? "sent" : "failed", res.providerId, res.ok ? null : `status ${res.status}`, null);
     return ok({ ok: true, sent: res.ok });
@@ -284,7 +425,7 @@ async function handleMessageAll(apiKey: string, payload: Record<string, unknown>
   const pw = typeof payload.adminPw === "string" ? payload.adminPw : "";
   const { data: authOk, error: authErr } = await sb.rpc("admin_check", { pw });
   if (authErr || !authOk) {
-    return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), { status: 401 });
+    return fail({ ok: false, error: "unauthorized" }, 401);
   }
 
   const subject = typeof payload.subject === "string" ? payload.subject.slice(0, 200) : "";
