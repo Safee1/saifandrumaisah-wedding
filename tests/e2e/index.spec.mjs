@@ -284,7 +284,7 @@ test.describe("index.html — blessings form", () => {
       route.fulfill({ status: 201, body: "" });
     });
     await page.goto("/index.html#blessings");
-    await page.locator("#bfWebsite").fill("http://spam.example");
+    await page.locator("#bfExtra").fill("http://spam.example");
     await page.locator("#bfName").fill("Bot");
     await page.locator("#bfMsg").fill("Buy now");
     await page.locator("#bfSend").click();
@@ -293,6 +293,8 @@ test.describe("index.html — blessings form", () => {
   });
 
   test("submitting under 2s of page load is rejected with a wait message", async ({ page }) => {
+    // freeze Date.now so the 2s gate is measured in page time, not wall time (slow emulated phones took >2s to get here)
+    await page.addInitScript(() => { const t0 = Date.now(); Date.now = () => t0; });
     await mockTreeFetch(page);
     let posted = false;
     await page.route("**/rest/v1/blessings", async (route) => {

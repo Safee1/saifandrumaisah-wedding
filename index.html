@@ -1269,8 +1269,8 @@
         <input id="bfEmail" type="email" maxlength="200" autocomplete="email">
       </div>
       <div style="position:absolute; left:-9999px" aria-hidden="true">
-        <label for="bfWebsite">Leave this field blank</label>
-        <input type="text" id="bfWebsite" name="website" tabindex="-1" autocomplete="off">
+        <label for="bfExtra">Leave this field blank</label>
+        <input type="text" id="bfExtra" name="bfExtra" tabindex="-1" autocomplete="off">
       </div>
       <button type="submit" class="bf-send" id="bfSend">Send blessing</button>
       <p class="status bf-status" id="bfStatus" aria-live="polite"></p>
@@ -1564,7 +1564,7 @@
 
         // silently swallow obvious bot submissions: honeypot filled, or
         // submitted faster than a human could plausibly type a blessing
-        if (document.getElementById("bfWebsite").value || Date.now() - loadedAt < 2000) {
+        if (document.getElementById("bfExtra").value || Date.now() - loadedAt < 2000) {
           statusMsg.className = "status bf-status ok";
           statusMsg.textContent = "Thank you — your words are on their way to us.";
           form.reset();
