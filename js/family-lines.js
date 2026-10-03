@@ -100,8 +100,9 @@
       var top = Math.round(bb.y);
       var row = null;
       for (var i = 0; i < rows.length; i++) { if (Math.abs(rows[i].top - top) < 6) { row = rows[i]; break; } }
-      if (!row) { row = { top: top, xs: [] }; rows.push(row); }
+      if (!row) { row = { top: top, xs: [], lx: bb.x }; rows.push(row); }
       row.xs.push(bb.cx);
+      if (bb.x < row.lx) { row.lx = bb.x; }
     });
     rows.sort(function (p, q) { return p.top - q.top; });
 
@@ -124,18 +125,31 @@
     if (!rows.length) { return; }
 
     var startX = g.x, prevY = g.y;
-    rows.forEach(function (row) {
+    // a wrapped row of siblings: later rows hang off a spine in the left
+    // margin, not off the couple's x (which runs straight through the
+    // middle sibling's box and made the next row look like their children)
+    var gutterX = null;
+    if (rows.length > 1) {
+      gutterX = Math.max(3, Math.min.apply(null, rows.map(function (r) { return r.lx; })) - BAR_GAP);
+    }
+    rows.forEach(function (row, idx) {
       var barY = row.top - BAR_GAP;
-      var minX = Math.min.apply(null, row.xs.concat([startX]));
-      var maxX = Math.max.apply(null, row.xs.concat([startX]));
-      svg.appendChild(path("M" + startX + " " + prevY + " L" + startX + " " + barY, "ln-spine"));
-      if (row.xs.length > 1 || Math.abs(row.xs[0] - startX) > 1) {
+      var from = (idx === 0) ? startX : gutterX;
+      var minX = Math.min.apply(null, row.xs.concat([from]));
+      var maxX = Math.max.apply(null, row.xs.concat([from]));
+      if (idx === 0) {
+        svg.appendChild(path("M" + startX + " " + prevY + " L" + startX + " " + barY, "ln-spine"));
+        if (gutterX !== null) { minX = Math.min(minX, gutterX); }
+      } else {
+        svg.appendChild(path("M" + gutterX + " " + prevY + " L" + gutterX + " " + barY, "ln-spine"));
+      }
+      if (row.xs.length > 1 || Math.abs(row.xs[0] - from) > 1 || idx > 0) {
         svg.appendChild(path("M" + minX + " " + barY + " L" + maxX + " " + barY, "ln-bar"));
       }
       row.xs.forEach(function (x) {
         svg.appendChild(path("M" + x + " " + barY + " L" + x + " " + row.top, "ln-tick"));
       });
-      svg.appendChild(dot(startX, barY));
+      if (idx === 0) { svg.appendChild(dot(startX, barY)); }
       prevY = barY;
     });
   }

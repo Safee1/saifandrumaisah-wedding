@@ -226,27 +226,47 @@
   #dove-shape .body-fill { fill: rgba(125,149,181,0.13); stroke-width: 1.5; }
   .sdove path { fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .sdove .body-fill { fill: rgba(125,149,181,0.13); stroke-width: 1.5; }
-  .swing {
+  /* wings beat for as long as the dove exists (it is hidden until its
+     moment, so no delays are needed — and a delay on a descendant selector
+     never reached the <use> clones anyway). --amp is a custom property, which
+     does inherit into the clone, so each flock sets its own beat size. */
+  #dove-shape .swing {
     transform-box: fill-box;
-    transform-origin: 15% 85%;
-    animation: flap 0.34s ease-in-out 12 alternate;
+    transform-origin: 8% 88%;
+    animation: flap 0.3s cubic-bezier(.45,0,.55,1) infinite alternate;
   }
-  @keyframes flap { from { transform: rotate(16deg); } to { transform: rotate(-24deg); } }
+  #dove-shape .swing-far { animation-delay: -0.15s; }
+  #dove-shape .wing-near { fill: rgba(255,255,255,0.55); }
+  #dove-shape .wing-far { fill: rgba(125,149,181,0.18); opacity: 0.75; }
+  #dove-shape .eye { fill: var(--accent); stroke: none; }
+  @keyframes flap {
+    0%   { transform: rotate(calc(34deg * var(--amp, 1))) scale(1, 0.9); }
+    55%  { transform: rotate(calc(-6deg * var(--amp, 1))) scale(1, 1); }
+    100% { transform: rotate(calc(-38deg * var(--amp, 1))) scale(0.94, 0.78); }
+  }
+  /* the body rises on the downstroke and sinks on the upstroke */
+  @keyframes dove-heave { from { transform: translateY(2px) rotate(3deg); } to { transform: translateY(-3px) rotate(-3deg); } }
+  .sdove svg, .cdove svg { animation: dove-heave 0.3s ease-in-out infinite alternate; transform-origin: 50% 60%; }
+  .sdove { --amp: 1.15; }
+  .cdove { --amp: 0.8; }
 
   .sdove-l { left: 6%; bottom: 26vh; }
   .sdove-r { right: 6%; bottom: 26vh; transform: scaleX(-1); }
-  .sdove-l .swing, .sdove-r .swing { animation-delay: 5.2s; }
   @keyframes riseL {
-    0%   { opacity: 0; transform: translate(0, 6vh) rotate(6deg) scale(0.9); }
-    15%  { opacity: 1; }
-    60%  { transform: translate(26vw, -34vh) rotate(-8deg); }
-    100% { opacity: 1; transform: translate(calc(50vw - 100%), -46vh) rotate(0deg); }
+    0%   { opacity: 0; transform: translate(0, 6vh) rotate(-14deg) scale(0.9); }
+    12%  { opacity: 1; transform: translate(4vw, -4vh) rotate(-22deg) scale(0.95); }
+    35%  { transform: translate(13vw, -22vh) rotate(-16deg); }
+    52%  { transform: translate(21vw, -28vh) rotate(-4deg); }
+    75%  { transform: translate(34vw, -41vh) rotate(-10deg); }
+    100% { opacity: 1; transform: translate(calc(50vw - 100%), -46vh) rotate(2deg); }
   }
   @keyframes riseR {
-    0%   { opacity: 0; transform: scaleX(-1) translate(0, 6vh) rotate(6deg) scale(0.9); }
-    15%  { opacity: 1; }
-    60%  { transform: scaleX(-1) translate(26vw, -34vh) rotate(-8deg); }
-    100% { opacity: 1; transform: scaleX(-1) translate(calc(50vw - 100%), -46vh) rotate(0deg); }
+    0%   { opacity: 0; transform: scaleX(-1) translate(0, 6vh) rotate(-14deg) scale(0.9); }
+    12%  { opacity: 1; transform: scaleX(-1) translate(4vw, -4vh) rotate(-22deg) scale(0.95); }
+    35%  { transform: scaleX(-1) translate(13vw, -22vh) rotate(-16deg); }
+    52%  { transform: scaleX(-1) translate(21vw, -28vh) rotate(-4deg); }
+    75%  { transform: scaleX(-1) translate(34vw, -41vh) rotate(-10deg); }
+    100% { opacity: 1; transform: scaleX(-1) translate(calc(50vw - 100%), -46vh) rotate(2deg); }
   }
   /* they hold a beat at the top, then hand over to the carrier */
   .sdove { animation-fill-mode: both; }
@@ -264,9 +284,12 @@
     animation: deliver 3s cubic-bezier(.45,.05,.35,1) 8.8s both;
   }
   @keyframes deliver {
-    0%   { opacity: 0; transform: translateX(-50%) translateY(0) scale(0.34); }
+    0%   { opacity: 0; transform: translateX(-50%) translateY(0) scale(0.34) rotate(0deg); }
     12%  { opacity: 1; }
-    100% { opacity: 1; transform: translateX(-50%) translateY(26vh) scale(1); }
+    30%  { transform: translateX(-50%) translateY(7vh) scale(0.55) rotate(-3deg); }
+    55%  { transform: translateX(-50%) translateY(15vh) scale(0.8) rotate(3deg); }
+    80%  { transform: translateX(-50%) translateY(23vh) scale(0.95) rotate(-2deg); }
+    100% { opacity: 1; transform: translateX(-50%) translateY(26vh) scale(1) rotate(0deg); }
   }
   .cdove {
     position: absolute;
@@ -276,7 +299,6 @@
   .cdove svg { width: 100%; height: auto; overflow: visible; }
   .cdove path { fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .cdove .body-fill { fill: rgba(125,149,181,0.13); stroke-width: 1.5; }
-  .cdove .swing { animation: flap 0.34s ease-in-out 8.8s 14 alternate; }
   .cdove-l { left: -46px; }
   .cdove-r { right: -46px; transform: scaleX(-1); }
   /* ribbons from doves to envelope */
@@ -911,10 +933,16 @@
       <linearGradient id="g-gown" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4e6184"/><stop offset="1" stop-color="#2b3753"/></linearGradient>
       <radialGradient id="g-shadow"><stop offset="0" stop-color="#223049" stop-opacity="0.28"/><stop offset="1" stop-color="#223049" stop-opacity="0"/></radialGradient>
       <g id="dove-shape">
-        <path class="body-fill" d="M14 40 C 24 30, 40 26, 56 30 C 66 32, 74 30, 82 24 C 78 34, 70 42, 58 44 C 44 46, 28 46, 14 40 Z"/>
-        <g class="swing"><path d="M56 30 C 60 18, 70 10, 84 8 C 76 16, 72 24, 70 30"/><path d="M50 32 C 52 22, 60 14, 72 10"/></g>
-        <path d="M14 40 C 10 42, 6 44, 2 48 C 8 48, 12 46, 16 44"/>
-        <path d="M82 24 L 90 22 L 84 28"/>
+        <!-- far wing sits behind the body and beats half a beat late -->
+        <g class="swing swing-far"><path class="wing-far" d="M46 30 C 46 16, 58 6, 80 3 C 75 8, 75 11, 74 14 C 71 11, 68 13, 67 17 C 64 15, 60 18, 60 24 C 56 23, 50 25, 46 30 Z"/></g>
+        <path class="body-fill" d="M16 36 C 22 27, 38 24, 54 26 C 64 27, 72 25, 77 21 C 79 18, 85 17, 87 20 C 89 23, 87 26, 83 27 C 80 37, 68 45, 54 45 C 38 46, 24 44, 16 36 Z"/>
+        <!-- fanned tail -->
+        <path class="tail" d="M18 36 L 3 30 L 6 37 L 1 43 L 9 43 L 7 50 L 21 41"/>
+        <!-- head: beak and eye -->
+        <path d="M87 20 L 94 22 L 87 24"/>
+        <circle class="eye" cx="83" cy="21" r="1.1"/>
+        <!-- near wing: broad, feathered trailing edge, beats about the shoulder -->
+        <g class="swing"><path class="wing-near" d="M44 31 C 44 15, 58 4, 84 1 C 79 7, 79 10, 78 14 C 75 10, 71 12, 70 17 C 67 14, 62 17, 62 23 C 58 22, 51 25, 44 31 Z"/><path d="M52 28 C 58 18, 68 10, 80 6"/></g>
       </g>
       <path id="heart-shape" d="M12 21s-7-4.35-9.5-9.27C.92 8.36 2.5 4 6.5 4 9 4 10.5 5.5 12 7.5 13.5 5.5 15 4 17.5 4c4 0 5.58 4.36 4 7.73C19 16.65 12 21 12 21z"/>
       <path id="star-shape" d="M12 3 C 12.7 8.2 13.8 9.3 19 10 C 13.8 10.7 12.7 11.8 12 17 C 11.3 11.8 10.2 10.7 5 10 C 10.2 9.3 11.3 8.2 12 3 Z"/>
