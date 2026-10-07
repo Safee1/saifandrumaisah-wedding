@@ -303,8 +303,10 @@
     // nested unit, so the branches keep going.
     // opts.foldKids: in the main picture a married child gets a plus
     // and a popover instead of an inline subtree (collected in opts.folds)
+    var onPath = {};   // people on the way down: a loop in the data must never recurse into them
     function buildUnit(members, kidIds, opts) {
       opts = opts || {};
+      members.forEach(function (m) { onPath[m.id] = (onPath[m.id] || 0) + 1; });
       var fu = makeEl("div", "fu" + (opts.wrap ? " fu-wrap" : "") + (opts.dup ? " tw-dup" : ""));
       var couple = makeEl("div", "fu-couple");
       members.forEach(function (m) {
@@ -312,9 +314,10 @@
       });
       fu.appendChild(couple);
       if (opts.caption) { fu.appendChild(makeEl("p", "fu-cap", opts.caption)); }
-      if (!kidIds.length) { return fu; }
+      if (!kidIds.length) { members.forEach(function (m) { onPath[m.id]--; }); return fu; }
       var kids = makeEl("div", "fu-kids");
       kidIds.forEach(function (cid) {
+        if (onPath[cid]) { return; }   // loop in the data: already drawn above
         var child = graph.byId[cid];
         var f = familyOf(cid);
         var hasFamily = f.spouseId || f.kidIds.length;
@@ -332,6 +335,7 @@
         }
       });
       fu.appendChild(kids);
+      members.forEach(function (m) { onPath[m.id]--; });
       return fu;
     }
 

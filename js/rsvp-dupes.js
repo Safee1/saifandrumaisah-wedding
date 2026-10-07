@@ -8,12 +8,17 @@
   "use strict";
 
   // Case-, whitespace- and punctuation-insensitive name key: lowercase,
-  // strip anything that isn't a letter or digit, collapse to single spaces.
+  // strip anything that isn't a letter, a digit or a combining mark, collapse
+  // to single spaces. Marks are kept because in Devanagari, Bengali and
+  // Arabic scripts they carry the vowels: dropping them would turn two
+  // different names into the same bare consonants. NFC first so the same
+  // name typed with composed or decomposed accents compares equal.
   function normalizeName(name) {
     if (!name) { return ""; }
     return String(name)
+      .normalize("NFC")
       .toLowerCase()
-      .replace(/[^\p{L}\p{N}]+/gu, " ")
+      .replace(/[^\p{L}\p{N}\p{M}]+/gu, " ")
       .trim()
       .replace(/\s+/g, " ");
   }

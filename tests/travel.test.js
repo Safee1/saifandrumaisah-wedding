@@ -10,6 +10,9 @@ test("parse: accepts a date or a full timestamp, rejects junk and impossible dat
   assert.equal(Travel.parse(""), null);
   assert.equal(Travel.parse("soon"), null);
   assert.equal(Travel.parse("2027-02-30"), null);
+  assert.equal(Travel.parse("2027-08-231"), null, "a stray digit is a typo, not a date");
+  assert.equal(Travel.parse("2027-08-23 soon"), null, "text after the date is a typo, not a date");
+  assert.ok(Travel.parse("2027-08-23T09:30"), "a timestamp is fine");
   assert.equal(Travel.parse(undefined), null);
 });
 

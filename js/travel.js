@@ -16,7 +16,9 @@
   // "2027-08-23" or a full ISO timestamp -> a date at local midday (no DST edge)
   function parse(iso) {
     if (typeof iso !== "string") { return null; }
-    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+    // the date part must be the whole date: "2027-08-23" or "2027-08-23T..."
+    // ("2027-08-231" or "2027-08-23 soon" are typos, not dates)
+    var m = /^(\d{4})-(\d{2})-(\d{2})(?:$|T)/.exec(iso);
     if (!m) { return null; }
     var d = new Date(+m[1], +m[2] - 1, +m[3], 12);
     return d.getMonth() === +m[2] - 1 ? d : null;

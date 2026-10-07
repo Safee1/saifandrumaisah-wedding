@@ -18,30 +18,83 @@
     var byId = {};
     people.forEach(function (p) { byId[p.id] = p; });
 
+    var index = Object.create(null);
+    people.forEach(function (p, i) { index[p.id] = i; });
+    function byIndex(x, y) { return index[x] - index[y]; }
+    // Rows are processed in a canonical order (by people[] position, then type) so the
+    // result never depends on the order the database happens to return them in.
+    // parent_of rows first, so the spouse check below can see every ancestor line
+    function TYPE_RANK(t) { return t === "parent_of" ? 0 : t === "spouse_of" ? 1 : t === "sibling_of" ? 2 : 3; }
+    var rows = relationships.filter(function (r) { return byId[r.from_person] && byId[r.to_person]; }).sort(function (r1, r2) {
+      return (TYPE_RANK(r1.type) - TYPE_RANK(r2.type)) || (index[r1.from_person] - index[r2.from_person]) || (index[r1.to_person] - index[r2.to_person]);
+    });
+
     var parentsOf = {};
     var childrenOf = {};
     var spouseOf = {};
     var siblingsOf = {};
+    // O(1) duplicate checks (the old indexOf scans made a couple with N children cost O(N^2))
+    var childSet = {};
+    var sibSet = {};
 
     people.forEach(function (p) {
       parentsOf[p.id] = []; childrenOf[p.id] = []; siblingsOf[p.id] = [];
+      childSet[p.id] = Object.create(null); sibSet[p.id] = Object.create(null);
     });
 
-    relationships.forEach(function (r) {
-      if (!byId[r.from_person] || !byId[r.to_person]) { return; }
+    // true when 'target' is already a descendant of 'start' (so start -> ... -> target exists)
+    function reaches(start, target) {
+      var seen = Object.create(null);
+      var stack = [start];
+      while (stack.length) {
+        var id = stack.pop();
+        if (id === target) { return true; }
+        if (seen[id]) { continue; }
+        seen[id] = true;
+        var kids = childrenOf[id];
+        for (var i = 0; i < kids.length; i++) { stack.push(kids[i]); }
+      }
+      return false;
+    }
+
+    // spouse rows are collected first and paired afterwards in people[] order, so the
+    // pairing never depends on the (unspecified) order the database returns rows in,
+    // spouseOf is always symmetric and nobody is left half-married
+    var partners = Object.create(null);
+    function addPartner(a, b) {
+      (partners[a] = partners[a] || []).push(b);
+    }
+
+    rows.forEach(function (r) {
       if (r.from_person === r.to_person) { return; } // degenerate row
       if (r.type === "parent_of") {
         // guests can approve the same fact twice — keep one copy
-        if (childrenOf[r.from_person].indexOf(r.to_person) === -1) { childrenOf[r.from_person].push(r.to_person); }
-        if (parentsOf[r.to_person].indexOf(r.from_person) === -1) { parentsOf[r.to_person].push(r.from_person); }
+        if (childSet[r.from_person][r.to_person]) { return; }
+        // a bad approved row that would make someone their own ancestor is skipped:
+        // one loop would otherwise recurse forever in the renderer (or hide people)
+        if (reaches(r.to_person, r.from_person)) { return; }
+        childSet[r.from_person][r.to_person] = true;
+        childrenOf[r.from_person].push(r.to_person);
+        parentsOf[r.to_person].push(r.from_person);
       } else if (r.type === "spouse_of") {
-        spouseOf[r.from_person] = r.to_person;
-        spouseOf[r.to_person] = r.from_person;
+        // someone cannot be married to their own ancestor/descendant (it would loop the layout)
+        if (reaches(r.from_person, r.to_person) || reaches(r.to_person, r.from_person)) { return; }
+        addPartner(r.from_person, r.to_person); addPartner(r.to_person, r.from_person);
       } else if (r.type === "sibling_of") {
-        if (siblingsOf[r.from_person].indexOf(r.to_person) === -1) { siblingsOf[r.from_person].push(r.to_person); }
-        if (siblingsOf[r.to_person].indexOf(r.from_person) === -1) { siblingsOf[r.to_person].push(r.from_person); }
+        if (!sibSet[r.from_person][r.to_person]) { sibSet[r.from_person][r.to_person] = true; siblingsOf[r.from_person].push(r.to_person); }
+        if (!sibSet[r.to_person][r.from_person]) { sibSet[r.to_person][r.from_person] = true; siblingsOf[r.to_person].push(r.from_person); }
       }
     });
+
+    people.forEach(function (p) {
+      var cands = partners[p.id];
+      if (spouseOf[p.id] != null || !cands) { return; }
+      cands.slice().sort(byIndex).some(function (c) {
+        if (spouseOf[c] != null || c === p.id) { return false; }
+        spouseOf[p.id] = c; spouseOf[c] = p.id; return true;
+      });
+    });
+    people.forEach(function (p) { siblingsOf[p.id].sort(byIndex); });
 
     return { byId: byId, parentsOf: parentsOf, childrenOf: childrenOf, spouseOf: spouseOf, siblingsOf: siblingsOf };
   }
@@ -50,15 +103,16 @@
   // they get the large avatars up top, and ALSO appear as ordinary
   // small avatars in their own side's sibling row.
   function findCrownCouple(relationships, byId) {
-    var found = null;
-    relationships.some(function (r) {
-      if (r.type !== "spouse_of") { return false; }
+    var best = null, bestKey = null;
+    relationships.forEach(function (r) {
+      if (r.type !== "spouse_of") { return; }
       var a = byId[r.from_person], b = byId[r.to_person];
-      if (!a || !b || a.side === b.side) { return false; }
-      found = a.side === "saif" ? { a: a, b: b } : { a: b, b: a };
-      return true;
+      if (!a || !b || a.side === b.side) { return; }
+      var pair = a.side === "saif" ? { a: a, b: b } : { a: b, b: a };
+      var key = pair.a.id + "|" + pair.b.id;      // same answer whatever order the rows arrive in
+      if (bestKey === null || key < bestKey) { best = pair; bestKey = key; }
     });
-    return found;
+    return best;
   }
 
   // ---------------------------------------------------------------
