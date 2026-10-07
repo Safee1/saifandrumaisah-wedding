@@ -487,6 +487,7 @@
   .when { font-family: 'Pinyon Script', cursive; font-size: 1.5rem; color: var(--gold); margin: 0.5rem 0 0; }
 
   .reveal-wrap { display: flex; flex-direction: column; align-items: center; }
+  .reveal-wrap[hidden] { display: none; }
   .reveal-country {
     font-size: 0.82rem; letter-spacing: 0.32em; text-transform: uppercase;
     font-weight: 500; margin: 0 0 0.55rem; color: var(--ink);
@@ -1644,7 +1645,7 @@
     // once REVEAL.show is true this block steps aside and the ordinary
     // WEDDING_DATE countdown below takes over.
     (function () {
-      if (REVEAL.show) { return; }
+      if (REVEAL.show === true) { return; }
       document.getElementById("dateTbc").hidden = true;
       document.getElementById("revealWrap").hidden = false;
       // the teaser prints the country itself, so the plain line steps aside
@@ -1697,7 +1698,9 @@
       });
     })();
 
-    Countdown.attach(WEDDING_DATE, {
+    // The real date (countdown) only ever appears once the reveal is on:
+    // a date filled in early must not leak while the rest is still sealed.
+    if (REVEAL.show === true) Countdown.attach(WEDDING_DATE, {
       getNow: function () { return Date.now(); },
       setIntervalFn: function (fn, ms) { return setInterval(fn, ms); },
       pastText: "just married ✨",
@@ -1713,7 +1716,7 @@
 
     (function () {
       var section = document.getElementById("travel");
-      if (!Travel.visible(TRAVEL.show, location.search)) { return; }
+      if (REVEAL.show !== true || !Travel.visible(TRAVEL.show, location.search)) { return; }
       var list = document.getElementById("travelList");
       var bar = document.getElementById("travelBar");
       var count = document.getElementById("travelCount");
