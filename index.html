@@ -780,8 +780,8 @@
   }
   .bless-empty { font-style: italic; color: var(--muted); column-span: all; text-align: center; }
 
-  .bless-summary { max-width: 640px; margin: 0 auto 1.4rem; text-align: center; font-style: italic; color: var(--muted); font-size: 0.95rem; }
-  .bless-summary-name { background: none; border: none; padding: 0; font: inherit; font-style: normal; color: var(--side); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+  .bless-summary { overflow-wrap: anywhere; max-width: 640px; margin: 0 auto 1.4rem; text-align: center; font-style: italic; color: var(--muted); font-size: 0.95rem; }
+  .bless-summary-name { max-width: 100%; white-space: normal; overflow-wrap: anywhere; text-align: inherit; background: none; border: none; padding: 0; font: inherit; font-style: normal; color: var(--side); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
   .bless-more[hidden] { display: none; }
   .bless-more {
     display: block; margin: -1.2rem auto 2rem; padding: 0.55rem 1.4rem; border-radius: 999px;
@@ -916,6 +916,16 @@
   .footer { letter-spacing: 0.32em; color: var(--muted); }
   .footer a { color: var(--side); text-decoration: underline; }
 </style>
+<noscript><style>
+  /* no JavaScript: skip the intro and show the invitation as it ends up */
+  .story, .dim { display: none !important; }
+  .card, .st, .name, .amp, .floral, .floral path, .floral circle, .divider-line, .heart, .rv, .rv-draw { opacity: 1 !important; animation: none !important; stroke-dashoffset: 0 !important; transform: none !important; }
+  .border-svg rect { stroke-dashoffset: 0 !important; animation: none !important; }
+  .petal { display: none; }
+  /* the teaser block (with the RSVP button) is revealed by script; show it as-is */
+  .reveal-wrap[hidden] { display: flex !important; }
+  #dateTbc { display: none; }
+</style></noscript>
 </head>
 <body>
 
@@ -1442,7 +1452,7 @@
         status.textContent = "unlocking the families…";
         container.appendChild(status);
 
-        TreeData.fetchApprovedTree().then(function (data) {
+        Promise.resolve().then(function () { return TreeData.fetchApprovedTree(); }).then(function (data) {
           FamilyTree.render(container, data, {
             captions: { saif: "brothers & sisters", rumaisah: "sisters" },
             onRendered: revealOnScroll
@@ -1565,7 +1575,7 @@
 
       revealOnScroll(document.querySelector(".close-section"));
 
-      BlessingsData.fetchApproved().then(function (rows) {
+      Promise.resolve().then(function () { return BlessingsData.fetchApproved(); }).then(function (rows) {
         wall.textContent = "";
         allRows = rows || [];
         shown = 0;
@@ -1602,7 +1612,9 @@
         }
 
         var row = { name: nameInput.value, message: msgInput.value, email: emailInput.value };
-        var problem = BlessingsData.validate(row);
+        var problem;
+        try { problem = BlessingsData.validate(row); }
+        catch (err) { problem = "Sorry, this page did not load properly — please refresh and try again."; }
         if (problem) {
           statusMsg.className = "status bf-status err";
           statusMsg.textContent = problem;
