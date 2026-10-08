@@ -2,6 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script>
+  // never run inside someone else's frame (click-jacking): break out, or blank the page
+  if (window.top !== window.self) { document.documentElement.style.display = "none"; try { window.top.location = window.self.location; } catch (e) {} }
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#faf7f2">
 <meta name="robots" content="noindex,nofollow">
@@ -87,7 +91,7 @@
   <div class="gate" id="gate">
     <div class="gate-box">
       <h1>activity</h1>
-      <input type="password" id="pw" placeholder="Password" autocomplete="current-password">
+      <input type="password" id="pw" aria-label="Admin password" placeholder="Password" autocomplete="current-password">
       <button id="pwSubmit">Unlock</button>
       <p class="gate-err" id="gateErr"></p>
     </div>
@@ -112,7 +116,7 @@
       <div class="stats" id="stats"></div>
 
       <div class="controls">
-        <select id="kindFilter">
+        <select id="kindFilter" aria-label="Filter by kind of activity">
           <option value="">All kinds</option>
           <option value="rsvp_submitted">RSVP submitted</option>
           <option value="tree_submitted">Tree submission</option>
@@ -135,7 +139,7 @@
 
     <div class="pane" id="pane-blessings">
       <div class="controls">
-        <select id="blFilter">
+        <select id="blFilter" aria-label="Filter blessings by status">
           <option value="pending">Pending (held)</option>
           <option value="approved">Approved</option>
           <option value="hidden">Hidden</option>
@@ -154,8 +158,8 @@
 
     <div class="pane" id="pane-messageall">
       <div class="ma-box">
-        <input type="text" id="maSubject" placeholder="Subject">
-        <textarea id="maBody" placeholder="Write the message… (plain text is fine, we'll wrap it in the wedding template)"></textarea>
+        <input type="text" id="maSubject" aria-label="Message subject" placeholder="Subject">
+        <textarea id="maBody" aria-label="Message body" placeholder="Write the message… (plain text is fine, we'll wrap it in the wedding template)"></textarea>
         <div>
           <button id="maPreviewBtn" class="secondary" type="button">Preview</button>
           <button id="maTestBtn" class="secondary" type="button">Send test to us</button>

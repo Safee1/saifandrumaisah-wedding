@@ -2,6 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script>
+  // never run inside someone else's frame (click-jacking): break out, or blank the page
+  if (window.top !== window.self) { document.documentElement.style.display = "none"; try { window.top.location = window.self.location; } catch (e) {} }
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#faf7f2">
 <meta name="robots" content="noindex,nofollow">
@@ -70,7 +74,7 @@
   <div class="gate" id="gate">
     <div class="gate-box">
       <h1>rsvps</h1>
-      <input type="password" id="pw" placeholder="Password" autocomplete="current-password">
+      <input type="password" id="pw" aria-label="Admin password" placeholder="Password" autocomplete="current-password">
       <button id="pwSubmit">Unlock</button>
       <p class="gate-err" id="gateErr"></p>
     </div>

@@ -2,6 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script>
+  // never run inside someone else's frame (click-jacking): break out, or blank the page
+  if (window.top !== window.self) { document.documentElement.style.display = "none"; try { window.top.location = window.self.location; } catch (e) {} }
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#faf7f2">
 <meta name="robots" content="noindex,nofollow">
@@ -57,7 +61,7 @@
   <div class="gate" id="gate">
     <div class="gate-box">
       <h1>review</h1>
-      <input type="password" id="pw" placeholder="Password" autocomplete="current-password">
+      <input type="password" id="pw" aria-label="Admin password" placeholder="Password" autocomplete="current-password">
       <button id="pwSubmit">Unlock</button>
       <p class="gate-err" id="gateErr"></p>
     </div>
@@ -74,13 +78,13 @@
     <div class="item" style="display:block">
       <p class="item-kind">hand one to a family member</p>
       <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center">
-        <input type="text" id="invLabel" placeholder="Who's it for (e.g. Sakhi)" maxlength="60"
+        <input type="text" id="invLabel" aria-label="Who the invite code is for" placeholder="Who's it for (e.g. Sakhi)" maxlength="60"
                style="flex:1 1 160px; font-family:inherit; font-size:0.95rem; padding:0.5rem; border:1px solid rgba(34,48,73,0.3); border-radius:8px">
-        <select id="invSide" style="font-family:inherit; font-size:0.9rem; padding:0.5rem; border:1px solid rgba(34,48,73,0.3); border-radius:8px">
+        <select id="invSide" aria-label="Which side the invite is for" style="font-family:inherit; font-size:0.9rem; padding:0.5rem; border:1px solid rgba(34,48,73,0.3); border-radius:8px">
           <option value="saif">Saif's side</option>
           <option value="rumaisah">Rumaisah's side</option>
         </select>
-        <select id="invUses" style="font-family:inherit; font-size:0.9rem; padding:0.5rem; border:1px solid rgba(34,48,73,0.3); border-radius:8px">
+        <select id="invUses" aria-label="How many times the code can be used" style="font-family:inherit; font-size:0.9rem; padding:0.5rem; border:1px solid rgba(34,48,73,0.3); border-radius:8px">
           <option value="1">1 use</option>
           <option value="3">3 uses</option>
           <option value="5">5 uses</option>
