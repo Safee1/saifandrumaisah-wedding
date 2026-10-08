@@ -128,7 +128,7 @@
             renderAll(rows, ++renderSeq);
           })
           .catch(function (err) {
-            gateErr.textContent = lockoutMessage(err) || "Wrong password.";
+            gateErr.textContent = lockoutMessage(err) || gateFailure(err);
             pwSubmit.disabled = false;
           });
       }
@@ -136,6 +136,16 @@
       // The DB-side lockout (5 failed admin_check calls in 15 minutes)
       // raises a specific message; surface it as-is instead of the generic
       // "Wrong password." so people know it's a timed lockout, not a typo.
+      // Only a real rejection from the server means "wrong password"; a timeout,
+      // a dropped connection or a 5xx must not send people hunting for a typo.
+      function gateFailure(err) {
+        if (!err || err.timeout || typeof err.status !== "number") {
+          return "Couldn’t reach the server — check the connection and try again.";
+        }
+        if (err.status >= 500) { return "The server had a problem — try again in a minute."; }
+        return "Wrong password.";
+      }
+
       function lockoutMessage(err) {
         var msg = err && err.message;
         return msg && msg.indexOf("Too many attempts") !== -1 ? msg : null;
