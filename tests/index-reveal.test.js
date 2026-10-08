@@ -40,3 +40,7 @@ test("long blessing names wrap instead of widening the page", () => {
   assert.match(html, /\.bless-summary \{ overflow-wrap: anywhere;/);
   assert.match(html, /\.bless-summary-name \{ max-width: 100%; white-space: normal; overflow-wrap: anywhere;/);
 });
+
+test("the card frame is one long dash, not a 400px dash pattern that draws half the border", () => {
+  assert.match(html, /\.border-svg rect \{[^}]*stroke-dasharray: 6000; stroke-dashoffset: 6000;/);
+});
