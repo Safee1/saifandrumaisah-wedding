@@ -4,6 +4,13 @@
   var SUPABASE_URL = "https://rfopieelzxvnmfhdvqqf.supabase.co";
   var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmb3BpZWVsenh2bm1maGR2cXFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3NDA4MDcsImV4cCI6MjEwMjMxNjgwN30.B7QgmJbG4CC457U4KP3OtCjrveJ7kpFjk2y2GtL5b24";
 
+  // Every network call gets a time limit (js/net.js). If a page has not
+  // loaded net.js, fall back to the plain call so nothing breaks.
+  var Net = root.Net || (typeof require === "function" ? require("./net.js") : null);
+  function guarded(run, ms) {
+    return Net ? Net.withTimeout(run, ms) : Promise.resolve().then(function () { return run(undefined); });
+  }
+
   function restHeaders(extra) {
     var h = {
       "apikey": SUPABASE_ANON_KEY,
@@ -14,39 +21,53 @@
     return h;
   }
 
+  function failure(r) {
+    return r.json().catch(function () { return null; }).then(function (body) {
+      var msg = (body && (body.message || body.hint)) || ("Request failed (" + r.status + ")");
+      var err = new Error(msg);
+      err.status = r.status;
+      err.code = body && body.code;
+      throw err;
+    });
+  }
+
   // No public SELECT policy on rsvps at all (unlike the tree's pending/approved
   // split) — nobody's RSVP is ever shown back to any visitor. So, same as
   // tree-data.js, we generate the id client-side and skip RETURNING entirely.
+  // A saved row answers 201 (or 204). Any other 2xx (a hotel Wi-Fi page, a
+  // proxy) is not a save, so it must not read as "thank you".
+  // 409 + code 23505 means this very id is already stored: an earlier try
+  // got through before the answer was lost, so a retry is a success.
   function restInsert(table, row) {
-    return fetch(SUPABASE_URL + "/rest/v1/" + table, {
-      method: "POST",
-      headers: restHeaders({ "Prefer": "return=minimal" }),
-      body: JSON.stringify(row)
-    }).then(function (r) {
-      if (!r.ok) {
-        return r.json().catch(function () { return null; }).then(function (body) {
-          var msg = (body && (body.message || body.hint)) || ("Request failed (" + r.status + ")");
-          throw new Error(msg);
+    return guarded(function (signal) {
+      return fetch(SUPABASE_URL + "/rest/v1/" + table, {
+        method: "POST",
+        headers: restHeaders({ "Prefer": "return=minimal" }),
+        body: JSON.stringify(row),
+        signal: signal
+      }).then(function (r) {
+        if (r.status === 201 || r.status === 204) { return row; }
+        if (r.ok) { throw new Error("Unexpected response (" + r.status + ")"); }
+        return failure(r).catch(function (err) {
+          if (err.status === 409 && err.code === "23505") { return row; }
+          throw err;
         });
-      }
-      return row;
+      });
     });
   }
 
   function rpc(fn, args) {
-    return fetch(SUPABASE_URL + "/rest/v1/rpc/" + fn, {
-      method: "POST",
-      headers: restHeaders(),
-      body: JSON.stringify(args || {})
-    }).then(function (r) {
-      if (!r.ok) {
-        return r.json().catch(function () { return null; }).then(function (body) {
-          var msg = (body && (body.message || body.hint)) || ("Request failed (" + r.status + ")");
-          throw new Error(msg);
-        });
-      }
-      // void-returning functions (admin_delete_rsvp) send an empty body
-      return r.text().then(function (text) { return text ? JSON.parse(text) : null; });
+    return guarded(function (signal) {
+      return fetch(SUPABASE_URL + "/rest/v1/rpc/" + fn, {
+        method: "POST",
+        headers: restHeaders(),
+        body: JSON.stringify(args || {}),
+        signal: signal
+      }).then(function (r) {
+        if (!r.ok) { return failure(r); }
+        // void-returning functions (admin_delete_rsvp) send an empty body
+        return r.text().then(function (text) { return text ? JSON.parse(text) : null; });
+      });
     });
   }
 
@@ -58,8 +79,19 @@
     });
   }
 
+  // A retry after a timeout reuses the id of the try that may already have
+  // been saved, so the database can tell it is the same RSVP (a 409 on that
+  // id then counts as saved). A different form content gets a new id. The id
+  // is forgotten once a save succeeds, so a deliberate second RSVP is new.
+  var pending = null;
+  function idFor(row) {
+    var key = JSON.stringify(row);
+    if (!pending || pending.key !== key) { pending = { key: key, id: newId() }; }
+    return pending.id;
+  }
+
   function submitRsvp(row) {
-    var id = newId();
+    var id = idFor(row);
     return restInsert("rsvps", {
       id: id,
       name: row.name,
@@ -67,7 +99,7 @@
       guest_count: row.attending ? row.guest_count : null,
       dietary: row.dietary || null,
       message: row.message || null
-    }).then(function () { return { id: id }; });
+    }).then(function () { pending = null; return { id: id }; });
   }
 
   // "Are you coming?" expression of interest: name, contact, adult/child
@@ -76,7 +108,7 @@
   // form, so it counts toward the public headcount. guest_count is kept in
   // sync (adults + children) so rsvp-admin's existing total column still adds up.
   function submitInterest(row) {
-    var id = newId();
+    var id = idFor(row);
     var declined = row.likelihood === "no";
     var adults = declined ? 0 : (row.adults || 0);
     var children = declined ? 0 : (row.children || 0);
@@ -96,6 +128,7 @@
       dietary_consent: consent,
       dietary_consent_at: consent ? new Date().toISOString() : null
     }).then(function () {
+      pending = null;
       var summary = declined ? row.name + " can't make it" : row.name + " RSVP'd (" + adults + " adult" + (adults === 1 ? "" : "s") +
         (children > 0 ? ", " + children + " child" + (children === 1 ? "" : "ren") : "") +
         (row.likelihood ? ", " + row.likelihood : "") + ")";
@@ -113,11 +146,14 @@
   // and never blocks or fails the guest's own RSVP.
   function notify(payload) {
     try {
-      fetch(SUPABASE_URL + "/functions/v1/notify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      }).catch(function () {});
+      guarded(function (signal) {
+        return fetch(SUPABASE_URL + "/functions/v1/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: signal
+        });
+      }, 10000).catch(function () {});
     } catch (e) {}
   }
 

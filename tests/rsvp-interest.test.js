@@ -25,10 +25,10 @@ test("submitInterest posts name/contact/adults/children/likelihood and syncs gue
   // only capture the actual rsvps insert this test cares about.
   return withFetch((url, opts) => {
     if (String(url).includes("/functions/v1/notify")) {
-      return Promise.resolve({ ok: true });
+      return Promise.resolve({ ok: true, status: 201 });
     }
     captured = { url, body: JSON.parse(opts.body) };
-    return Promise.resolve({ ok: true });
+    return Promise.resolve({ ok: true, status: 201 });
   }, (RsvpData) => RsvpData.submitInterest({
     name: "Aunt Zainab",
     contact: "zainab@example.com",
@@ -76,9 +76,9 @@ test("headcount() rejects on a failed request rather than surfacing raw rows", (
 function captureInsert(row) {
   let body;
   return withFetch((url, opts) => {
-    if (String(url).includes("/functions/v1/notify")) { return Promise.resolve({ ok: true }); }
+    if (String(url).includes("/functions/v1/notify")) { return Promise.resolve({ ok: true, status: 201 }); }
     body = JSON.parse(opts.body);
-    return Promise.resolve({ ok: true });
+    return Promise.resolve({ ok: true, status: 201 });
   }, (RsvpData) => RsvpData.submitInterest(row)).then(() => body);
 }
 

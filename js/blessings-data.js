@@ -10,6 +10,14 @@
   var SUPABASE_URL = "https://rfopieelzxvnmfhdvqqf.supabase.co";
   var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmb3BpZWVsenh2bm1maGR2cXFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3NDA4MDcsImV4cCI6MjEwMjMxNjgwN30.B7QgmJbG4CC457U4KP3OtCjrveJ7kpFjk2y2GtL5b24";
 
+  // Every network call gets a time limit (js/net.js). If a page has not
+  // loaded net.js, fall back to the plain call so nothing breaks.
+  var globalRoot = typeof self !== "undefined" ? self : this;
+  var Net = (globalRoot && globalRoot.Net) || (typeof require === "function" ? require("./net.js") : null);
+  function guarded(run, ms) {
+    return Net ? Net.withTimeout(run, ms) : Promise.resolve().then(function () { return run(undefined); });
+  }
+
   function restHeaders(extra) {
     var h = {
       "apikey": SUPABASE_ANON_KEY,
@@ -18,6 +26,16 @@
     };
     if (extra) { for (var k in extra) { h[k] = extra[k]; } }
     return h;
+  }
+
+  function failure(r) {
+    return r.json().catch(function () { return null; }).then(function (body) {
+      var msg = (body && (body.message || body.hint)) || ("Request failed (" + r.status + ")");
+      var err = new Error(msg);
+      err.status = r.status;
+      err.code = body && body.code;
+      throw err;
+    });
   }
 
   function newId() {
@@ -48,37 +66,62 @@
   }
 
   function fetchApproved() {
-    return fetch(SUPABASE_URL + "/rest/v1/blessings?select=id,name,message,created_at,theme&status=eq.approved&order=created_at.desc&limit=60", {
-      headers: restHeaders()
-    }).then(function (r) {
-      if (!r.ok) { throw new Error("Request failed (" + r.status + ")"); }
-      return r.json();
+    return guarded(function (signal) {
+      return fetch(SUPABASE_URL + "/rest/v1/blessings?select=id,name,message,created_at,theme&status=eq.approved&order=created_at.desc&limit=60", {
+        headers: restHeaders(),
+        signal: signal
+      }).then(function (r) {
+        if (!r.ok) { throw new Error("Request failed (" + r.status + ")"); }
+        return r.json();
+      }).then(function (list) {
+        if (!Array.isArray(list)) { throw new Error("Unexpected response"); }
+        return list;
+      });
     });
+  }
+
+  // A retry after a timeout reuses the id of the try that may already have
+  // been saved, so the database can tell it is the same blessing (a 409 on
+  // that id then counts as saved). Different wording gets a new id, and the
+  // id is forgotten once a save succeeds.
+  var pending = null;
+  function idFor(body) {
+    var key = JSON.stringify([body.name, body.message, body.email || ""]);
+    if (!pending || pending.key !== key) { pending = { key: key, id: newId() }; }
+    return pending.id;
   }
 
   // Pending rows aren't visible under the public SELECT policy, so we
   // generate the id client-side and skip RETURNING (same pattern as
-  // tree-data.js).
+  // tree-data.js). A saved row answers 201 (or 204); any other 2xx is not
+  // a save. 409 + code 23505 means this very id is already stored.
   function submit(row) {
     var problem = validate(row);
     if (problem) { return Promise.reject(new Error(problem)); }
-    var id = newId();
     var name = row.name.trim();
     var message = row.message.trim();
     var email = (row.email || "").trim();
-    var body = { id: id, name: name, message: message };
+    var body = { name: name, message: message };
     if (email) { body.email = email; }
-    return fetch(SUPABASE_URL + "/rest/v1/blessings", {
-      method: "POST",
-      headers: restHeaders({ "Prefer": "return=minimal" }),
-      body: JSON.stringify(body)
-    }).then(function (r) {
-      if (!r.ok) {
-        return r.json().catch(function () { return null; }).then(function (body2) {
-          var msg = (body2 && (body2.message || body2.hint)) || ("Request failed (" + r.status + ")");
-          throw new Error(msg);
+    var id = idFor(body);
+    body = { id: id, name: name, message: message };
+    if (email) { body.email = email; }
+    return guarded(function (signal) {
+      return fetch(SUPABASE_URL + "/rest/v1/blessings", {
+        method: "POST",
+        headers: restHeaders({ "Prefer": "return=minimal" }),
+        body: JSON.stringify(body),
+        signal: signal
+      }).then(function (r) {
+        if (r.status === 201 || r.status === 204) { return true; }
+        if (r.ok) { throw new Error("Unexpected response (" + r.status + ")"); }
+        return failure(r).catch(function (err) {
+          if (err.status === 409 && err.code === "23505") { return true; }
+          throw err;
         });
-      }
+      });
+    }).then(function () {
+      pending = null;
       // Server-side moderation decides held vs auto-approved; the guest
       // never learns which — same warm message either way.
       notify({ kind: "blessing_submitted", summary: "New blessing from " + name });
@@ -94,27 +137,28 @@
   // and never blocks or fails the guest's own submission.
   function notify(payload) {
     try {
-      fetch(SUPABASE_URL + "/functions/v1/notify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      }).catch(function () {});
+      guarded(function (signal) {
+        return fetch(SUPABASE_URL + "/functions/v1/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: signal
+        });
+      }, 10000).catch(function () {});
     } catch (e) {}
   }
 
   function rpc(fn, args) {
-    return fetch(SUPABASE_URL + "/rest/v1/rpc/" + fn, {
-      method: "POST",
-      headers: restHeaders(),
-      body: JSON.stringify(args || {})
-    }).then(function (r) {
-      if (!r.ok) {
-        return r.json().catch(function () { return null; }).then(function (body) {
-          var msg = (body && (body.message || body.hint)) || ("Request failed (" + r.status + ")");
-          throw new Error(msg);
-        });
-      }
-      return r.text().then(function (text) { return text ? JSON.parse(text) : null; });
+    return guarded(function (signal) {
+      return fetch(SUPABASE_URL + "/rest/v1/rpc/" + fn, {
+        method: "POST",
+        headers: restHeaders(),
+        body: JSON.stringify(args || {}),
+        signal: signal
+      }).then(function (r) {
+        if (!r.ok) { return failure(r); }
+        return r.text().then(function (text) { return text ? JSON.parse(text) : null; });
+      });
     });
   }
 
