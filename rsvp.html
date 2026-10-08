@@ -133,7 +133,8 @@
       <a id="travelNoteLink" href="/#travel">our travel checklist</a>
     </p>
 
-    <form id="rsvpForm">
+    <noscript><p class="status err">This form needs JavaScript turned on to send your reply.</p></noscript>
+    <form id="rsvpForm" novalidate>
       <div class="field">
         <label for="name">Your name</label>
         <input type="text" id="name" maxlength="80" required autocomplete="name">
@@ -345,7 +346,7 @@
         statusMsg.className = "status";
         statusMsg.textContent = "Sending…";
 
-        RsvpData.submitInterest({
+        Promise.resolve().then(function () { return RsvpData.submitInterest({
           name: name,
           contact: contact,
           likelihood: likelihood,
@@ -355,7 +356,7 @@
           dietaryConsent: !!dietary && consent,
           dietary: dietary || null,
           note: note || null
-        }).then(function () {
+        }); }).then(function () {
           form.hidden = true;
           confirmBox.hidden = false;
           confirmText.textContent = declined
@@ -367,9 +368,11 @@
               (children > 0 ? ", " + children + " child" + (children === 1 ? "" : "ren") + (childrenAges ? " (ages " + childrenAges + ")" : "") : "") +
               (dietary ? ". Dietary: " + dietary : "") + ".");
           if (typeof window.loadHeadcount === "function") { window.loadHeadcount(); }
-        }).catch(function () {
+        }).catch(function (err) {
           statusMsg.className = "status err";
-          statusMsg.textContent = "Something went wrong — please try again.";
+          statusMsg.textContent = err && err.timeout
+            ? "This is taking longer than usual — please wait a moment, then press Send again. (Sending twice is safe: we only keep one.)"
+            : "Something went wrong — please try again.";
           submitBtn.disabled = false;
         });
       });
