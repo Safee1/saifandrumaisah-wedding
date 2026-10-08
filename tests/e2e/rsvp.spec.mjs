@@ -121,6 +121,8 @@ test.describe("rsvp.html — submit flow", () => {
     });
     await fillValid(page);
     await page.locator("#dietary").fill("No nuts");
+    // the consent row appears once a dietary note is typed; saving needs a tick
+    await page.locator("#dietaryConsent").check();
     await page.locator("#note").fill("Can't wait!");
     await page.locator("#submitBtn").click();
     await expect(page.locator("#confirmBox")).toBeVisible();
@@ -131,6 +133,7 @@ test.describe("rsvp.html — submit flow", () => {
     expect(sentBody.adults).toBe(2);
     expect(sentBody.children).toBe(1);
     expect(sentBody.dietary).toBe("No nuts");
+    expect(sentBody.dietary_consent).toBe(true);
     expect(sentBody.attending).toBe(true);
   });
 
