@@ -44,3 +44,8 @@ test("long blessing names wrap instead of widening the page", () => {
 test("the card frame is one long dash, not a 400px dash pattern that draws half the border", () => {
   assert.match(html, /\.border-svg rect \{[^}]*stroke-dasharray: 6000; stroke-dashoffset: 6000;/);
 });
+
+test("the two rising doves stop short of each other instead of meeting in one blob", () => {
+  assert.equal((html.match(/translate\(calc\(44vw - 130%\), -46vh\) rotate\(2deg\)/g) || []).length, 2);
+  assert.doesNotMatch(html, /translate\(calc\(50vw - 100%\), -46vh\)/);
+});
