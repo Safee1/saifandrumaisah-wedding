@@ -37,3 +37,19 @@ for (const name of Object.keys(LOOPS)) {
     con.assertClean();
   });
 }
+
+test("a very long unbroken name does not widen the page on a phone", async ({ page }) => {
+  const people = TREE_PEOPLE.concat([{ id: "p-long", name: "Muhammadabdulrahmanibnabdullahalkhaliji", side: "saif", is_kid: false }]);
+  const rels = TREE_RELATIONSHIPS.concat([{ id: "xl", from_person: "p-abu", to_person: "p-long", type: "parent_of" }]);
+  await mockSupabase(page, {
+    "POST /rest/v1/rpc/public_tree": { people: people, relationships: rels },
+    "POST /rest/v1/rpc/rsvp_headcount": 12,
+    "GET /rest/v1/blessings": []
+  });
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.goto("/index.html#family");
+  await page.locator("#unlockFamily").click();
+  await expect(page.locator("#treeContainer")).toContainText("Muhammad");
+  const w = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, iw: window.innerWidth }));
+  expect(w.sw).toBeLessThanOrEqual(w.iw);
+});

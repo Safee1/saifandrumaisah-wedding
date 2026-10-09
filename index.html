@@ -585,7 +585,7 @@
     box-shadow: 0 8px 20px rgba(90,70,60,0.11);
   }
   .cn-person.t2 { border-color: rgba(185,150,104,0.75); }
-  .cn-name { font-family: 'Pinyon Script', cursive; font-size: clamp(1.2rem, 5.2vw, 1.55rem); color: var(--ink); margin: 0; overflow-wrap: normal; word-break: keep-all; }
+  .cn-name { font-family: 'Pinyon Script', cursive; font-size: clamp(1.2rem, 5.2vw, 1.55rem); color: var(--ink); margin: 0; overflow-wrap: anywhere; word-break: normal; }
   .cn-heart { width: clamp(15px, 3.6vw, 18px); height: clamp(15px, 3.6vw, 18px); color: var(--seal); flex-shrink: 0; animation: beat 3.4s ease-in-out 1.5s infinite; }
 
   /* the couple's box splits into two square branches, one to each family */
@@ -624,7 +624,7 @@
 
   .kids-row { row-gap: 1.15rem; }
 
-  .node-name { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600; font-size: 0.76rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink); overflow-wrap: normal; word-break: keep-all; hyphens: none; line-height: 1.3; margin: 0; }
+  .node-name { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600; font-size: 0.76rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink); overflow-wrap: anywhere; word-break: normal; hyphens: none; line-height: 1.3; margin: 0; }
   .p-node .node-name { font-size: 0.84rem; }
   /* a name is never split mid-word: long ones shrink instead (class set by family-tree.js) */
   .node-name.is-long { font-size: 0.66rem; letter-spacing: 0.02em; }
