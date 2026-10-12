@@ -20,7 +20,7 @@ A small wedding website for Saif & Rumaisah.
 - `blessings` — guest messages for the blessings wall. Public INSERT forced to pending by RLS; public SELECT only where approved.
 - `rsvps` — public INSERT, admin-only read.
 - Admin actions go through `SECURITY DEFINER` RPCs that take the password as an argument: `admin_list_pending`, `admin_set_person_status`, `admin_set_relationship_status`, `admin_list_blessings`, `admin_set_blessing_status`, `admin_list_rsvps`, `admin_delete_rsvp` (also takes a `target` uuid), `admin_list_all` and `admin_check` also exist in the DB as SECURITY DEFINER RPCs but are not called from any page in this repo (zero hits in *.js/*.html) — legacy/unreferenced, kept for now rather than dropped. Passwords are **not** in the repo.
-- Schema changes are applied as Supabase migrations (via MCP/CLI), not tracked in this repo — describe them in the PR body.
+- Schema changes are applied as Supabase migrations. The files in `migrations/` and `migrations/SCHEMA_SNAPSHOT.md` document what was applied; `migrations/drafts/` holds proposals that are NOT applied. Describe every schema change in the PR body. An AI assistant never calls the live database.
 
 ## Stack & structure
 
@@ -65,6 +65,7 @@ GitHub Pages caches each file for 10 minutes independently, so a deploy can serv
 2. `npm test` green + visual check before opening the PR.
 3. PR description: **What changed**, **Assumptions**, **What to verify**.
 4. The owner reviews and merges. AI assistants do not merge their own PRs.
+   PR titles, PR bodies and commit messages never contain sealed words (the venue or other undisclosed details): say "the leak list". Reveal day, restore, password change, takedown and guest-data deletion steps are in `docs/RUNBOOKS.md`.
 5. After merge, the OneDrive approved snapshot is refreshed (see the household's ops conventions).
 
 ## Out of scope for now
