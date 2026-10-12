@@ -26,10 +26,10 @@ for (const page of pages) {
   test(`${page} has a title, meta description, favicon, apple-touch-icon and theme-color`, () => {
     assert.match(head, /<title>[^<]+<\/title>/, "missing <title>");
     assert.match(head, /<meta name="description" content="[^"]+"/, "missing meta description");
-    assert.match(head, /<link rel="icon" href="favicon\.svg"/, "missing favicon");
-    assert.match(head, /<link rel="icon" href="favicon\.ico"/, "missing favicon.ico fallback");
-    assert.match(head, /<link rel="apple-touch-icon" href="apple-touch-icon\.png">/, "missing apple-touch-icon");
-    assert.match(head, /<link rel="manifest" href="site\.webmanifest">/, "missing manifest link");
+    assert.match(head, /<link rel="icon" href="\/?favicon\.svg"/, "missing favicon");
+    assert.match(head, /<link rel="icon" href="\/?favicon\.ico"/, "missing favicon.ico fallback");
+    assert.match(head, /<link rel="apple-touch-icon" href="\/?apple-touch-icon\.png">/, "missing apple-touch-icon");
+    assert.match(head, /<link rel="manifest" href="\/?site\.webmanifest">/, "missing manifest link");
     assert.match(head, /<meta name="theme-color" content="#[0-9a-f]+">/i, "missing theme-color");
   });
 
