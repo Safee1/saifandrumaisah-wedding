@@ -17,9 +17,23 @@ test("tree-data.js still exposes the URL and key in the shape the ping reads", (
   assert.match(src, /SUPABASE_ANON_KEY = "[^"]{20,}"/);
 });
 
-test("the ping runs at least every 3 days and calls the public_tree RPC, not a direct table read", () => {
-  assert.match(wf, /cron: "[^"]*\*\/3 \* \*"/);
-  assert.match(wf, /\/rest\/v1\/rpc\/public_tree/);
-  assert.doesNotMatch(wf, /\/rest\/v1\/people\?select=/);
+test("the ping runs at least twice a day and calls the public_tree RPC, not a direct table read", () => {
+  const script = fs.readFileSync(path.join(root, "scripts/keep-db-awake.sh"), "utf8");
+  assert.match(wf, /cron: "\d+ \d+,\d+ \* \* \*"/);
+  assert.match(script, /\/rest\/v1\/rpc\/public_tree/);
+  assert.doesNotMatch(script, /\/rest\/v1\/people\?select=/);
   assert.match(wf, /workflow_dispatch/);
 });
+
+test("the ping never prints the family tree into the public log", () => {
+  const script = fs.readFileSync(path.join(root, "scripts/keep-db-awake.sh"), "utf8");
+  assert.doesNotMatch(script, /cat "?\$body/);
+  assert.doesNotMatch(wf, /cat body\.json/);
+});
+
+test("the workflow re-enables itself instead of committing a heartbeat (main only accepts PRs)", () => {
+  assert.match(wf, /gh workflow enable keep-db-awake\.yml/);
+  assert.doesNotMatch(wf, /git push/);
+  assert.doesNotMatch(wf, /heartbeat:/);
+});
+
