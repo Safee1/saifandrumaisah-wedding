@@ -9,10 +9,10 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://rfopieelzxvnmfhdvqqf.supabase.co; base-uri 'self'; form-action 'self'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Page not found — Saif &amp; Rumaisah</title>
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="icon" href="favicon.ico" sizes="any">
-<link rel="manifest" href="site.webmanifest">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
@@ -33,6 +33,26 @@
   a { font-family: Georgia, serif; font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--side); text-decoration: none; border-bottom: 1px solid var(--line); padding: 12px 6px 2px; display: inline-block; }
   a:hover { color: var(--ink); border-color: var(--ink); }
 </style>
+<script>
+  // GitHub Pages is case-sensitive and rejects a trailing slash: send near-miss
+  // URLs (/RSVP.html, /rsvp/) to the real page. Only ever redirects to a fixed
+  // list, never to anything taken from the request, and never loops.
+  (function () {
+    try {
+      var p = location.pathname;
+      var fixed = p.toLowerCase().replace(/\/+$/, "");
+      var pages = {
+        "": "/", "/index": "/", "/index.html": "/",
+        "/rsvp": "/rsvp.html", "/rsvp.html": "/rsvp.html",
+        "/add-to-tree": "/add-to-tree.html", "/add-to-tree.html": "/add-to-tree.html",
+        "/privacy": "/privacy.html", "/privacy.html": "/privacy.html"
+      };
+      if (fixed !== p && Object.prototype.hasOwnProperty.call(pages, fixed)) {
+        location.replace(pages[fixed] + location.search + location.hash);
+      }
+    } catch (e) {}
+  })();
+</script>
 </head>
 <body>
   <div class="wrap" role="main">
