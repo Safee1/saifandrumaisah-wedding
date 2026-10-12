@@ -6,7 +6,17 @@
 const fs = require("fs");
 const path = require("path");
 
+// Once the couple flip reveal.show, the venue is public on purpose and the
+// guard has nothing left to protect.
+function revealed() {
+  try {
+    const c = require("../js/config.js");
+    return !!(c.reveal && c.reveal.show === true);
+  } catch (e) { return false; }
+}
+
 function load() {
+  if (revealed()) { return []; }
   let raw = process.env.LEAK_TERMS || "";
   const local = path.join(__dirname, ".leak-terms.local");
   if (!raw && fs.existsSync(local)) { raw = fs.readFileSync(local, "utf8"); }
@@ -14,8 +24,11 @@ function load() {
 }
 
 const LEAK_TERMS = load();
-if (!LEAK_TERMS.length) {
-  console.warn("leak-terms: no LEAK_TERMS set — venue leak checks are running with an empty list");
+if (!LEAK_TERMS.length && !revealed()) {
+  const msg = "leak-terms: no LEAK_TERMS set — venue leak checks would run with an empty list";
+  // CI sets REQUIRE_LEAK_TERMS=1: a missing/empty secret must fail the build, not pass it.
+  if (process.env.REQUIRE_LEAK_TERMS === "1") { throw new Error(msg); }
+  console.warn(msg);
 }
 
 function leakRegex() {
