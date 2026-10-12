@@ -42,12 +42,12 @@ test("rsvp_confirmation ignores request text and rebuilds from the newest matchi
 test("blessing_thanks ignores request text and rebuilds from the newest matching blessings row", () => {
   assert.match(src, /findRecentBlessing/);
   assert.match(src, /\.from\("blessings"\)/);
-  assert.match(src, /blessingThanksEmail\(String\(row\.name[\s\S]{0,40}String\(row\.message/);
+  assert.match(src, /blessingThanksEmail\(\s*String\(row\.name[\s\S]{0,40}String\(row\.message/);
   assert.match(src, /alreadySentForRef\(sb, "blessing_thanks", String\(row\.id\)\)/);
 });
 
 test("ops alerts require a matching activity_log row and a 20/hour global cap", () => {
-  assert.match(src, /hasRecentActivity/);
+  assert.match(src, /findRecentActivity/);
   assert.match(src, /\.from\("activity_log"\)/);
   assert.match(src, /OPS_ALERT_HOURLY_CAP\s*=\s*20/);
   assert.match(src, /opsAlertsOverCap/);
