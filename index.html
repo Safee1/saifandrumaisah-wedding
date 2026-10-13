@@ -1647,9 +1647,11 @@
   <script src="js/travel.js?v=52"></script>
   <script>
     // the wedding date and travel switch live in js/config.js
-    var WEDDING_DATE = WeddingConfig.date;
-    var TRAVEL = WeddingConfig.travel;
-    var REVEAL = WeddingConfig.reveal || { at: null, show: false };
+    // a missing or blocked js/config.js must not take the teaser and RSVP button with it
+    var CFG = (typeof WeddingConfig !== "undefined" && WeddingConfig) || {};
+    var WEDDING_DATE = CFG.date || "";
+    var TRAVEL = CFG.travel || { show: false, destination: "", country: "" };
+    var REVEAL = CFG.reveal || { at: null, show: false };
 
     // While the date/destination aren't revealed yet, replace the plain
     // "date to be confirmed" line with a teaser (optionally counting down
