@@ -20,8 +20,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
-<link rel="preload" as="script" fetchpriority="low" href="js/net.js?v=50">
-<link rel="preload" as="script" fetchpriority="low" href="js/tree-data.js?v=50">
+<link rel="preload" as="script" fetchpriority="low" href="js/net.js?v=51">
+<link rel="preload" as="script" fetchpriority="low" href="js/tree-data.js?v=51">
+<link rel="preload" as="script" fetchpriority="low" href="js/admin-people.js?v=51">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   :root {
@@ -101,10 +102,17 @@
 
     <h1 class="title" style="margin-top:2.5rem">rejected (restore)</h1>
     <div id="rejectedList"></div>
+
+    <h1 class="title" style="margin-top:2.5rem">people (child or adult)</h1>
+    <p class="dupe-note" style="margin:-1rem 0 1rem">Anyone marked as a child shows on the public tree as &ldquo;Little one&rdquo;. Everyone else shows by name.</p>
+    <input type="text" id="peopleFilter" aria-label="Find a person by name" placeholder="Find a name" autocomplete="off" style="width:100%; max-width:340px; display:block; margin:0 auto 1rem; font-family:inherit; font-size:1rem; padding:0.6rem 0.8rem; border-radius:10px; border:1px solid rgba(64,88,122,0.3)">
+    <p class="dupe-note" id="peopleStatus" role="status" style="margin:0 0 1rem"></p>
+    <div id="peopleList"></div>
   </div>
 
-  <script src="js/net.js?v=50"></script>
-  <script src="js/tree-data.js?v=50"></script>
+  <script src="js/net.js?v=51"></script>
+  <script src="js/tree-data.js?v=51"></script>
+  <script src="js/admin-people.js?v=51"></script>
   <script>
     (function () {
       var pw = null;
@@ -398,9 +406,46 @@
         }).catch(function () { /* leave the list as-is */ });
       }
 
+      // People list: mark someone as a child (shown as "Little one" on the public tree) or as an adult
+      var peopleList = document.getElementById("peopleList");
+      var peopleFilter = document.getElementById("peopleFilter");
+      var peopleStatus = document.getElementById("peopleStatus");
+      var peopleRows = [];
+
+      function drawPeople() {
+        AdminPeople.render(peopleList, AdminPeople.filterPeople(AdminPeople.sortPeople(peopleRows), peopleFilter.value), togglePerson);
+      }
+
+      function loadPeople() {
+        TreeData.rpc("admin_list_all", { pw: pw }).then(function (rows) {
+          peopleRows = rows || [];
+          drawPeople();
+        }).catch(function () {
+          peopleStatus.textContent = "People couldn’t load. Tap Refresh to try again.";
+        });
+      }
+
+      function togglePerson(row, nextKid, btn) {
+        btn.disabled = true;
+        peopleStatus.textContent = "";
+        TreeData.rpc("admin_set_person_kid", { pw: pw, target: row.id, new_kid: nextKid }).then(function () {
+          row.is_kid = nextKid;
+          drawPeople();
+          peopleStatus.textContent = row.name + (nextKid ? " now shows as “Little one”." : " now shows by name.");
+        }).catch(function (err) {
+          btn.disabled = false;
+          peopleStatus.textContent = (err && err.status === 404)
+            ? "Not installed yet: the database needs the admin_set_person_kid update first."
+            : "Couldn’t save. Try again.";
+        });
+      }
+
+      peopleFilter.addEventListener("input", drawPeople);
+
       function renderAll(treeRows, seq) {
         loadInvites();
         loadRejected();
+        loadPeople();
         list.innerHTML = "";
         treeRows.forEach(function (row) { list.appendChild(buildTreeItem(row)); });
         TreeData.rpc("admin_list_blessings", { pw: pw })
