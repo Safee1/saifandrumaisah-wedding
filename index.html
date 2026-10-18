@@ -24,18 +24,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
-<link rel="preload" as="script" fetchpriority="low" href="js/addressee.js?v=53">
-<link rel="preload" as="script" fetchpriority="low" href="js/net.js?v=53">
-<link rel="preload" as="script" fetchpriority="low" href="js/tree-data.js?v=53">
-<link rel="preload" as="script" fetchpriority="low" href="js/family-plan.js?v=53">
-<link rel="preload" as="script" fetchpriority="low" href="js/family-lines.js?v=53">
-<link rel="preload" as="script" fetchpriority="low" href="js/family-tree.js?v=53">
-<link rel="preload" as="script" fetchpriority="low" href="js/blessings-data.js?v=53">
-<link rel="preload" as="script" fetchpriority="low" href="js/config.js?v=53">
-<link rel="preload" as="script" fetchpriority="low" href="js/countdown.js?v=53">
-<link rel="preload" as="script" fetchpriority="low" href="js/travel.js?v=53">
-<link rel="stylesheet" href="css/envelope.css?v=53">
-<link rel="stylesheet" href="css/travel.css?v=53">
+<link rel="preload" as="script" fetchpriority="low" href="js/addressee.js?v=54">
+<link rel="preload" as="script" fetchpriority="low" href="js/net.js?v=54">
+<link rel="preload" as="script" fetchpriority="low" href="js/tree-data.js?v=54">
+<link rel="preload" as="script" fetchpriority="low" href="js/family-plan.js?v=54">
+<link rel="preload" as="script" fetchpriority="low" href="js/family-lines.js?v=54">
+<link rel="preload" as="script" fetchpriority="low" href="js/family-tree.js?v=54">
+<link rel="preload" as="script" fetchpriority="low" href="js/blessings-data.js?v=54">
+<link rel="preload" as="script" fetchpriority="low" href="js/config.js?v=54">
+<link rel="preload" as="script" fetchpriority="low" href="js/countdown.js?v=54">
+<link rel="preload" as="script" fetchpriority="low" href="js/travel.js?v=54">
+<link rel="stylesheet" href="css/envelope.css?v=54">
+<link rel="stylesheet" href="css/travel.css?v=54">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   :root {
@@ -723,6 +723,11 @@
   .tree-full .tw-dup { display: none; }
   .tree-full .tw-xref { display: block; font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-size: 0.9rem; color: var(--muted); margin: 0.6rem 0 0; }
 
+  .family-code { text-align: center; margin: 1.6rem auto 0; max-width: 22rem; }
+  .family-code[hidden], .family-code-form[hidden] { display: none; }
+  .family-code-form { display: flex; gap: 0.5rem; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: 0.7rem; }
+  .family-code-form input { font-family: inherit; font-size: 1rem; padding: 0.55rem 0.8rem; border-radius: 999px; border: 1px solid rgba(64,88,122,0.3); min-width: 0; width: 11rem; }
+  .family-code-status { margin: 0.5rem 0 0; font-size: 0.85rem; color: var(--muted); min-height: 1.2em; }
   .tree-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.7rem; margin: 2.9rem auto 0; }
   .add-link {
     display: inline-flex; align-items: center; justify-content: center; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: 0.76rem; letter-spacing: 0.16em;
@@ -1251,6 +1256,15 @@
       <span class="unlock-sub">tap to meet everyone</span>
     </button>
 
+    <div class="family-code" id="familyCode" hidden>
+      <button type="button" class="add-link" id="familyCodeOpen">family? enter the family code to see everyone&rsquo;s names</button>
+      <form class="family-code-form" id="familyCodeForm" hidden>
+        <input type="password" id="familyCodeInput" aria-label="Family code" autocomplete="off" placeholder="family code">
+        <button type="submit" class="add-link" id="familyCodeGo">show names</button>
+      </form>
+      <p class="family-code-status" id="familyCodeStatus" role="status"></p>
+    </div>
+
     <p class="legend" hidden><svg class="kid-star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><use href="#star-shape"></use></svg> the little ones &nbsp;&middot;&nbsp; navy for Saif's side, gold for Rumaisah's &nbsp;&middot;&nbsp; <svg class="plus-mark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><use href="#plus-shape"></use></svg> tap a name to meet their family</p>
     <div class="tree-actions" hidden>
       <button type="button" class="add-link" id="viewToggle" hidden>see the whole family</button>
@@ -1378,7 +1392,7 @@
 
   <footer><p class="footer">more details coming soon &middot; <a href="privacy.html">privacy</a></p></footer>
 
-  <script src="js/addressee.js?v=53"></script>
+  <script src="js/addressee.js?v=54"></script>
   <script>
     (function () {
       var root = document.documentElement;
@@ -1413,12 +1427,12 @@
       });
     })();
   </script>
-  <script src="js/net.js?v=53"></script>
-  <script src="js/tree-data.js?v=53"></script>
-  <script src="js/family-plan.js?v=53"></script>
-  <script src="js/family-lines.js?v=53"></script>
-  <script src="js/family-tree.js?v=53"></script>
-  <script src="js/blessings-data.js?v=53"></script>
+  <script src="js/net.js?v=54"></script>
+  <script src="js/tree-data.js?v=54"></script>
+  <script src="js/family-plan.js?v=54"></script>
+  <script src="js/family-lines.js?v=54"></script>
+  <script src="js/family-tree.js?v=54"></script>
+  <script src="js/blessings-data.js?v=54"></script>
   <script>
     // shared: content grows in as each part reaches the viewport
     function revealOnScroll(scope) {
@@ -1448,6 +1462,72 @@
       var unlockBtn = document.getElementById("unlockFamily");
       var toggle = document.getElementById("viewToggle");
       var loading = false;
+      var codeBox = document.getElementById("familyCode");
+      var codeOpen = document.getElementById("familyCodeOpen");
+      var codeForm = document.getElementById("familyCodeForm");
+      var codeInput = document.getElementById("familyCodeInput");
+      var codeGo = document.getElementById("familyCodeGo");
+      var codeStatus = document.getElementById("familyCodeStatus");
+      var full = false, wired = false;
+
+      // draws the tree (the public one, or the family one with real names)
+      function paint(data) {
+        FamilyTree.render(container, data, {
+          captions: { saif: "brothers & sisters", rumaisah: "sisters" },
+          onRendered: revealOnScroll
+        });
+        var sides = container.querySelector(".sides");
+        toggle.hidden = !container.querySelector(".fold");
+        if (sides) { sides.hidden = false; }
+        legend.hidden = false;
+        actions.hidden = false;
+        codeBox.hidden = false;
+        unlockBtn.hidden = true;
+        var els = container.querySelectorAll(".rv, .rv-draw");
+        for (var i = 0; i < els.length; i++) {
+          els[i].style.transitionDelay = Math.min(i * 45, 500) + "ms";
+          els[i].classList.add("in");
+        }
+        FamilyTree.redraw(container);
+        if (full) { FamilyTree.setFullView(container, true); }
+      }
+
+      function wireToggle() {
+        if (wired) { return; }
+        wired = true;
+        toggle.addEventListener("click", function () {
+          full = !full;
+          FamilyTree.setFullView(container, full);
+          toggle.textContent = full ? "back to the picture" : "see the whole family";
+          // bring the top of the tree back into view either way
+          container.scrollIntoView({ block: "start", behavior: calm() ? "auto" : "smooth" });
+        });
+      }
+
+      // the family code: right = the tree again with real names; wrong = a plain message
+      function tryCode(code, quiet) {
+        codeGo.disabled = true;
+        if (!quiet) { codeStatus.textContent = "checking\u2026"; }
+        return Promise.resolve().then(function () { return TreeData.fetchFamilyTree(code); }).then(function (data) {
+          paint(data);
+          try { sessionStorage.setItem("familyCode", code); } catch (e) {}
+          codeForm.hidden = true;
+          codeOpen.hidden = true;
+          codeStatus.textContent = "Showing everyone\u2019s names for family.";
+        }).catch(function (err) {
+          if (quiet) { try { sessionStorage.removeItem("familyCode"); } catch (e) {} }
+          codeStatus.textContent = quiet ? "" : (err && err.status === 400
+            ? "That code isn\u2019t right. Please check it with the family."
+            : "Couldn\u2019t check the code right now. Please try again in a few minutes.");
+        }).then(function () { codeGo.disabled = false; });
+      }
+      codeOpen.addEventListener("click", function () { codeForm.hidden = false; codeInput.focus(); });
+      codeForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var code = codeInput.value.trim();
+        if (!code) { codeStatus.textContent = "Please type the family code."; return; }
+        tryCode(code, false);
+      });
 
       // No tree data is fetched until "unlock our families" is tapped —
       // nothing about the tree, kids included, goes over the network on
@@ -1463,35 +1543,13 @@
         container.appendChild(status);
 
         Promise.resolve().then(function () { return TreeData.fetchApprovedTree(); }).then(function (data) {
-          FamilyTree.render(container, data, {
-            captions: { saif: "brothers & sisters", rumaisah: "sisters" },
-            onRendered: revealOnScroll
-          });
-
-          var sides = container.querySelector(".sides");
-          toggle.hidden = !container.querySelector(".fold");
-
-          if (sides) { sides.hidden = false; }
-          legend.hidden = false;
-          actions.hidden = false;
-          unlockBtn.hidden = true;
-
-          var els = container.querySelectorAll(".rv, .rv-draw");
-          for (var i = 0; i < els.length; i++) {
-            els[i].style.transitionDelay = Math.min(i * 45, 500) + "ms";
-            els[i].classList.add("in");
-          }
-          FamilyTree.redraw(container);
+          paint(data);
           container.scrollIntoView({ block: "start", behavior: calm() ? "auto" : "smooth" });
-
-          var full = false;
-          toggle.addEventListener("click", function () {
-            full = !full;
-            FamilyTree.setFullView(container, full);
-            toggle.textContent = full ? "back to the picture" : "see the whole family";
-            // bring the top of the tree back into view either way
-            container.scrollIntoView({ block: "start", behavior: calm() ? "auto" : "smooth" });
-          });
+          wireToggle();
+          // a code typed earlier in this visit is tried again quietly
+          var saved = null;
+          try { saved = sessionStorage.getItem("familyCode"); } catch (e) {}
+          if (saved) { tryCode(saved, true); }
         }).catch(function () {
           container.textContent = "";
           var errStatus = document.createElement("p");
@@ -1652,9 +1710,9 @@
       });
     })();
   </script>
-  <script src="js/config.js?v=53"></script>
-  <script src="js/countdown.js?v=53"></script>
-  <script src="js/travel.js?v=53"></script>
+  <script src="js/config.js?v=54"></script>
+  <script src="js/countdown.js?v=54"></script>
+  <script src="js/travel.js?v=54"></script>
   <script>
     // the wedding date and travel switch live in js/config.js
     // a missing or blocked js/config.js must not take the teaser and RSVP button with it

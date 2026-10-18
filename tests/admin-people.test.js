@@ -39,7 +39,7 @@ test("labels say what the button will do", () => {
 test("tree-admin loads the helper, uses the new RPC and shows names with textContent only", () => {
   const html = rd("tree-admin.html");
   const helper = rd("js/admin-people.js");
-  assert.match(html, /<script src="js\/admin-people\.js\?v=51"><\/script>/);
+  assert.match(html, /<script src="js\/admin-people\.js\?v=\d+"><\/script>/);
   assert.match(html, /admin_set_person_kid/);
   assert.match(html, /admin_list_all/);
   assert.doesNotMatch(helper, /innerHTML/);
