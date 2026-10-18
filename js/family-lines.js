@@ -80,6 +80,55 @@
     el.style.left = (cur + dx) + "px";
   }
 
+  // The middle of the gap between two neighbouring boxes of a row that is
+  // closest to x, or null if the row has no real gap (one box, or touching).
+  function nearestGap(row, x) {
+    var b = (row.boxes || []).slice().sort(function (p, q) { return p.x - q.x; });
+    var best = null, bestD = Infinity;
+    for (var i = 1; i < b.length; i++) {
+      var left = b[i - 1].x + b[i - 1].w, right = b[i].x;
+      if (right - left >= 4) {
+        var gx = (left + right) / 2, d = Math.abs(gx - x);
+        if (d < bestD) { bestD = d; best = gx; }
+      }
+    }
+    return best;
+  }
+
+  // Works out every line for one family's children, with no DOM: a spine
+  // from the couple to the first bar, one bar per row with a tick to each
+  // child, and, when siblings wrap onto more rows, a short trunk that drops
+  // through the gap between two boxes to the next bar (so the lines make one
+  // tidy ladder instead of a big C down the margin). A row with no gap falls
+  // back to a trunk beside its left edge. Returns [{ cls, d }] plus the dot.
+  function routeRows(rows, startX, startY) {
+    var out = [], dotAt = null, trunkX = startX, prevBarY = startY;
+    rows.forEach(function (row, idx) {
+      var barY = row.top - BAR_GAP;
+      var minX = Math.min.apply(null, row.xs.concat([trunkX]));
+      var maxX = Math.max.apply(null, row.xs.concat([trunkX]));
+      // where the trunk leaves this row for the next one
+      var nextTrunk = null;
+      if (idx < rows.length - 1) {
+        nextTrunk = nearestGap(row, trunkX);
+        if (nextTrunk === null) { nextTrunk = Math.max(3, row.lx - BAR_GAP); }
+        minX = Math.min(minX, nextTrunk);
+        maxX = Math.max(maxX, nextTrunk);
+      }
+      out.push({ cls: "ln-spine", d: "M" + trunkX + " " + prevBarY + " L" + trunkX + " " + barY });
+      if (maxX - minX > 0.5) {
+        out.push({ cls: "ln-bar", d: "M" + minX + " " + barY + " L" + maxX + " " + barY });
+      }
+      row.xs.forEach(function (x) {
+        out.push({ cls: "ln-tick", d: "M" + x + " " + barY + " L" + x + " " + row.top });
+      });
+      if (idx === 0) { dotAt = { x: startX, y: barY }; }
+      prevBarY = barY;
+      if (nextTrunk !== null) { trunkX = nextTrunk; }
+    });
+    return { paths: out, dot: dotAt };
+  }
+
   function drawUnit(fu, chart, svg) {
     var couple = children(fu, ".fu-couple")[0];
     var kidsEl = children(fu, ".fu-kids")[0];
@@ -100,8 +149,9 @@
       var top = Math.round(bb.y);
       var row = null;
       for (var i = 0; i < rows.length; i++) { if (Math.abs(rows[i].top - top) < 6) { row = rows[i]; break; } }
-      if (!row) { row = { top: top, xs: [], lx: bb.x }; rows.push(row); }
+      if (!row) { row = { top: top, xs: [], lx: bb.x, boxes: [] }; rows.push(row); }
       row.xs.push(bb.cx);
+      row.boxes.push({ x: bb.x, w: bb.w });
       if (bb.x < row.lx) { row.lx = bb.x; }
     });
     rows.sort(function (p, q) { return p.top - q.top; });
@@ -124,34 +174,9 @@
     }
     if (!rows.length) { return; }
 
-    var startX = g.x, prevY = g.y;
-    // a wrapped row of siblings: later rows hang off a spine in the left
-    // margin, not off the couple's x (which runs straight through the
-    // middle sibling's box and made the next row look like their children)
-    var gutterX = null;
-    if (rows.length > 1) {
-      gutterX = Math.max(3, Math.min.apply(null, rows.map(function (r) { return r.lx; })) - BAR_GAP);
-    }
-    rows.forEach(function (row, idx) {
-      var barY = row.top - BAR_GAP;
-      var from = (idx === 0) ? startX : gutterX;
-      var minX = Math.min.apply(null, row.xs.concat([from]));
-      var maxX = Math.max.apply(null, row.xs.concat([from]));
-      if (idx === 0) {
-        svg.appendChild(path("M" + startX + " " + prevY + " L" + startX + " " + barY, "ln-spine"));
-        if (gutterX !== null) { minX = Math.min(minX, gutterX); }
-      } else {
-        svg.appendChild(path("M" + gutterX + " " + prevY + " L" + gutterX + " " + barY, "ln-spine"));
-      }
-      if (row.xs.length > 1 || Math.abs(row.xs[0] - from) > 1 || idx > 0) {
-        svg.appendChild(path("M" + minX + " " + barY + " L" + maxX + " " + barY, "ln-bar"));
-      }
-      row.xs.forEach(function (x) {
-        svg.appendChild(path("M" + x + " " + barY + " L" + x + " " + row.top, "ln-tick"));
-      });
-      if (idx === 0) { svg.appendChild(dot(startX, barY)); }
-      prevY = barY;
-    });
+    var plan = routeRows(rows, g.x, g.y);
+    plan.paths.forEach(function (p) { svg.appendChild(path(p.d, p.cls)); });
+    if (plan.dot) { svg.appendChild(dot(plan.dot.x, plan.dot.y)); }
   }
 
   function draw(chart) {
@@ -187,5 +212,5 @@
     for (var i = 0; i < charts.length; i++) { draw(charts[i]); }
   }
 
-  return { draw: draw, drawAll: drawAll };
+  return { draw: draw, drawAll: drawAll, routeRows: routeRows, nearestGap: nearestGap };
 });
