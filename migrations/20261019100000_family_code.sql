@@ -1,9 +1,10 @@
 -- =====================================================================
 -- 20261019100000_family_code.sql
 --
--- DRAFT. NOT applied anywhere. Needs the owner's review: it adds a table and two
--- functions that decide who may see children's real names. Written without a
--- running database, so it is UNTESTED: try it on a scratch copy first.
+-- Applied to prod 2026-10-21; matches live; reviewed-for-existence (function
+-- bodies, RLS on with no policies, no anon/authenticated table grants, checked
+-- read-only against the live DB). Not behaviour-tested with a real code.
+-- Adds a table and two functions that decide who may see children's real names.
 --
 -- WHY (owner choice "B", 19 Oct 2026)
 --   public_tree() shows "Little one" for every child, to everyone. The owners
