@@ -63,7 +63,7 @@ test("the admin page can set the code, and tells the owner when the database upd
 });
 
 test("the draft migration stores only a hash, hides the table, keeps public_tree untouched and can be rolled back", () => {
-  const sql = rd("migrations/drafts/20261019100000_family_code.sql");
+  const sql = rd("migrations/20261019100000_family_code.sql");
   assert.match(sql, /code_hash text not null/);
   assert.match(sql, /alter table public\.family_access enable row level security;/);
   assert.match(sql, /revoke all on public\.family_access from anon, authenticated;/);
@@ -74,11 +74,10 @@ test("the draft migration stores only a hash, hides the table, keeps public_tree
   assert.match(sql, /gen_salt\('bf', 10\)/);
   assert.match(sql, /drop table if exists public\.family_access;/);
   assert.doesNotMatch(sql, /create or replace function public\.public_tree/, "the public tree is not changed");
-  assert.ok(!fs.existsSync(path.join(__dirname, "..", "migrations", "20261019100000_family_code.sql")), "draft stays in migrations/drafts");
 });
 
 test("the family tree function returns the same shape as public_tree, with real names", () => {
-  const sql = rd("migrations/drafts/20261019100000_family_code.sql");
+  const sql = rd("migrations/20261019100000_family_code.sql");
   const pub = rd("migrations/20260924_public_tree_hide_kid_names.sql");
   ["'people'", "'relationships'", "'id', p.id", "'side', p.side", "'is_kid', p.is_kid", "'from_person', r.from_person"].forEach((k) => {
     assert.ok(sql.includes(k) && pub.includes(k), "missing " + k);
