@@ -24,18 +24,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
-<link rel="preload" as="script" fetchpriority="low" href="js/addressee.js?v=54">
-<link rel="preload" as="script" fetchpriority="low" href="js/net.js?v=54">
-<link rel="preload" as="script" fetchpriority="low" href="js/tree-data.js?v=54">
-<link rel="preload" as="script" fetchpriority="low" href="js/family-plan.js?v=54">
-<link rel="preload" as="script" fetchpriority="low" href="js/family-lines.js?v=54">
-<link rel="preload" as="script" fetchpriority="low" href="js/family-tree.js?v=54">
-<link rel="preload" as="script" fetchpriority="low" href="js/blessings-data.js?v=54">
-<link rel="preload" as="script" fetchpriority="low" href="js/config.js?v=54">
-<link rel="preload" as="script" fetchpriority="low" href="js/countdown.js?v=54">
-<link rel="preload" as="script" fetchpriority="low" href="js/travel.js?v=54">
-<link rel="stylesheet" href="css/envelope.css?v=54">
-<link rel="stylesheet" href="css/travel.css?v=54">
+<link rel="preload" as="script" fetchpriority="low" href="js/addressee.js?v=55">
+<link rel="preload" as="script" fetchpriority="low" href="js/net.js?v=55">
+<link rel="preload" as="script" fetchpriority="low" href="js/tree-data.js?v=55">
+<link rel="preload" as="script" fetchpriority="low" href="js/family-plan.js?v=55">
+<link rel="preload" as="script" fetchpriority="low" href="js/family-lines.js?v=55">
+<link rel="preload" as="script" fetchpriority="low" href="js/family-tree.js?v=55">
+<link rel="preload" as="script" fetchpriority="low" href="js/blessings-data.js?v=55">
+<link rel="preload" as="script" fetchpriority="low" href="js/config.js?v=55">
+<link rel="preload" as="script" fetchpriority="low" href="js/countdown.js?v=55">
+<link rel="preload" as="script" fetchpriority="low" href="js/travel.js?v=55">
+<link rel="stylesheet" href="css/envelope.css?v=55">
+<link rel="stylesheet" href="css/travel.css?v=55">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   :root {
@@ -601,6 +601,9 @@
   /* the couple's box splits into two square branches, one to each family */
   .flow-link { display: block; width: clamp(150px, 42vw, 220px); height: auto; margin: 0.4rem auto 0; overflow: visible; }
   .flow-link path { fill: none; stroke: rgba(185,150,104,0.75); stroke-width: 1.5; stroke-linecap: square; }
+  /* each side keeps its own colour from the couple down: Saif's navy-blue, Rumaisah's gold */
+  .flow-link path.leg-saif { stroke: rgba(91,123,163,0.85); }
+  .flow-link path.leg-rumaisah { stroke: rgba(185,150,104,0.9); }
 
   /* every family member is a plain bordered box — a chart, not a
      portrait gallery — with a fine coloured top edge for which side.
@@ -693,6 +696,9 @@
   /* square right-angle connectors — a chart, not a hand-drawn branch */
   .ln-marriage, .ln-spine, .ln-bar, .ln-tick { fill: none; stroke: rgba(34,48,73,0.4); stroke-width: 1.4; stroke-linecap: square; }
   .ln-dot { fill: rgba(185,150,104,0.95); }
+  .side-saif .ln-marriage, .side-saif .ln-spine, .side-saif .ln-bar, .side-saif .ln-tick { stroke: rgba(91,123,163,0.6); }
+  .side-rumaisah .ln-marriage, .side-rumaisah .ln-spine, .side-rumaisah .ln-bar, .side-rumaisah .ln-tick { stroke: rgba(185,150,104,0.75); }
+  .side-saif .ln-dot { fill: rgba(91,123,163,0.95); }
   .fu { display: inline-flex; flex-direction: column; align-items: center; vertical-align: top; position: relative; z-index: 1; }
   .fu-couple { display: flex; align-items: flex-start; justify-content: center; gap: 14px; }
   .fu-kids { display: flex; flex-wrap: nowrap; align-items: flex-start; justify-content: center; gap: 10px; margin-top: 38px; }
@@ -1392,7 +1398,7 @@
 
   <footer><p class="footer">more details coming soon &middot; <a href="privacy.html">privacy</a></p></footer>
 
-  <script src="js/addressee.js?v=54"></script>
+  <script src="js/addressee.js?v=55"></script>
   <script>
     (function () {
       var root = document.documentElement;
@@ -1427,12 +1433,12 @@
       });
     })();
   </script>
-  <script src="js/net.js?v=54"></script>
-  <script src="js/tree-data.js?v=54"></script>
-  <script src="js/family-plan.js?v=54"></script>
-  <script src="js/family-lines.js?v=54"></script>
-  <script src="js/family-tree.js?v=54"></script>
-  <script src="js/blessings-data.js?v=54"></script>
+  <script src="js/net.js?v=55"></script>
+  <script src="js/tree-data.js?v=55"></script>
+  <script src="js/family-plan.js?v=55"></script>
+  <script src="js/family-lines.js?v=55"></script>
+  <script src="js/family-tree.js?v=55"></script>
+  <script src="js/blessings-data.js?v=55"></script>
   <script>
     // shared: content grows in as each part reaches the viewport
     function revealOnScroll(scope) {
@@ -1710,9 +1716,9 @@
       });
     })();
   </script>
-  <script src="js/config.js?v=54"></script>
-  <script src="js/countdown.js?v=54"></script>
-  <script src="js/travel.js?v=54"></script>
+  <script src="js/config.js?v=55"></script>
+  <script src="js/countdown.js?v=55"></script>
+  <script src="js/travel.js?v=55"></script>
   <script>
     // the wedding date and travel switch live in js/config.js
     // a missing or blocked js/config.js must not take the teaser and RSVP button with it

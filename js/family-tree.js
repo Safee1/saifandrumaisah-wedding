@@ -91,12 +91,14 @@
     svg.setAttribute("viewBox", "0 0 120 56");
     svg.setAttribute("preserveAspectRatio", "none");
     svg.setAttribute("aria-hidden", "true");
+    // left leg = Saif's side, right leg = Rumaisah's: each takes that side's colour
     [
-      "M60 2 L60 22 L12 22 L12 54",
-      "M60 2 L60 22 L108 22 L108 54"
-    ].forEach(function (d) {
+      { d: "M60 2 L60 22 L12 22 L12 54", side: "saif" },
+      { d: "M60 2 L60 22 L108 22 L108 54", side: "rumaisah" }
+    ].forEach(function (leg) {
       var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      path.setAttribute("d", d);
+      path.setAttribute("d", leg.d);
+      path.setAttribute("class", "leg-" + leg.side);
       path.setAttribute("pathLength", "100");
       svg.appendChild(path);
     });
@@ -491,7 +493,7 @@
     ["saif", "rumaisah"].forEach(function (sideKey) {
       var sidePeople = data.people.filter(function (p) { return p.side === sideKey; });
       if (!sidePeople.length) { return; }
-      var sideEl = makeEl("div", "side");
+      var sideEl = makeEl("div", "side side-" + sideKey);
       sideEl.appendChild(makeEl("h3", "side-label rv", SIDE_LABELS[sideKey] || sideKey));
       renderSide(sideEl, sidePeople, graph, crown, captions[sideKey]);
       sides.appendChild(sideEl);
