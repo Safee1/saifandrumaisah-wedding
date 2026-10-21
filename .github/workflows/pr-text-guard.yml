@@ -1,0 +1,19 @@
+name: pr-text-guard
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Sealed terms must not appear in PR text
+        if: github.event_name == 'pull_request'
+        env:
+          LEAK_TERMS: ${{ secrets.LEAK_TERMS }}
+          PR_TEXT: ${{ github.event.pull_request.title }} ${{ github.event.pull_request.body }}
+        run: |
+          [ -n "$LEAK_TERMS" ] || { echo "::error::LEAK_TERMS is empty: guard cannot run"; exit 1; }
+          if printf '%s' "$PR_TEXT" | grep -i -q -F -f <(printf '%s' "$LEAK_TERMS" | tr ',' '\n' | sed '/^$/d'); then echo "::error::a sealed term is in the PR text"; exit 1; fi

@@ -506,6 +506,15 @@
           .catch(function () { maStatus.textContent = "Test didn't send — try again."; });
       });
 
+      // A reply we could not read, or none at all, does not mean nothing was sent:
+      // some guests may already have the email. Keep Send off and make the admin
+      // re-test, so a retry cannot mail everyone twice.
+      function sendUncertain() {
+        testSentOk = false;
+        maSendBtn.disabled = true;
+        maStatus.textContent = "We lost the connection while sending. Some guests may already have it. Check the Emails tab before trying again.";
+      }
+
       maSendBtn.addEventListener("click", function () {
         if (!pw || !maSubject.value || !maBody.value) { maStatus.textContent = "Write a subject and message first."; return; }
         if (!testSentOk) { maStatus.textContent = "Send yourself a test first, and check it, before sending to every guest."; return; }
@@ -514,11 +523,11 @@
         maStatus.textContent = "Sending to all guests…";
         callNotify({ kind: "message_all", adminPw: pw, subject: maSubject.value, html: wrapMessage(maBody.value), text: maBody.value, test: false })
           .then(function (res) {
-            maSendBtn.disabled = false;
-            if (res.sent) { maStatus.textContent = "Sent to " + (res.sentCount || 0) + " of " + (res.count || 0) + " guests."; testSentOk = false; }
-            else { maStatus.textContent = res.reason || "Didn't send — try again."; }
+            if (res.sent) { maSendBtn.disabled = false; maStatus.textContent = "Sent to " + (res.sentCount || 0) + " of " + (res.count || 0) + " guests."; testSentOk = false; }
+            else if (res.reason) { maSendBtn.disabled = false; maStatus.textContent = res.reason; }
+            else { sendUncertain(); }
           })
-          .catch(function () { maSendBtn.disabled = false; maStatus.textContent = "Didn't send — try again."; });
+          .catch(sendUncertain);
       });
     })();
   </script>

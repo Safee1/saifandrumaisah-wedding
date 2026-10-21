@@ -91,6 +91,17 @@
     });
   }
 
+  // The same tree with the children's real names, for someone who knows the
+  // family code. A wrong code is a 400 ("wrong code"), reported as err.status.
+  function fetchFamilyTree(code) {
+    return rpc("family_tree", { code: String(code == null ? "" : code) }).then(function (data) {
+      if (!data || !Array.isArray(data.people) || !Array.isArray(data.relationships)) {
+        throw new Error("Unexpected response from the tree");
+      }
+      return data;
+    });
+  }
+
   function newId() {
     if (root.crypto && root.crypto.randomUUID) { return root.crypto.randomUUID(); }
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
@@ -158,6 +169,7 @@
     submitRelationship: submitRelationship,
     submitWithInvite: submitWithInvite,
     submitOpen: submitOpen,
+    fetchFamilyTree: fetchFamilyTree,
     notify: notify,
     rpc: rpc,
     restGet: restGet
