@@ -6,8 +6,10 @@
 // from the browser (a bare fetch().catch(() => {})).
 //
 // POST bodies:
-//   { "kind": "rsvp_submitted" | "tree_submitted" | "blessing_submitted", "summary": "...", "adminPath": "rsvp-admin.html" }
-//     -> ops alert to NOTIFY_TO (couple)
+//   { "kind": "rsvp_submitted" | "tree_submitted" | "blessing_submitted" | "admin_lockout" }
+//     -> ops alert to NOTIFY_TO (couple). Any "summary"/"adminPath" in the
+//        request is ignored: the text is the newest activity_log row of that
+//        kind (once per row) and the link comes from the fixed ALERTS list
 //   { "kind": "blessing_thanks", "email": "..." }
 //     -> guest-facing thank-you; name/message ignored and rebuilt from the
 //        newest blessings row for that email in the last 10 minutes; one
@@ -17,13 +19,14 @@
 //        from the newest rsvps row for that email in the last 10 minutes;
 //        one send per row, capped at 5/email/hour
 //   { "kind": "message_all", "adminPw": "...", "subject": "...", "html": "...", "text": "...", "test": true|false }
-//     -> admin broadcast; test=true sends only to NOTIFY_TO; otherwise to
-//        every distinct RSVP email, deduped, rate-limited, logged
+//     -> admin broadcast; goes to every distinct RSVP email only when test
+//        is the boolean false, anything else sends only to NOTIFY_TO
 //   { "digest": true } with header X-Digest-Secret: <DIGEST_SECRET>
 //     -> 24h activity summary
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { ALERTS, canQuoteBlessing, isTestBroadcast, safeFirstName, validRecipient } from "./guards.mjs";
 
 const SITE = "https://saifandrumaisah.com";
 const FROM = "Saif & Rumaisah <hello@saifandrumaisah.com>";
@@ -72,14 +75,15 @@ function minutesAgoIso(ms: number): string {
 // Ops alerts (rsvp_submitted / tree_submitted / blessing_submitted /
 // admin_lockout) only ever fire off the back of a real, recent row in
 // activity_log — never from an arbitrary POST body alone.
-async function hasRecentActivity(sb: ReturnType<typeof createClient>, kind: string): Promise<boolean> {
+async function findRecentActivity(sb: ReturnType<typeof createClient>, kind: string) {
   const { data } = await sb
     .from("activity_log")
-    .select("id")
+    .select("id, summary")
     .eq("kind", kind)
     .gte("created_at", minutesAgoIso(TEN_MINUTES_MS))
+    .order("created_at", { ascending: false })
     .limit(1);
-  return !!(data && data.length);
+  return data && data.length ? data[0] : null;
 }
 
 async function opsAlertsOverCap(sb: ReturnType<typeof createClient>): Promise<boolean> {
@@ -87,6 +91,7 @@ async function opsAlertsOverCap(sb: ReturnType<typeof createClient>): Promise<bo
     .from("email_log")
     .select("id", { count: "exact", head: true })
     .like("kind", "couple_alert_%")
+    .neq("kind", "couple_alert_lockout") // spoofed alerts must never silence a lockout notice
     .gte("created_at", minutesAgoIso(ONE_HOUR_MS));
   return (count ?? 0) >= OPS_ALERT_HOURLY_CAP;
 }
@@ -105,7 +110,14 @@ async function guestFacingOverCap(sb: ReturnType<typeof createClient>, email: st
 }
 
 async function alreadySentForRef(sb: ReturnType<typeof createClient>, kind: string, refId: string): Promise<boolean> {
-  const { data } = await sb.from("email_log").select("id").eq("kind", kind).eq("ref_id", refId).limit(1);
+  // a failed send is not "already sent": it must be allowed to retry
+  const { data } = await sb
+    .from("email_log")
+    .select("id")
+    .eq("kind", kind)
+    .eq("ref_id", refId)
+    .in("status", ["sending", "sent", "delivered"])
+    .limit(1);
   return !!(data && data.length);
 }
 
@@ -156,11 +168,7 @@ function escapeHtml(s: unknown): string {
     .replace(/'/g, "&#39;");
 }
 
-function firstName(full: unknown): string {
-  const s = String(full ?? "").trim();
-  if (!s) return "there";
-  return s.split(/\s+/)[0];
-}
+const firstName = safeFirstName;
 
 const WRAPPER_OPEN =
   '<div style="background:#f7f1e6;padding:32px 16px;font-family:\'Cormorant Garamond\',Georgia,\'Times New Roman\',serif;color:#3b332a;">' +
@@ -179,7 +187,7 @@ function nameHeading(text: string): string {
   return `<p style="font-family:'Pinyon Script',cursive;font-size:1.8rem;color:#b98e5a;margin:0 0 6px;">${escapeHtml(text)}</p>`;
 }
 
-function blessingThanksEmail(name: string, message: string) {
+function blessingThanksEmail(name: string, message: string, quote: boolean) {
   const fn = firstName(name);
   const subject = `Your words found their way to us, ${fn}`;
   const text = [
@@ -187,8 +195,7 @@ function blessingThanksEmail(name: string, message: string) {
     "",
     "Your blessing arrived — and we read it together, slowly, twice.",
     "",
-    `"${String(message || "").trim()}"`,
-    "",
+    ...(quote ? [`"${String(message || "").trim()}"`, ""] : []),
     "There's something about seeing the words of someone we love, written just for us, that we'll carry with us long after July. Thank you for taking a moment out of your day to give us something so precious.",
     "",
     "We're keeping every blessing safe, and yours will be part of the story we look back on for the rest of our lives.",
@@ -203,9 +210,11 @@ function blessingThanksEmail(name: string, message: string) {
     WRAPPER_OPEN +
     nameHeading(`Dear ${fn},`) +
     '<p style="line-height:1.7;margin:0 0 14px;">Your blessing arrived &mdash; and we read it together, slowly, twice.</p>' +
-    '<blockquote style="margin:0 0 14px;padding:14px 18px;border-left:3px solid #b98e5a;background:#f7f1e6;font-style:italic;">&ldquo;' +
-    escapeHtml(message) +
-    "&rdquo;</blockquote>" +
+    (quote
+      ? '<blockquote style="margin:0 0 14px;padding:14px 18px;border-left:3px solid #b98e5a;background:#f7f1e6;font-style:italic;">&ldquo;' +
+        escapeHtml(message) +
+        "&rdquo;</blockquote>"
+      : "") +
     '<p style="line-height:1.7;margin:0 0 14px;">There&rsquo;s something about seeing the words of someone we love, written just for us, that we&rsquo;ll carry with us long after July. Thank you for taking a moment out of your day to give us something so precious.</p>' +
     '<p style="line-height:1.7;margin:0 0 14px;">We&rsquo;re keeping every blessing safe, and yours will be part of the story we look back on for the rest of our lives.</p>' +
     '<p style="line-height:1.7;margin:0;">With all our love and gratitude,<br><strong>Saif &amp; Rumaisah</strong></p>' +
@@ -254,11 +263,18 @@ function coupleAlertEmail(title: string, detail: string, adminUrl: string) {
 }
 
 async function sendEmail(apiKey: string, to: string[], subject: string, html: string, text: string) {
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: FROM, to, reply_to: REPLY_TO, subject, html, text }),
-  });
+  let res: Response;
+  try {
+    res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ from: FROM, to, reply_to: REPLY_TO, subject, html, text }),
+      signal: AbortSignal.timeout(10000),
+    });
+  } catch {
+    // network error or time-out: report a failed send, never throw
+    return { ok: false, providerId: null as string | null, status: 0 };
+  }
   let providerId: string | null = null;
   try {
     const body = await res.json();
@@ -330,6 +346,7 @@ Deno.serve(async (req: Request) => {
     if (kind === "blessing_thanks") {
       const email = typeof payload.email === "string" ? payload.email.trim() : "";
       if (!email) return ok({ ok: true, sent: false, reason: "no email given" });
+      if (!validRecipient(email)) return ok({ ok: true, sent: false, reason: "not a valid address" });
       const sb = supabaseAdmin();
       if (!sb) return ok({ ok: true, sent: false, reason: "no service credentials" });
 
@@ -345,7 +362,13 @@ Deno.serve(async (req: Request) => {
 
       // Body built entirely from the DB row — request text (name/message)
       // is ignored so a caller can't forge an arbitrary thank-you email.
-      const { subject, html, text } = blessingThanksEmail(String(row.name || ""), String(row.message || ""));
+      // The message is only quoted back when it is approved and unflagged;
+      // otherwise the thank-you goes out without it.
+      const { subject, html, text } = blessingThanksEmail(
+        String(row.name || ""),
+        String(row.message || ""),
+        canQuoteBlessing(row),
+      );
       const res = await sendEmail(apiKey, [email], subject, html, text);
       await logEmail(email, "blessing_thanks", res.ok ? "sent" : "failed", res.providerId, res.ok ? null : `status ${res.status}`, String(row.id));
       return ok({ ok: true, sent: res.ok });
@@ -354,6 +377,7 @@ Deno.serve(async (req: Request) => {
     if (kind === "rsvp_confirmation") {
       const email = typeof payload.email === "string" ? payload.email.trim() : "";
       if (!email) return ok({ ok: true, sent: false, reason: "no email given" });
+      if (!validRecipient(email)) return ok({ ok: true, sent: false, reason: "not a valid address" });
       const sb = supabaseAdmin();
       if (!sb) return ok({ ok: true, sent: false, reason: "no service credentials" });
 
@@ -379,24 +403,24 @@ Deno.serve(async (req: Request) => {
       return await handleMessageAll(apiKey, payload);
     }
 
-    // Plain ops alert to the couple (rsvp_submitted / tree_submitted / blessing_submitted / admin_lockout)
-    const summary = typeof payload.summary === "string" ? payload.summary.slice(0, 300) : "";
-    if (!kind || !summary) return ok({ ok: true, sent: false, reason: "missing kind/summary" });
+    // Plain ops alert to the couple. Nothing from the request is trusted
+    // except the kind: the text comes from the activity_log row and the link
+    // from the fixed ALERTS list.
+    if (!Object.prototype.hasOwnProperty.call(ALERTS, kind)) return ok({ ok: true, sent: false, reason: "unknown kind" });
     if (toList.length === 0) return ok({ ok: true, sent: false, reason: "NOTIFY_TO empty" });
 
     const sb = supabaseAdmin();
     if (!sb) return ok({ ok: true, sent: false, reason: "no service credentials" });
-    if (!(await hasRecentActivity(sb, kind))) {
+    const activity = await findRecentActivity(sb, kind);
+    if (!activity) {
       return ok({ ok: true, sent: false, reason: "no matching activity_log row in the last 10 minutes" });
     }
-    if (await opsAlertsOverCap(sb)) {
-      return ok({ ok: true, sent: false, reason: "rate limited" });
-    }
+    const summary = String(activity.summary || "").slice(0, 300);
+    if (!summary) return ok({ ok: true, sent: false, reason: "empty activity summary" });
 
     const label = EVENT_LABELS[kind] || kind;
-    const adminPath = typeof payload.adminPath === "string" ? payload.adminPath : "admin-activity.html";
     const emoji = kind === "blessing_submitted" ? "💌 " : "";
-    const { subject, html, text } = coupleAlertEmail(`${emoji}${label}`, summary, `${SITE}/${adminPath}`);
+    const { subject, html, text } = coupleAlertEmail(`${emoji}${label}`, summary, `${SITE}/${ALERTS[kind as keyof typeof ALERTS]}`);
     const alertKind =
       kind === "blessing_submitted"
         ? "couple_alert_blessing"
@@ -405,13 +429,21 @@ Deno.serve(async (req: Request) => {
           : kind === "admin_lockout"
             ? "couple_alert_lockout"
             : "couple_alert_tree";
+    if (await alreadySentForRef(sb, alertKind, String(activity.id))) {
+      return ok({ ok: true, sent: false, reason: "already alerted for this event" });
+    }
+    if (kind !== "admin_lockout" && (await opsAlertsOverCap(sb))) {
+      return ok({ ok: true, sent: false, reason: "rate limited" });
+    }
     const res = await sendEmail(apiKey, toList, subject, html, text);
-    await logEmail(toList.join(","), alertKind, res.ok ? "sent" : "failed", res.providerId, res.ok ? null : `status ${res.status}`, null);
+    await logEmail(toList.join(","), alertKind, res.ok ? "sent" : "failed", res.providerId, res.ok ? null : `status ${res.status}`, String(activity.id));
     return ok({ ok: true, sent: res.ok });
   } catch (err) {
     // Never throw — a broken notify must never surface as an error to a
     // guest-facing caller.
-    return ok({ ok: true, sent: false, reason: String(err) });
+    // log the error type only: messages can carry guest addresses
+    console.error("notify failed:", err instanceof Error ? err.name : "unknown");
+    return ok({ ok: true, sent: false, reason: "error" });
   }
 });
 
@@ -433,7 +465,7 @@ async function handleMessageAll(apiKey: string, payload: Record<string, unknown>
   const text = typeof payload.text === "string" ? payload.text : "";
   if (!subject || !html) return ok({ ok: false, sent: false, reason: "missing subject/html" });
 
-  const isTest = payload.test === true;
+  const isTest = isTestBroadcast(payload); // live only on an explicit test:false
   const notifyTo = (Deno.env.get("NOTIFY_TO") || "hello@saifandrumaisah.com").split(",").map((s) => s.trim()).filter(Boolean);
 
   if (isTest) {
