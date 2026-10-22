@@ -423,7 +423,13 @@
         if (code.length < 8) { familyCodeAdminStatus.textContent = "Use at least 8 characters."; return; }
         familyCodeSet.disabled = true;
         familyCodeAdminStatus.textContent = "Saving\u2026";
-        TreeData.rpc("admin_set_family_code", { pw: pw, new_code: code }).then(function () {
+        TreeData.rpc("admin_set_family_code", { pw: pw, new_code: code }).then(function (res) {
+          // The database now RETURNS {"error":"invalid_password"} (so the failed attempt is
+          // counted) instead of raising. The old void function returns nothing: treated as success.
+          if (res && res.error === "invalid_password") {
+            familyCodeAdminStatus.textContent = "Wrong password.";
+            return;
+          }
           familyCodeNew.value = "";
           familyCodeAdminStatus.textContent = "Family code updated. Share it with the family (not on the website).";
         }).catch(function (err) {
