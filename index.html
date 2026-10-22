@@ -1522,7 +1522,9 @@
           codeStatus.textContent = "Showing everyone\u2019s names for family.";
         }).catch(function (err) {
           if (quiet) { try { sessionStorage.removeItem("familyCode"); } catch (e) {} }
-          codeStatus.textContent = quiet ? "" : (err && err.status === 400
+          codeStatus.textContent = quiet ? "" : (err && err.status === 429
+            ? "Too many tries. Please wait 15 minutes and try again."
+            : err && err.status === 400
             ? "That code isn\u2019t right. Please check it with the family."
             : "Couldn\u2019t check the code right now. Please try again in a few minutes.");
         }).then(function () { codeGo.disabled = false; });
