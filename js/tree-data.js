@@ -95,6 +95,12 @@
   // family code. A wrong code is a 400 ("wrong code"), reported as err.status.
   function fetchFamilyTree(code) {
     return rpc("family_tree", { code: String(code == null ? "" : code) }).then(function (data) {
+      // the hardened function answers {error:"wrong_code"|"locked"} instead of raising
+      if (data && data.error) {
+        var e = new Error(data.error === "locked" ? "too many tries" : "wrong code");
+        e.status = data.error === "locked" ? 429 : 400;
+        throw e;
+      }
       if (!data || !Array.isArray(data.people) || !Array.isArray(data.relationships)) {
         throw new Error("Unexpected response from the tree");
       }

@@ -86,3 +86,34 @@ test("the family tree function returns the same shape as public_tree, with real 
   assert.match(sql, /'relation', p\.relation/);
   assert.match(pub, /case when p\.is_kid then 'Little one'/);
 });
+
+test("hardening draft: min 16, global throttle, hash only, rollback exists, stays in drafts", () => {
+  const sql = rd("migrations/drafts/20261022100000_family_code_hardening.sql");
+  assert.match(sql, /UNTESTED — not applied/);
+  assert.match(sql, /length\(btrim\(new_code\)\) < 16/);
+  assert.doesNotMatch(sql, /< 8/);
+  assert.match(sql, /gen_salt\('bf', 10\)/);
+  assert.match(sql, /v_recent >= 5/);
+  assert.match(sql, /interval '15 minutes'/);
+  assert.match(sql, /insert into family_code_attempts default values/, "failures store a timestamp only");
+  assert.doesNotMatch(sql, /raise (notice|log|warning)/i, "the code is never logged");
+  assert.doesNotMatch(sql, /raise exception 'wrong code'/, "wrong guesses return, so the failure row commits");
+  assert.match(sql, /revoke all on public\.family_code_attempts from anon, authenticated;/);
+  assert.match(sql, /create or replace function public\.family_tree/);
+  ["'people'", "'relationships'", "'relation', p.relation", "'name', p.name,"].forEach((k) => assert.ok(sql.includes(k), "shape " + k));
+  const rb = rd("migrations/drafts/20261022100000_family_code_hardening_rollback.sql");
+  assert.match(rb, /length\(btrim\(new_code\)\) < 8/);
+  assert.match(rb, /raise exception 'wrong code'/);
+  assert.match(rb, /drop table if exists public\.family_code_attempts;/);
+  assert.ok(!fs.existsSync(path.join(__dirname, "..", "migrations", "20261022100000_family_code_hardening.sql")), "not promoted out of drafts");
+});
+
+test("a locked answer reaches the page as a 429 with a friendly wait message", async (t) => {
+  const real = global.fetch;
+  t.after(() => { global.fetch = real; });
+  let T = loadTreeData(async () => ok({ error: "locked" }));
+  await assert.rejects(T.fetchFamilyTree("x"), (e) => e.status === 429);
+  T = loadTreeData(async () => ok({ error: "wrong_code" }));
+  await assert.rejects(T.fetchFamilyTree("x"), (e) => e.status === 400);
+  assert.match(rd("index.html"), /err\.status === 429[\s\S]{0,80}wait 15 minutes/);
+});
