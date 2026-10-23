@@ -104,7 +104,7 @@
     <div id="rejectedList"></div>
 
     <h1 class="title" style="margin-top:2.5rem">family code</h1>
-    <p class="dupe-note" style="margin:-1rem 0 1rem">Family who type this code on the tree page can see the children&rsquo;s real names. Everyone else sees &ldquo;Little one&rdquo;. Use at least 8 characters, and a long one is safer. Changing it stops the old code working.</p>
+    <p class="dupe-note" style="margin:-1rem 0 1rem">Family who type this code on the tree page can see the children&rsquo;s real names. Everyone else sees &ldquo;Little one&rdquo;. Use at least 16 characters, and a long one is safer. Changing it stops the old code working.</p>
     <div style="display:flex; gap:0.6rem; justify-content:center; align-items:center; flex-wrap:wrap; margin-bottom:0.6rem">
       <input type="text" id="familyCodeNew" aria-label="New family code" placeholder="new family code" autocomplete="off" style="font-family:inherit; font-size:1rem; padding:0.6rem 0.8rem; border-radius:10px; border:1px solid rgba(64,88,122,0.3); width:100%; max-width:260px">
       <button class="btn-approve" id="familyCodeSet" style="font-family:inherit; font-size:0.9rem; border:none; border-radius:8px; padding:0.6rem 1rem; cursor:pointer">Set family code</button>
@@ -420,7 +420,7 @@
       var familyCodeAdminStatus = document.getElementById("familyCodeAdminStatus");
       familyCodeSet.addEventListener("click", function () {
         var code = familyCodeNew.value.trim();
-        if (code.length < 8) { familyCodeAdminStatus.textContent = "Use at least 8 characters."; return; }
+        if (code.length < 16) { familyCodeAdminStatus.textContent = "Use at least 16 characters."; return; }
         familyCodeSet.disabled = true;
         familyCodeAdminStatus.textContent = "Saving\u2026";
         TreeData.rpc("admin_set_family_code", { pw: pw, new_code: code }).then(function (res) {
@@ -435,7 +435,7 @@
         }).catch(function (err) {
           familyCodeAdminStatus.textContent = (err && err.status === 404)
             ? "Not installed yet: the database needs the family_code update first."
-            : (err && /too short/i.test(err.message || "") ? "Use at least 8 characters." : "Couldn\u2019t save. Try again.");
+            : (err && /too short/i.test(err.message || "") ? "Use at least 16 characters." : "Couldn\u2019t save. Try again.");
         }).then(function () { familyCodeSet.disabled = false; });
       });
 
