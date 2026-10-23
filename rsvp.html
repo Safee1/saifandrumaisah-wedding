@@ -376,6 +376,7 @@
           statusMsg.className = "status err";
           statusMsg.textContent = err && err.timeout
             ? "This is taking longer than usual — please wait a moment, then press Send again. (Sending twice is safe: we only keep one.)"
+            : (err && /Too many submissions/.test(err.message || "")) ? "We are getting a lot of replies right now — please wait a few minutes, then try again."
             : "Something went wrong — please try again.";
           submitBtn.disabled = false;
         });

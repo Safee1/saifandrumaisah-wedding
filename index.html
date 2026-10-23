@@ -1710,9 +1710,11 @@
           count.textContent = "280";
           count.className = "bf-count";
           sendBtn.disabled = false;
-        }).catch(function () {
+        }).catch(function (err) {
           statusMsg.className = "status bf-status err";
-          statusMsg.textContent = "Something went wrong — please try again.";
+          statusMsg.textContent = (err && /Too many submissions/.test(err.message || ""))
+            ? "We are getting a lot of replies right now — please wait a few minutes, then try again."
+            : "Something went wrong — please try again.";
           sendBtn.disabled = false;
         });
       });

@@ -268,6 +268,7 @@
             statusMsg.className = "status err";
             statusMsg.textContent = err && err.timeout
               ? "This is taking longer than usual — please wait a minute and check the tree before sending again, in case it went through."
+              : (err && /Too many submissions/.test(err.message || "")) ? "We are getting a lot of replies right now — please wait a few minutes, then try again."
               : "Something went wrong — please try again.";
             submitBtn.disabled = false;
           });
