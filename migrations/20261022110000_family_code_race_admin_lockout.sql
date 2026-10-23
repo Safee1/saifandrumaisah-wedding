@@ -1,7 +1,7 @@
 -- =====================================================================
 -- 20261022110000_family_code_race_admin_lockout.sql
--- UNTESTED against Supabase — not applied. Draft only. (Tested against embedded
--- Postgres/PGlite only; see the PR body.) Superset of 20261022100000_family_code_hardening.sql.
+-- APPLIED to prod 2026-10-23 as ONE transaction (this file then the race/admin file); tested on real Postgres (20 parallel connections, rollbacks); do not re-run.
+-- Superset of 20261022100000_family_code_hardening.sql.
 --
 -- Fixes two problems found by running the #109 migration in a scratch Postgres:
 --

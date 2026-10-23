@@ -87,9 +87,9 @@ test("the family tree function returns the same shape as public_tree, with real 
   assert.match(pub, /case when p\.is_kid then 'Little one'/);
 });
 
-test("hardening draft: min 16, global throttle, hash only, rollback exists, stays in drafts", () => {
-  const sql = rd("migrations/drafts/20261022100000_family_code_hardening.sql");
-  assert.match(sql, /UNTESTED — not applied/);
+test("hardening draft: min 16, global throttle, hash only, rollback exists, promoted", () => {
+  const sql = rd("migrations/20261022100000_family_code_hardening.sql");
+  assert.match(sql, /APPLIED to prod 2026-10-23/);
   assert.match(sql, /length\(btrim\(new_code\)\) < 16/);
   assert.doesNotMatch(sql, /< 8/);
   assert.match(sql, /gen_salt\('bf', 10\)/);
@@ -101,11 +101,10 @@ test("hardening draft: min 16, global throttle, hash only, rollback exists, stay
   assert.match(sql, /revoke all on public\.family_code_attempts from anon, authenticated;/);
   assert.match(sql, /create or replace function public\.family_tree/);
   ["'people'", "'relationships'", "'relation', p.relation", "'name', p.name,"].forEach((k) => assert.ok(sql.includes(k), "shape " + k));
-  const rb = rd("migrations/drafts/20261022100000_family_code_hardening_rollback.sql");
+  const rb = rd("migrations/20261022100000_family_code_hardening_rollback.sql");
   assert.match(rb, /length\(btrim\(new_code\)\) < 8/);
   assert.match(rb, /raise exception 'wrong code'/);
   assert.match(rb, /drop table if exists public\.family_code_attempts;/);
-  assert.ok(!fs.existsSync(path.join(__dirname, "..", "migrations", "20261022100000_family_code_hardening.sql")), "not promoted out of drafts");
 });
 
 test("a locked answer reaches the page as a 429 with a friendly wait message", async (t) => {
