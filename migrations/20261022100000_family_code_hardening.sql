@@ -1,6 +1,6 @@
 -- =====================================================================
 -- 20261022100000_family_code_hardening.sql
--- UNTESTED — not applied. Draft only; needs a run against a real DB.
+-- APPLIED to prod 2026-10-23 as ONE transaction (this file then the race/admin file); tested on real Postgres (20 parallel connections, rollbacks); do not re-run.
 --
 -- Hardens the live family-code functions from 20261019100000_family_code.sql.
 --   (a) admin_set_family_code: minimum length 8 -> 16 (bcrypt hash only, no logging
