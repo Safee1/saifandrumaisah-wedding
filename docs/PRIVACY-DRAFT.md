@@ -26,7 +26,7 @@ behalf, only to run the site:
 
 - Supabase: database hosting, in London.
 - GitHub Pages: website hosting.
-- Google Fonts: the typefaces.
+- Typefaces are hosted on the site itself, so visiting it does not send anything to Google.
 - Resend: email delivery, only once we switch it on.
 - Namecheap: a shared mailbox, only once we set one up.
 
