@@ -53,3 +53,18 @@ test("envelope.css keeps the flap faces one-sided and the halves clipped", () =>
   assert.match(css, /\.opened \.wax-l \{ animation: crackL/);
   assert.match(css, /\.opened \.wax-r \{ animation: crackR/);
 });
+
+test("blessing form: anti-bot gate starts at first input and shows a friendly message", () => {
+  assert.match(html, /var loadedAt = null;/);
+  assert.match(html, /form\.addEventListener\("input"[^\n]*loadedAt = Date\.now\(\)/);
+  const idx = html.indexOf("loadedAt === null || Date.now() - loadedAt < 2000");
+  assert.ok(idx > -1);
+  const nearby = html.slice(idx, idx + 300);
+  assert.match(nearby, /Please wait a moment and try again/);
+  assert.doesNotMatch(nearby, /on their way to us/);
+});
+
+test("tryCode forgets the saved family code only on a wrong-code (400) answer", () => {
+  assert.match(html, /if \(quiet && err && err\.status === 400\) \{ try \{ sessionStorage\.removeItem\("familyCode"\)/);
+  assert.doesNotMatch(html, /if \(quiet\) \{ try \{ sessionStorage\.removeItem/);
+});

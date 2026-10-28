@@ -34,7 +34,7 @@
 --   (#94 deliberately rejected re-creating admin_* functions to return errors; this does it
 --   for only the two functions in question.)
 --
--- ROLLBACK: 20261022110000_family_code_race_admin_lockout_rollback.sql
+-- ROLLBACK: rollbacks/20261022110000_family_code_race_admin_lockout_rollback.sql
 -- =====================================================================
 
 create table if not exists public.family_code_attempts (

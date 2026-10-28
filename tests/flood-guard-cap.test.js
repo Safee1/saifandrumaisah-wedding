@@ -1,17 +1,26 @@
-// Static checks for the DRAFT migration 20261023100000_flood_guard_rsvps_cap_40.sql
+// Static checks for the migration (now applied) 20261023100000_flood_guard_rsvps_cap_40.sql
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("fs");
 const path = require("path");
 const rd = (f) => fs.readFileSync(path.join(__dirname, "..", f), "utf8").replace(/\r\n/g, "\n");
-const SQL = rd("migrations/drafts/20261023100000_flood_guard_rsvps_cap_40.sql");
-const RB = rd("migrations/drafts/20261023100000_flood_guard_rsvps_cap_40_rollback.sql");
+const SQL = rd("migrations/20261023100000_flood_guard_rsvps_cap_40.sql");
+const RB = rd("migrations/rollbacks/20261023100000_flood_guard_rsvps_cap_40_rollback.sql");
 const LIVE = rd("migrations/20260925150000_flood_guard_definer_and_admin_delay.sql");
 
-test("both files carry the untested/not-applied header", () => {
-  assert.match(SQL, /UNTESTED against Supabase — not applied/);
-  assert.match(RB, /UNTESTED against Supabase — not applied/);
+test("forward file is marked applied (do not re-run); rollback is not applied", () => {
+  assert.match(SQL, /APPLIED to production on 23 Oct 2026 by Saif in the Supabase SQL editor/);
+  assert.match(SQL, /Do NOT re-run/);
+  assert.doesNotMatch(SQL, /not applied|DRAFT/);
+  assert.match(RB, /not applied/);
+});
+
+test("rollback files live in migrations/rollbacks/, none beside their forward migration", () => {
+  const top = fs.readdirSync(path.join(__dirname, "..", "migrations"));
+  assert.deepEqual(top.filter((f) => /_rollback\.sql$/.test(f)), []);
+  assert.ok(fs.existsSync(path.join(__dirname, "..", "migrations/rollbacks/20261023100000_flood_guard_rsvps_cap_40_rollback.sql")));
+  assert.ok(!fs.existsSync(path.join(__dirname, "..", "migrations/drafts/20261023100000_flood_guard_rsvps_cap_40.sql")));
 });
 
 test("rsvps limit is 40, every other table stays at 300", () => {

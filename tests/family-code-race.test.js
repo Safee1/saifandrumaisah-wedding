@@ -9,7 +9,7 @@ const path = require("path");
 
 const rd = (f) => fs.readFileSync(path.join(__dirname, "..", f), "utf8").replace(/\r\n/g, "\n");
 const SQL = rd("migrations/20261022110000_family_code_race_admin_lockout.sql");
-const ROLLBACK = rd("migrations/20261022110000_family_code_race_admin_lockout_rollback.sql");
+const ROLLBACK = rd("migrations/rollbacks/20261022110000_family_code_race_admin_lockout_rollback.sql");
 const fn = (sql, name) => {
   const start = sql.indexOf("function public." + name + "(");
   assert.ok(start >= 0, name + " defined");

@@ -58,10 +58,10 @@ sends real templated emails, not just ops alerts. It's called several ways:
    `X-Digest-Secret: <DIGEST_SECRET>` — reads the last 24h of
    `activity_log` and emails a summary.
 
-Edge Function `resend-webhook` (deployed,
+Edge Function `resend-webhook` (repo version; an older one is live,
 `supabase/functions/resend-webhook/index.ts`) receives Resend's delivery
 events (delivered/bounced/complained) and updates the matching `email_log`
-row by `provider_id`. Dormant until `RESEND_WEBHOOK_SECRET` is set.
+row by `provider_id`. Dormant until `RESEND_WEBHOOK_SECRET` is set. **The version deployed live is OLDER than the repo version: redeploy it from `main` before setting the secret.**
 
 **Right now, with no secrets set, every call to `notify` returns
 `{"ok": true, "sent": false, "reason": "notifications not configured"}`
@@ -104,7 +104,7 @@ Shown as the **Emails** tab on `admin-activity.html`.
    - `NOTIFY_TO` — comma-separated address(es) for the couple's own alerts
      (e.g. both Saif's and Rumaisah's personal addresses, or
      `hello@saifandrumaisah.com` once it exists).
-   - `RESEND_WEBHOOK_SECRET` — set this in Resend's webhook config
+   - `RESEND_WEBHOOK_SECRET` — first redeploy `resend-webhook` from `main` (the live one is older), then set this in Resend's webhook config
      (pointing at `.../functions/v1/resend-webhook`) and here, matching.
    - Optionally `DIGEST_SECRET` (any random string) for the daily digest,
      plus something to call it once a day — a GitHub Action on a cron
@@ -129,7 +129,7 @@ for its secrets on each call and only sends once they exist.
 | `blessing_thanks` | Guest-facing thank-you, if they gave an email |
 | `rsvp_confirmation` | Guest-facing RSVP confirmation, if they gave an email |
 | `message_all` | Admin broadcast from admin-activity.html |
-| `admin_lockout` | 5 failed admin password attempts in 15 minutes |
+| `admin_lockout` | 5 failed admin password attempts in 15 minutes (global lockout, 15 minutes) |
 
 Ops alerts to the couple never include contact details or free-text
 messages — just names and counts, and a link to the relevant admin page.
@@ -162,6 +162,14 @@ login.
 - `email` and `moderation_reason` are never selectable by `anon`/
   `authenticated` (column-level `REVOKE`), even via an explicit
   `?select=email` — only through the admin RPCs.
+
+## Limits, lockouts and data clean-up
+
+- Admin password: 5 wrong attempts in 15 minutes locks admin sign-in for everyone for 15 minutes.
+- Family code: minimum 16 characters, stored as a bcrypt hash only. 5 wrong guesses in 15 minutes (all callers together) lock the family tree for 15 minutes, even for the right code.
+- Flood caps (`flood_guard`): `rsvps` 40 per 10 minutes, `blessings` and `people` 300 per 10 minutes, across all users.
+- `admin_purge_guest_data` (SQL editor only) deletes all rsvps, blessings and email_log rows. It leaves `people`, `relationships` and `activity_log`; clear the activity log by hand (`docs/RUNBOOKS.md` R6).
+- The free Supabase plan has no automatic backups or point-in-time recovery. Only your own CSV exports can be recovered.
 
 ## Security notes
 

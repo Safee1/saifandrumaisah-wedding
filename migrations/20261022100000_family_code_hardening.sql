@@ -25,7 +25,7 @@
 --     brute force. The window clears by itself.
 --   * Only failures are stored: a timestamp, never the guess.
 --   * Existing codes of 8-15 characters keep working; only NEW codes need 16.
--- ROLLBACK: 20261022100000_family_code_hardening_rollback.sql
+-- ROLLBACK: rollbacks/20261022100000_family_code_hardening_rollback.sql
 -- =====================================================================
 
 create table if not exists public.family_code_attempts (
