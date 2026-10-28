@@ -6,14 +6,12 @@ PR, then update this file to match.
 
 ## Saif to confirm
 
-- **Retention:** about 3 months after the wedding, and whether the family tree / blessings
-  wall stay as a keepsake (the page currently says tree entries are removed only on request).
-- **Update emails:** the page says "we may email you about the wedding and nothing else".
-  Confirm that means update emails only (no marketing, no newsletters).
-- **Venue dietary data:** the page says the venue gets headcounts and, where needed for
-  catering, dietary requirements. Confirm that is what you want to do.
-- **Supabase region / international transfers:** unverified. The page does not mention
-  transfers outside the UK. Check the project region and add wording if needed.
+- **Retention:** about 3 months after the wedding for RSVPs, blessings, email logs; whether the tree / blessings wall stay as a keepsake.
+- **Activity-log retention:** the page says it is deleted with the RSVPs. Confirm.
+- **Transfers wording:** "some providers are US-based; we rely on their standard contractual protections". Confirm the wording and the London region.
+- **Update emails:** confirm "email about the wedding and nothing else".
+- **Venue dietary data:** confirm the venue receives dietary details where needed.
+- **Contact:** no shared mailbox exists yet; page says message Saif or Rumaisah directly. Update when one exists.
 
 ---
 
@@ -26,22 +24,28 @@ the little bit of information we ask for.
 Saif and Rumaisah, for our own wedding planning. A few services handle the information on our
 behalf, only to run the site:
 
-- Supabase: database hosting.
+- Supabase: database hosting, in London.
 - GitHub Pages: website hosting.
-- Namecheap: the hello@ mailbox (a real shared mailbox, not forwarding).
 - Google Fonts: the typefaces.
-- Resend: email delivery, only once we switch it on (currently dormant).
+- Resend: email delivery, only once we switch it on.
+- Namecheap: a shared mailbox, only once we set one up.
 
 The venue receives headcounts and, where needed for catering, dietary requirements, nothing
 else. The website's code is public on GitHub, but it contains no guest data.
 
 ### What we collect
-- RSVP: name, an email or phone number, how many adults and children are coming, children's
-  names and ages if given (ages are stored), and any dietary requirements or allergies.
-- Adding yourself to the family tree: your name, how you're related to the family, and any
-  children you add.
-- A blessing message on the wall if you choose to leave one, and, only if you choose to give
-  it, your email address so we can send a short thank-you.
+- RSVP: name, an email or phone number, whether you can come, how many adults and children,
+  children's ages if given (we do not ask for children's names), dietary requirements or
+  allergies, and an optional note.
+- Adding someone to the family tree: their name, who they connect to, relationship, side of the
+  family, whether a child, and optionally your own name.
+- A blessing: your name, your message and, only if you choose, your email for a thank-you.
+- Technical logs: hosting providers keep standard logs including IP addresses.
+- Activity log: private log of admin and system events; can include guest names and headcounts.
+
+### Adding other people to the tree
+Anyone can add a name, including relatives and children who haven't been asked. Entries wait
+for approval. People named can ask for removal or correction (see Your choices).
 
 ### Children
 On the public family tree, children appear only as "Little one". Family members who enter the
@@ -52,6 +56,11 @@ never as plain text.
 These can be health-related, so we keep them only if you tick the consent box when you RSVP
 (the tick and its timestamp are recorded). You can withdraw consent at any time and we will
 delete them.
+
+### Services and transfers
+Supabase hosts the database in London; GitHub Pages hosts the site; Resend and Namecheap only
+once switched on. Some providers are US-based; where data leaves the UK we rely on their
+standard contractual protections. Hosting providers keep technical logs incl. IP addresses.
 
 ### Why
 Only to plan the wedding (numbers, catering for allergies, the family tree) and, where you've
@@ -72,10 +81,11 @@ does not claim emails are live.
 
 ### How long we keep it
 Nothing is deleted automatically. About three months after the wedding we will manually purge
-all RSVPs, blessings and email logs (the wedding date isn't fixed, so timing may move).
+all RSVPs, blessings, email logs and the activity log (the wedding date isn't fixed, so timing may move).
 Family-tree entries are removed separately, on request. You can ask us to delete anything at
 any time.
 
 ### Your choices
 Ask us to correct or remove anything you've submitted, including opting out of email, by
-messaging Saif or Rumaisah directly.
+messaging Saif or Rumaisah directly. Requests to see, correct or delete are answered within
+one month. Complaints can go to the ICO (ico.org.uk).
