@@ -17,7 +17,7 @@ test("config: date is empty or a parseable date", () => {
 // guest a different moment depending on their own time zone.
 test("config: a set date is a full timestamp with a UTC offset that both readers agree on", () => {
   if (!Config.date) { return; }
-  assert.match(Config.date, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(Z|[+-]\d{2}:\d{2})$/, "use e.g. 2027-07-25T16:00:00+03:00");
+  assert.match(Config.date, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(Z|[+-]\d{2}:\d{2})$/, "use e.g. 2030-01-01T12:00:00+00:00");
   assert.ok(Number.isFinite(Date.parse(Config.date)));
   assert.ok(new Date(Config.date).getUTCFullYear() >= 2026);
   const t = Travel.parse(Config.date);

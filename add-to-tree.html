@@ -25,8 +25,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
-<link rel="preload" as="script" fetchpriority="low" href="js/net.js?v=51">
-<link rel="preload" as="script" fetchpriority="low" href="js/tree-data.js?v=51">
+<link rel="preload" as="script" fetchpriority="low" href="js/net.js?v=56">
+<link rel="preload" as="script" fetchpriority="low" href="js/tree-data.js?v=56">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   :root {
@@ -160,8 +160,8 @@
     <a class="back" href="index.html#family">&larr; back to the tree</a>
   </div>
 
-  <script src="js/net.js?v=51"></script>
-  <script src="js/tree-data.js?v=51"></script>
+  <script src="js/net.js?v=56"></script>
+  <script src="js/tree-data.js?v=56"></script>
   <script>
     (function () {
       var linkTo = document.getElementById("linkTo");
@@ -212,17 +212,24 @@
         if (p) { side.value = p.side; }
       });
 
-      var loadedAt = Date.now();
+      // the 2 second anti-bot gate starts at the first keystroke, not at page load
+      var loadedAt = null;
+      form.addEventListener("input", function () { if (loadedAt === null) { loadedAt = Date.now(); } });
 
       form.addEventListener("submit", function (e) {
         e.preventDefault();
 
-        // silently swallow obvious bot submissions: honeypot filled, or
-        // submitted faster than a human could plausibly fill the form
-        if (document.getElementById("fx_extra").value || Date.now() - loadedAt < 2000) {
+        // honeypot filled: obviously a bot, swallow silently
+        if (document.getElementById("fx_extra").value) {
           statusMsg.className = "status ok";
           statusMsg.textContent = "Thank you — sent for approval.";
           form.reset();
+          return;
+        }
+        // faster than a human could fill the form: say so, don't fake success
+        if (loadedAt === null || Date.now() - loadedAt < 2000) {
+          statusMsg.className = "status err";
+          statusMsg.textContent = "Please wait a moment and try again.";
           return;
         }
 

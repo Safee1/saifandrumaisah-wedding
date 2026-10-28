@@ -1,11 +1,11 @@
--- UNTESTED against Supabase — not applied. DRAFT.
--- (Tested only on a throwaway local Postgres; see tests/flood-guard-cap.test.js.)
+-- APPLIED to production on 23 Oct 2026 by Saif in the Supabase SQL editor (outside the migration tracker). Do NOT re-run.
+-- (Tested on a throwaway local Postgres before it was applied; see tests/flood-guard-cap.test.js.)
 -- Audit finding: flood_guard() allowed 300 rows / 10 min / table across ALL users,
 -- so a bot could fill rsvps with junk and block real guests (~100 guests expected).
 -- Change: rsvps cap 300 -> 40 per 10 minutes. blessings and people stay at 300.
 -- Only the threshold changes; name, signature, DEFINER, search_path and the
 -- created_at / dietary_consent_at server-side stamping are identical to live.
--- Rollback: 20261023100000_flood_guard_rsvps_cap_40_rollback.sql
+-- Rollback: rollbacks/20261023100000_flood_guard_rsvps_cap_40_rollback.sql
 CREATE OR REPLACE FUNCTION public.flood_guard()
  RETURNS trigger
  LANGUAGE plpgsql

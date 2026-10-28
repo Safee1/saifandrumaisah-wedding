@@ -1,23 +1,34 @@
-# Schema snapshot — reconstructed from live DB on 2026-09-24
+# Schema snapshot — live DB, updated 25 Oct 2026 (first written 2026-09-24)
 
 Supabase project `rfopieelzxvnmfhdvqqf`. This is a point-in-time record so
 future drift between `migrations/` and the live DB is visible at a glance.
-Run `supabase migration list` / re-diff against `list_migrations` to check
-for new drift.
+
+**Read this first: migration history is NOT clean.** The October changes
+(family code, admin purge, hardening, flood cap 40, and the two record-only
+functions) were applied by Saif in the Supabase SQL editor, outside the
+migration tracker. `supabase_migrations.schema_migrations` stops at 26 Sep
+2026, so the files in `migrations/` from `20261019100000` onward are not in the
+tracker. Nobody should run `supabase db push` expecting a clean history; it
+would try to re-apply them. Treat these files as the written record, and
+re-read the live definitions (`pg_get_functiondef`) before trusting any file.
+Rollback SQL lives in `migrations/rollbacks/`; unapplied proposals in
+`migrations/drafts/`.
 
 ## Tables (public schema, RLS on for all)
 
 | Table | RLS | Policies | anon/authenticated grants |
 |---|---|---|---|
-| people | on | none (writes go through `submit_to_tree`/`submit_with_invite`/admin RPCs) | full table grants (legacy direct-read path; tree itself reads via `public_tree()`) |
-| relationships | on | none | full table grants (legacy direct-read path) |
+| people | on | none (writes go through `submit_to_tree`/admin RPCs) | direct reads revoked in October; the tree reads via `public_tree()` / `family_tree(code)` |
+| relationships | on | none | direct reads revoked in October; same RPCs as people |
 | rsvps | on | `rsvps_insert_public` (insert, true) | full table grants |
 | blessings | on | `blessings_public_insert` (insert, true), `blessings_public_read` (select, status='approved') | full table grants |
 | admin_config | on | none (deny-all by design) | full table grants (protection is RLS, not GRANT) |
 | admin_login_attempts | on | none (deny-all; only `admin_check()` touches it) | full table grants |
 | activity_log | on | none (deny-all; only `activity_log_write()` and admin RPCs touch it) | full table grants |
 | email_log | on | none (deny-all; only `admin_list_email_log()` reads it) | full table grants |
-| invite_codes | on | none (deny-all; only invite RPCs touch it) | **no** anon/authenticated table grants |
+| invite_codes | on | none (deny-all; legacy, unused since the tree opened) | **no** anon/authenticated table grants |
+| family_access | on | none (deny-all; holds the bcrypt hash of the family code only) | revoked from anon/authenticated |
+| family_code_attempts | on | none (deny-all; failed guesses for the global 5-in-15-minute lockout) | revoked from anon/authenticated |
 
 Columns of note: `blessings.email`, `blessings.theme`, `blessings.moderation_reason`
 (wall-of-love); `rsvps.adults`/`children`/`likelihood` (interest + headcount);
@@ -46,16 +57,21 @@ All `admin_*` functions require a live table-driven password check
 | admin_list_rsvps | anon, authenticated | 20260923_admin_list_rsvps_interest_fields.sql |
 | admin_restore_person | anon, authenticated | 20260923_soft_delete_rejected_person.sql |
 | admin_revoke_invite | anon, authenticated | 20260902000617_invite_codes_gate.sql |
-| admin_set_blessing_status | anon, authenticated | 20260924154121_wall_of_love_email_and_moderation.sql (theme param already on repo's earlier definition; live behaviour unchanged) |
+| admin_set_blessing_status | anon, authenticated | 20261025100100_record_admin_set_blessing_status_4arg.sql (RECORD ONLY; the live 4-argument form) |
 | admin_set_person_status | anon, authenticated | 20260923_soft_delete_rejected_person.sql |
 | admin_set_relationship_status | anon, authenticated | 20260819000000_baseline_admin_and_core_tables.sql |
-| flood_guard | anon, authenticated (trigger fn) | 20260924_flood_guard_raise_launch_limit.sql |
+| flood_guard | anon, authenticated (trigger fn) | 20261023100000_flood_guard_rsvps_cap_40.sql (rsvps 40, others 300 per 10 minutes; earlier 20260925150000_flood_guard_definer_and_admin_delay.sql) |
 | public_tree | anon, authenticated | 20260924_public_tree_hide_kid_names.sql |
 | rsvp_headcount | anon, authenticated | 20260923_rsvp_interest_and_headcount.sql |
 | submit_to_tree | anon, authenticated | 20260923_submit_to_tree_open.sql |
 | submit_with_invite | anon, authenticated | 20260902000617_invite_codes_gate.sql |
+| admin_data_counts | anon, authenticated | 20261025100000_record_admin_data_counts.sql (RECORD ONLY, applied in the SQL editor) |
+| admin_set_family_code | anon, authenticated | 20261022110000_family_code_race_admin_lockout.sql (min 16 chars, hash only, returns an error column instead of raising) |
+| admin_purge_guest_data | anon, authenticated | 20261022110000_family_code_race_admin_lockout.sql (SQL editor only; deletes rsvps, blessings, email_log; not activity_log, people, relationships) |
+| family_tree | anon, authenticated | 20261022110000_family_code_race_admin_lockout.sql (advisory lock; global 5-wrong-in-15-minutes lockout; returns {"error":"wrong_code"} / {"error":"locked"}) |
 | activity_log_write | **postgres, service_role only** (revoked from anon/authenticated/public) | 20260924_activity_log_lock_down_internal_functions.sql |
 | trg_log_person_submitted | postgres, service_role only | 20260924_activity_log_lock_down_internal_functions.sql |
+| trg_log_blessing_submitted | postgres, service_role only (trigger fn) | see live DB; no separate repo file |
 | trg_log_rsvp_submitted | postgres, service_role only | 20260924_activity_log_lock_down_internal_functions.sql |
 | blessing_moderate | postgres, service_role only (trigger fn, never called via RPC) | 20260924154121_wall_of_love_email_and_moderation.sql |
 | blessing_after_insert_log | postgres, service_role only (trigger fn) | 20260924154121_wall_of_love_email_and_moderation.sql |
@@ -71,6 +87,17 @@ All `admin_*` functions require a live table-driven password check
 | people_flood_guard | people | flood_guard | 20260923_rsvp_length_checks_and_flood_guard.sql |
 | activity_log_rsvp | rsvps | trg_log_rsvp_submitted | 20260924_activity_log.sql |
 | rsvps_flood_guard | rsvps | flood_guard | 20260923_rsvp_length_checks_and_flood_guard.sql |
+
+## October 2026 changes (all applied in the SQL editor, outside the tracker)
+
+| File | What |
+|---|---|
+| 20260925140000_revoke_anon_internal_tables.sql, 20260925141000_blessings_hide_email_column.sql, 20260926110000_rsvps_revoke_public_select.sql | grant clean-ups (25-26 Sep) |
+| 20261019100000_family_code.sql | family code: hash-only storage, `family_tree` RPC |
+| 20261021100000_admin_purge_guest_data.sql | guest-data purge (SQL editor only) |
+| 20261022100000_family_code_hardening.sql, 20261022110000_family_code_race_admin_lockout.sql | 16-char minimum, global lockout, return-instead-of-raise, advisory lock; applied together |
+| 20261023100000_flood_guard_rsvps_cap_40.sql | rsvps cap 300 to 40 per 10 minutes |
+| 20261025100000_record_admin_data_counts.sql, 20261025100100_record_admin_set_blessing_status_4arg.sql | RECORD ONLY: written from the live definitions on 25 Oct |
 
 ## Completeness — every live migration mapped to a repo file
 
@@ -113,5 +140,9 @@ All `admin_*` functions require a live table-driven password check
 | n/a — untracked | email_log table, admin_list_email_log, admin_list_rsvp_emails | 20260924160000_email_log_and_admin_email_rpcs.sql (no live migration record exists for this object set; applied directly, not through migration history) |
 | n/a — pre-tracking baseline | people, relationships, rsvps, blessings (base), admin_config, admin_check, admin_list_all, admin_list_pending, admin_set_relationship_status, admin_delete_rsvp, admin_list_blessings | 20260819000000_baseline_admin_and_core_tables.sql (predates the earliest tracked migration, 20260819232734) |
 
-**Unmapped: 0.** Every live migration and every live public function,
-trigger, table, RLS policy and non-default grant traces to a file above.
+The table above covers the tracked history up to 26 Sep. Some entries are
+data-only stubs or reconstructions and may not reproduce the live objects
+byte for byte. Anything after 26 Sep is untracked (see the top of this file).
+No claim is made that every live object maps to a file; `admin_list_all` /
+`admin_check` style legacy functions and pgcrypto helpers should be checked
+against the live DB when it matters.

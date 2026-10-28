@@ -24,18 +24,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
-<link rel="preload" as="script" fetchpriority="low" href="js/addressee.js?v=55">
-<link rel="preload" as="script" fetchpriority="low" href="js/net.js?v=55">
-<link rel="preload" as="script" fetchpriority="low" href="js/tree-data.js?v=55">
-<link rel="preload" as="script" fetchpriority="low" href="js/family-plan.js?v=55">
-<link rel="preload" as="script" fetchpriority="low" href="js/family-lines.js?v=55">
-<link rel="preload" as="script" fetchpriority="low" href="js/family-tree.js?v=55">
-<link rel="preload" as="script" fetchpriority="low" href="js/blessings-data.js?v=55">
-<link rel="preload" as="script" fetchpriority="low" href="js/config.js?v=55">
-<link rel="preload" as="script" fetchpriority="low" href="js/countdown.js?v=55">
-<link rel="preload" as="script" fetchpriority="low" href="js/travel.js?v=55">
-<link rel="stylesheet" href="css/envelope.css?v=55">
-<link rel="stylesheet" href="css/travel.css?v=55">
+<link rel="preload" as="script" fetchpriority="low" href="js/addressee.js?v=56">
+<link rel="preload" as="script" fetchpriority="low" href="js/net.js?v=56">
+<link rel="preload" as="script" fetchpriority="low" href="js/tree-data.js?v=56">
+<link rel="preload" as="script" fetchpriority="low" href="js/family-plan.js?v=56">
+<link rel="preload" as="script" fetchpriority="low" href="js/family-lines.js?v=56">
+<link rel="preload" as="script" fetchpriority="low" href="js/family-tree.js?v=56">
+<link rel="preload" as="script" fetchpriority="low" href="js/blessings-data.js?v=56">
+<link rel="preload" as="script" fetchpriority="low" href="js/config.js?v=56">
+<link rel="preload" as="script" fetchpriority="low" href="js/countdown.js?v=56">
+<link rel="preload" as="script" fetchpriority="low" href="js/travel.js?v=56">
+<link rel="stylesheet" href="css/envelope.css?v=56">
+<link rel="stylesheet" href="css/travel.css?v=56">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   :root {
@@ -1398,7 +1398,7 @@
 
   <footer><p class="footer">more details coming soon &middot; <a href="privacy.html">privacy</a></p></footer>
 
-  <script src="js/addressee.js?v=55"></script>
+  <script src="js/addressee.js?v=56"></script>
   <script>
     (function () {
       var root = document.documentElement;
@@ -1433,12 +1433,12 @@
       });
     })();
   </script>
-  <script src="js/net.js?v=55"></script>
-  <script src="js/tree-data.js?v=55"></script>
-  <script src="js/family-plan.js?v=55"></script>
-  <script src="js/family-lines.js?v=55"></script>
-  <script src="js/family-tree.js?v=55"></script>
-  <script src="js/blessings-data.js?v=55"></script>
+  <script src="js/net.js?v=56"></script>
+  <script src="js/tree-data.js?v=56"></script>
+  <script src="js/family-plan.js?v=56"></script>
+  <script src="js/family-lines.js?v=56"></script>
+  <script src="js/family-tree.js?v=56"></script>
+  <script src="js/blessings-data.js?v=56"></script>
   <script>
     // shared: content grows in as each part reaches the viewport
     function revealOnScroll(scope) {
@@ -1521,7 +1521,8 @@
           codeOpen.hidden = true;
           codeStatus.textContent = "Showing everyone\u2019s names for family.";
         }).catch(function (err) {
-          if (quiet) { try { sessionStorage.removeItem("familyCode"); } catch (e) {} }
+          // forget the saved code only when the server said it is wrong, not on network or other errors
+          if (quiet && err && err.status === 400) { try { sessionStorage.removeItem("familyCode"); } catch (e) {} }
           codeStatus.textContent = quiet ? "" : (err && err.status === 429
             ? "Too many tries. Please wait 15 minutes and try again."
             : err && err.status === 400
@@ -1582,7 +1583,9 @@
       var count = document.getElementById("bfCount");
       var sendBtn = document.getElementById("bfSend");
       var statusMsg = document.getElementById("bfStatus");
-      var loadedAt = Date.now();
+      // the 2 second anti-bot gate starts at the first keystroke, not at page load
+      var loadedAt = null;
+      form.addEventListener("input", function () { if (loadedAt === null) { loadedAt = Date.now(); } });
       var PAGE_SIZE = 12;
       var allRows = [];
       var shown = 0;
@@ -1678,12 +1681,17 @@
       form.addEventListener("submit", function (e) {
         e.preventDefault();
 
-        // silently swallow obvious bot submissions: honeypot filled, or
-        // submitted faster than a human could plausibly type a blessing
-        if (document.getElementById("bfExtra").value || Date.now() - loadedAt < 2000) {
+        // honeypot filled: obviously a bot, swallow silently
+        if (document.getElementById("bfExtra").value) {
           statusMsg.className = "status bf-status ok";
           statusMsg.textContent = "Thank you — your words are on their way to us.";
           form.reset();
+          return;
+        }
+        // faster than a human could type: say so, don't fake success
+        if (loadedAt === null || Date.now() - loadedAt < 2000) {
+          statusMsg.className = "status bf-status err";
+          statusMsg.textContent = "Please wait a moment and try again.";
           return;
         }
 
@@ -1720,9 +1728,9 @@
       });
     })();
   </script>
-  <script src="js/config.js?v=55"></script>
-  <script src="js/countdown.js?v=55"></script>
-  <script src="js/travel.js?v=55"></script>
+  <script src="js/config.js?v=56"></script>
+  <script src="js/countdown.js?v=56"></script>
+  <script src="js/travel.js?v=56"></script>
   <script>
     // the wedding date and travel switch live in js/config.js
     // a missing or blocked js/config.js must not take the teaser and RSVP button with it

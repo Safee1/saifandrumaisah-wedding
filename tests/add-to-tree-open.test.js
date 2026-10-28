@@ -20,8 +20,19 @@ test("no invite code field or copy remains on the public add-to-tree form", () =
 test("the honeypot field and time-gate are still present", () => {
   assert.match(html, /id="fx_extra"[^>]*tabindex="-1"/);
   assert.doesNotMatch(html, /id="website"|name="website"/);
-  assert.match(html, /loadedAt = Date\.now\(\)/);
-  assert.match(html, /Date\.now\(\) - loadedAt < 2000/);
+  assert.match(html, /var loadedAt = null;/);
+  assert.match(html, /form\.addEventListener\("input"[^\n]*loadedAt = Date\.now\(\)/);
+  assert.match(html, /loadedAt === null \|\| Date\.now\(\) - loadedAt < 2000/);
+});
+
+test("a too-fast submission shows the friendly wait message; only the honeypot is silent", () => {
+  const idx = html.indexOf("loadedAt === null ||");
+  assert.ok(idx > -1);
+  const nearby = html.slice(idx, idx + 300);
+  assert.match(nearby, /Please wait a moment and try again/);
+  assert.doesNotMatch(nearby, /sent for approval/);
+  const hp = html.indexOf('getElementById("fx_extra").value');
+  assert.ok(hp > -1 && hp < idx, "honeypot checked first and stays silent");
 });
 
 test("the form submits through TreeData.submitOpen (no code argument)", () => {
