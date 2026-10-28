@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { mockTreeFetch, mockSupabase } from "./helpers.mjs";
+import { mockTreeFetch, mockSupabase, submitAfterGate } from "./helpers.mjs";
 
 async function gotoReady(page, extraHandlers = {}) {
   await mockTreeFetch(page, extraHandlers);
@@ -76,7 +76,7 @@ test.describe("add-to-tree.html — form & dropdowns", () => {
       }
     });
     await page.locator("#name").fill('<script>alert(1)</script>Cousin');
-    await page.locator("#submitBtn").click();
+    await submitAfterGate(page, "#submitBtn");
     await expect(page.locator("#statusMsg")).toContainText(/sent for approval/i);
     expect(dialogFired).toBe(false);
     expect(sentPerson.person.name).toContain("<script>");
@@ -99,7 +99,7 @@ test.describe("add-to-tree.html — form & dropdowns", () => {
       });
       await page.locator("#name").fill("Test Person " + c.rel);
       await page.locator("#relType").selectOption(c.rel);
-      await page.locator("#submitBtn").click();
+      await submitAfterGate(page, "#submitBtn");
       await expect(page.locator("#statusMsg")).toContainText(/sent for approval/i);
       expect(sent.rel.type).toBe(c.expectType);
       if (c.fromIsAnchor) {
@@ -135,6 +135,7 @@ test.describe("add-to-tree.html — form & dropdowns", () => {
     await expect(page.locator("#submitBtn")).toBeEnabled();
     await page.locator("#name").fill("Fast Person");
     await page.locator("#submitBtn").click();
+    await expect(page.locator("#statusMsg")).toContainText("Please wait a moment and try again.");
     expect(posted).toBe(false);
   });
 
@@ -143,7 +144,7 @@ test.describe("add-to-tree.html — form & dropdowns", () => {
       "POST /rest/v1/rpc/submit_to_tree": (route) => route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ message: "boom" }) })
     });
     await page.locator("#name").fill("Someone");
-    await page.locator("#submitBtn").click();
+    await submitAfterGate(page, "#submitBtn");
     await expect(page.locator("#statusMsg")).toContainText(/something went wrong/i);
     await expect(page.locator("#submitBtn")).toBeEnabled();
   });

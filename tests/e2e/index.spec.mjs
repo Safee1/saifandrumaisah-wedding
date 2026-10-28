@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { mockTreeFetch, mockSupabase, watchConsole, assertNoLeaks, rpcBody } from "./helpers.mjs";
+import { mockTreeFetch, mockSupabase, watchConsole, assertNoLeaks, rpcBody, submitAfterGate } from "./helpers.mjs";
 
 test.describe("index.html — envelope intro", () => {
   test("skip button jumps straight to the site, no envelope", async ({ page }) => {
@@ -207,8 +207,9 @@ test.describe("index.html — blessings form", () => {
       route.fulfill({ status: 201, body: "" });
     });
     await page.goto("/index.html#blessings");
-    await page.waitForTimeout(2100); // clear the 2s bot gate
-    await page.locator("#bfSend").click();
+    await page.locator("#bfName").fill("x");
+    await page.locator("#bfName").fill("");
+    await submitAfterGate(page, "#bfSend");
     await expect(page.locator("#bfStatus")).toContainText(/tell us your name/i);
     expect(posted).toBe(false);
   });
@@ -218,7 +219,7 @@ test.describe("index.html — blessings form", () => {
     await page.goto("/index.html#blessings");
     await page.waitForTimeout(2100);
     await page.locator("#bfName").fill("Aunt Samira");
-    await page.locator("#bfSend").click();
+    await submitAfterGate(page, "#bfSend");
     await expect(page.locator("#bfStatus")).toContainText(/write a few words/i);
   });
 
@@ -247,7 +248,7 @@ test.describe("index.html — blessings form", () => {
     const tricky = "مبارك 🎉 دعاء نیک تمنائیں <script>alert(1)</script>";
     await page.locator("#bfName").fill("Khala");
     await page.locator("#bfMsg").fill(tricky);
-    await page.locator("#bfSend").click();
+    await submitAfterGate(page, "#bfSend");
     await expect(page.locator("#bfStatus")).toContainText(/on their way to us/i);
     expect(sentBody).toBeTruthy();
     expect(sentBody.message).toContain("<script>"); // stored as literal text
@@ -270,7 +271,7 @@ test.describe("index.html — blessings form", () => {
     await page.waitForTimeout(2100);
     await page.locator("#bfName").fill("Uncle Tariq");
     await page.locator("#bfMsg").fill("Congratulations to you both!");
-    await page.locator("#bfSend").click();
+    await submitAfterGate(page, "#bfSend");
     await page.locator("#bfSend").click({ force: true }).catch(() => {});
     await page.waitForTimeout(500);
     expect(postCount).toBe(1);
@@ -287,7 +288,7 @@ test.describe("index.html — blessings form", () => {
     await page.locator("#bfExtra").fill("http://spam.example");
     await page.locator("#bfName").fill("Bot");
     await page.locator("#bfMsg").fill("Buy now");
-    await page.locator("#bfSend").click();
+    await submitAfterGate(page, "#bfSend");
     await expect(page.locator("#bfStatus")).toContainText(/on their way to us/i);
     expect(posted).toBe(false);
   });
@@ -305,6 +306,7 @@ test.describe("index.html — blessings form", () => {
     await page.locator("#bfName").fill("Quick Bot");
     await page.locator("#bfMsg").fill("Too fast");
     await page.locator("#bfSend").click();
+    await expect(page.locator("#bfStatus")).toContainText("Please wait a moment and try again.");
     expect(posted).toBe(false);
   });
 
@@ -314,7 +316,7 @@ test.describe("index.html — blessings form", () => {
     await page.waitForTimeout(2100);
     await page.locator("#bfName").fill("Someone");
     await page.locator("#bfMsg").fill("A lovely note");
-    await page.locator("#bfSend").click();
+    await submitAfterGate(page, "#bfSend");
     await expect(page.locator("#bfStatus")).toContainText(/something went wrong/i);
     await expect(page.locator("#bfSend")).toBeEnabled();
   });
