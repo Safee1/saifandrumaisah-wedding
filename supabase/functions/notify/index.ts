@@ -29,7 +29,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { ALERTS, canQuoteBlessing, isTestBroadcast, safeFirstName, validRecipient } from "./guards.mjs";
 
 const SITE = "https://saifandrumaisah.com";
-const FROM = "Saif & Rumaisah <hello@saifandrumaisah.com>";
+const FROM = "Saif & Rumaisah <hello@send.saifandrumaisah.com>";
 const REPLY_TO = "hello@saifandrumaisah.com";
 
 const EVENT_LABELS: Record<string, string> = {
