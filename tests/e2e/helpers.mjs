@@ -127,3 +127,10 @@ export async function mockTreeFetch(page, extraHandlers = {}) {
     ...extraHandlers
   });
 }
+
+// The bot gate starts at the first `input` event and rejects submits within
+// 2s of it. Call after filling the form, instead of clicking submit directly.
+export async function submitAfterGate(page, selector) {
+  await page.waitForTimeout(2100);
+  await page.locator(selector).click();
+}
