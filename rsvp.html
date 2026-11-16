@@ -25,10 +25,10 @@
 <style>@font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:300 500;font-display:swap;src:url(/fonts/cormorant-garamond-latin-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:400;font-display:swap;src:url(/fonts/cormorant-garamond-latin-italic-400.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'Pinyon Script';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/pinyon-script-latin-400.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}</style>
-<link rel="preload" as="script" fetchpriority="low" href="js/net.js?v=56">
-<link rel="preload" as="script" fetchpriority="low" href="js/rsvp-data.js?v=56">
-<link rel="preload" as="script" fetchpriority="low" href="js/config.js?v=56">
-<link rel="preload" as="script" fetchpriority="low" href="js/travel.js?v=56">
+<link rel="preload" as="script" fetchpriority="low" href="js/net.js?v=58">
+<link rel="preload" as="script" fetchpriority="low" href="js/rsvp-data.js?v=58">
+<link rel="preload" as="script" fetchpriority="low" href="js/config.js?v=58">
+<link rel="preload" as="script" fetchpriority="low" href="js/travel.js?v=58">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   :root {
@@ -212,10 +212,10 @@
     <a class="back" href="index.html">&larr; back to the invitation</a>
   </div>
 
-  <script src="js/net.js?v=56"></script>
-  <script src="js/rsvp-data.js?v=56"></script>
-  <script src="js/config.js?v=56"></script>
-  <script src="js/travel.js?v=56"></script>
+  <script src="js/net.js?v=58"></script>
+  <script src="js/rsvp-data.js?v=58"></script>
+  <script src="js/config.js?v=58"></script>
+  <script src="js/travel.js?v=58"></script>
   <script>
     // abroad wedding: the reply-by date and a pointer to the travel checklist
     (function () {
@@ -272,6 +272,29 @@
       form.addEventListener("input", syncFields);
       form.addEventListener("change", syncFields);
 
+      // Must be reachable: the text has to CONTAIN an email address or a phone
+      // number. Extra words are fine ("07700 900123 (mum)", a phone AND an
+      // email). A phone number is 7 or more digits with no letters between
+      // them; digits in any script count. The database only limits the length
+      // (200), so this check is the only one.
+      function contactReachable(contact) {
+        var text = String(contact || "");
+        if (/[^\s@]+@[^\s@]+\.[^\s@]+/.test(text)) { return true; }
+        var run, digit;
+        try {
+          run = new RegExp("\\p{Nd}[^\\p{L}]*", "gu");
+          digit = new RegExp("\\p{Nd}", "gu");
+        } catch (e) { // older browsers: plain digits and letters only
+          run = /[0-9][^A-Za-z]*/g;
+          digit = /[0-9]/g;
+        }
+        var runs = text.match(run) || [];
+        for (var i = 0; i < runs.length; i++) {
+          if ((runs[i].match(digit) || []).length >= 7) { return true; }
+        }
+        return false;
+      }
+
       form.addEventListener("submit", function (e) {
         e.preventDefault();
 
@@ -311,10 +334,7 @@
           statusMsg.textContent = "Please leave an email or phone number.";
           return;
         }
-        // must be reachable: an email, or at least 7 digits once spaces/+/-/() are stripped
-        var looksEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact);
-        var looksPhone = contact.replace(/[\s+\-().]/g, "").replace(/\D/g, "").length >= 7 && !/[A-Za-z]{3,}/.test(contact);
-        if (!looksEmail && !looksPhone) {
+        if (!contactReachable(contact)) {
           statusMsg.className = "status err";
           statusMsg.textContent = "Please give an email or phone number we can reach you on.";
           return;

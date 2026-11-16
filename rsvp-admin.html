@@ -20,9 +20,9 @@
 <style>@font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:300 500;font-display:swap;src:url(/fonts/cormorant-garamond-latin-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:400;font-display:swap;src:url(/fonts/cormorant-garamond-latin-italic-400.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'Pinyon Script';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/pinyon-script-latin-400.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}</style>
-<link rel="preload" as="script" fetchpriority="low" href="js/net.js?v=56">
-<link rel="preload" as="script" fetchpriority="low" href="js/rsvp-dupes.js?v=56">
-<link rel="preload" as="script" fetchpriority="low" href="js/rsvp-data.js?v=56">
+<link rel="preload" as="script" fetchpriority="low" href="js/net.js?v=58">
+<link rel="preload" as="script" fetchpriority="low" href="js/rsvp-dupes.js?v=58">
+<link rel="preload" as="script" fetchpriority="low" href="js/rsvp-data.js?v=58">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   :root {
@@ -68,9 +68,10 @@
   .refresh { display: block; margin: 0 auto 1.5rem; font-family: inherit; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--side); background: none; border: 1px solid var(--side); border-radius: 8px; padding: 0.5rem 1rem; cursor: pointer; }
 
   .item.is-dupe { opacity: 0.72; }
-  .dupe-badge { display: inline-block; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--bad); border: 1px solid var(--bad); border-radius: 6px; padding: 0.15rem 0.5rem; margin: 0 0 0.35rem; cursor: help; }
+  .dupe-badge, .flag-badge { display: inline-block; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--bad); border: 1px solid var(--bad); border-radius: 6px; padding: 0.15rem 0.5rem; margin: 0 0 0.35rem; }
+  .flag-badge { color: #8a6417; border-color: #8a6417; }
   .latest-badge { display: inline-block; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--good); border: 1px solid var(--good); border-radius: 6px; padding: 0.15rem 0.5rem; margin: 0 0 0.35rem; }
-  .dupe-note { text-align: center; color: var(--muted); font-size: 0.78rem; font-style: italic; margin: -1rem 0 1.5rem; }
+  .dupe-note { text-align: center; color: var(--ink); font-size: 0.9rem; max-width: 36rem; margin: -1rem auto 1.5rem; }
 </style>
 </head>
 <body>
@@ -100,7 +101,7 @@
       <div class="stat"><span class="stat-num" id="statVeryLikely">0</span><span class="stat-lab">very likely</span></div>
       <div class="stat"><span class="stat-num" id="statHopingTo">0</span><span class="stat-lab">hoping to</span></div>
     </div>
-    <p class="dupe-note" id="dupeNote" style="display:none"></p>
+    <p class="dupe-note" id="dupeNote" role="status" style="display:none"></p>
 
     <div style="display:flex; gap:0.6rem; justify-content:center; margin-bottom:1.5rem; flex-wrap:wrap;">
       <button class="refresh" id="refreshBtn" style="margin-bottom:0">Refresh</button>
@@ -109,9 +110,9 @@
     <div id="list"></div>
   </div>
 
-  <script src="js/net.js?v=56"></script>
-  <script src="js/rsvp-dupes.js?v=56"></script>
-  <script src="js/rsvp-data.js?v=56"></script>
+  <script src="js/net.js?v=58"></script>
+  <script src="js/rsvp-dupes.js?v=58"></script>
+  <script src="js/rsvp-data.js?v=58"></script>
   <script>
     (function () {
       var pw = null;
@@ -133,7 +134,7 @@
       var statHopingTo = document.getElementById("statHopingTo");
       var dupeNote = document.getElementById("dupeNote");
       var lastRows = [];
-      var lastEntries = []; // parallel to lastRows: { row, isKeeper, duplicateOf, groupSize }
+      var lastEntries = []; // parallel to lastRows, see RsvpDupes.groupDuplicates
 
       var LIKELIHOOD_LABEL = {
         definitely: "Definitely",
@@ -209,10 +210,12 @@
       }
 
       function exportCsv() {
-        var header = ["Name", "Attending", "Contact", "Adults", "Children", "Children ages", "Guests", "Likelihood", "Dietary", "Note", "Submitted", "duplicate_of"];
+        var header = ["Name", "Attending", "Contact", "Adults", "Children", "Children ages", "Guests", "Likelihood", "Dietary", "Note", "Submitted", "Counted in totals", "Replaced by newer reply", "Possible duplicate (still counted)"];
         var lines = [header.join(",")];
         lastEntries.forEach(function (entry) {
           var row = entry.row;
+          // same rule as the page: only an earlier re-send (same name AND same
+          // contact as a newer reply) is not counted; flagged rows are counted
           var dupOf = entry.duplicateOf ? (entry.duplicateOf.name + " (" + fmtDate(entry.duplicateOf.created_at) + ")") : "";
           lines.push([
             csvField(row.name),
@@ -226,7 +229,9 @@
             csvField(row.dietary),
             csvField(row.message),
             csvField(fmtDate(row.created_at)),
-            csvField(dupOf)
+            csvField(entry.isKeeper ? "Yes" : "No"),
+            csvField(dupOf),
+            csvField(entry.isKeeper ? RsvpDupes.flagText(entry) : "")
           ].join(","));
         });
         var blob = new Blob([lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
@@ -252,10 +257,11 @@
         var totalAdults = 0;
         var totalChildren = 0;
         var totalDeclined = 0;
-        var excludedCount = 0;
         var byLikelihood = { definitely: 0, very_likely: 0, hoping_to: 0 };
         entries.forEach(function (entry) {
-          if (!entry.isKeeper) { excludedCount += 1; return; }
+          // only an earlier re-send (same name AND same contact as a newer
+          // reply) is left out; a possible duplicate is flagged but counted
+          if (!entry.isKeeper) { return; }
           var row = entry.row;
           totalResponses += 1;
           if (row.attending) {
@@ -278,13 +284,9 @@
         statVeryLikely.textContent = byLikelihood.very_likely;
         statHopingTo.textContent = byLikelihood.hoping_to;
 
-        if (excludedCount > 0) {
-          dupeNote.textContent = excludedCount + " possible duplicate" + (excludedCount === 1 ? "" : "s") + " excluded";
-          dupeNote.style.display = "";
-        } else {
-          dupeNote.textContent = "";
-          dupeNote.style.display = "none";
-        }
+        var noteText = RsvpDupes.summaryText(entries);
+        dupeNote.textContent = noteText;
+        dupeNote.style.display = noteText ? "" : "none";
 
         list.innerHTML = "";
         if (!rows.length) {
@@ -299,22 +301,26 @@
           var info = document.createElement("div");
           info.className = "item-info";
 
+          var badge = function (cls, text, noteText) {
+            var b = document.createElement("span");
+            b.className = cls;
+            b.textContent = text;
+            info.appendChild(b);
+            if (!noteText) { return; }
+            var note = document.createElement("p");
+            note.className = "item-note";
+            note.style.margin = "0 0 0.3rem";
+            note.textContent = noteText;
+            info.appendChild(note);
+          };
           if (!entry.isKeeper && entry.duplicateOf) {
-            var dupeBadge = document.createElement("span");
-            dupeBadge.className = "dupe-badge";
-            dupeBadge.textContent = "Possible duplicate";
-            dupeBadge.title = "of " + entry.duplicateOf.name;
-            info.appendChild(dupeBadge);
-            var dupeOfText = document.createElement("p");
-            dupeOfText.className = "item-note";
-            dupeOfText.style.margin = "0 0 0.3rem";
-            dupeOfText.textContent = "of " + entry.duplicateOf.name;
-            info.appendChild(dupeOfText);
-          } else if (entry.isKeeper && entry.groupSize > 1) {
-            var latestBadge = document.createElement("span");
-            latestBadge.className = "latest-badge";
-            latestBadge.textContent = "latest";
-            info.appendChild(latestBadge);
+            badge("dupe-badge", "Earlier reply, not counted",
+              "Same name and contact as the newer reply from " + entry.duplicateOf.name + " (" + fmtDate(entry.duplicateOf.created_at) + ")");
+          } else if (entry.groupSize > 1) {
+            badge("latest-badge", "Latest reply, counted");
+          }
+          if (entry.isKeeper && entry.possibleDuplicateOf.length) {
+            badge("flag-badge", "Possible duplicate, still counted", "Check: " + RsvpDupes.flagText(entry));
           }
 
           var kind = document.createElement("p");

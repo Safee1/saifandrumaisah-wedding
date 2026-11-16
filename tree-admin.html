@@ -20,9 +20,9 @@
 <style>@font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:300 500;font-display:swap;src:url(/fonts/cormorant-garamond-latin-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:400;font-display:swap;src:url(/fonts/cormorant-garamond-latin-italic-400.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'Pinyon Script';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/pinyon-script-latin-400.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}</style>
-<link rel="preload" as="script" fetchpriority="low" href="js/net.js?v=56">
-<link rel="preload" as="script" fetchpriority="low" href="js/tree-data.js?v=56">
-<link rel="preload" as="script" fetchpriority="low" href="js/admin-people.js?v=56">
+<link rel="preload" as="script" fetchpriority="low" href="js/net.js?v=58">
+<link rel="preload" as="script" fetchpriority="low" href="js/tree-data.js?v=58">
+<link rel="preload" as="script" fetchpriority="low" href="js/admin-people.js?v=58">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   :root {
@@ -118,9 +118,9 @@
     <div id="peopleList"></div>
   </div>
 
-  <script src="js/net.js?v=56"></script>
-  <script src="js/tree-data.js?v=56"></script>
-  <script src="js/admin-people.js?v=56"></script>
+  <script src="js/net.js?v=58"></script>
+  <script src="js/tree-data.js?v=58"></script>
+  <script src="js/admin-people.js?v=58"></script>
   <script>
     (function () {
       var pw = null;
@@ -233,7 +233,12 @@
           rejectBtn.disabled = true;
           var fn = row.kind === "person" ? "admin_set_person_status" : "admin_set_relationship_status";
           TreeData.rpc(fn, { pw: pw, target: row.id, new_status: status })
-            .then(function () { el.remove(); })
+            .then(function () {
+              el.remove();
+              // a person just moved lists: show them under "rejected (restore)" or
+              // "people" straight away, so a mistaken tap is visibly recoverable
+              if (row.kind === "person") { loadRejected(); loadPeople(); }
+            })
             .catch(function (err) {
               approveBtn.disabled = false;
               rejectBtn.disabled = false;
@@ -290,7 +295,9 @@
             });
         }
         approveBtn.addEventListener("click", function () { act("approved"); });
-        rejectBtn.addEventListener("click", function () { act("rejected"); });
+        // admin_set_blessing_status only accepts approved / hidden / pending.
+        // "hidden" keeps the row, so it can be brought back from the activity page.
+        rejectBtn.addEventListener("click", function () { act("hidden"); });
 
         actions.appendChild(approveBtn);
         actions.appendChild(rejectBtn);

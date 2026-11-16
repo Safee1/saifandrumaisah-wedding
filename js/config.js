@@ -26,6 +26,10 @@
     // including country/month) behind the wax-seal teaser copy. Flip to
     // true only once `date` and `travel` above are filled in — that's what
     // actually makes the real details replace the teaser everywhere.
+    // The card prints `day` + `month`; the countdown counts to `date`. All
+    // three must name the same day (month written in full, e.g. day "15",
+    // month "January 2099", date "2099-01-15T..."). `npm test` fails if
+    // they disagree once show is true.
     reveal: {
       at: null,
       show: false,
