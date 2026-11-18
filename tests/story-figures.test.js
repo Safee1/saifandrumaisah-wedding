@@ -249,3 +249,132 @@ test("one cache stamp across every page, including the new stylesheet", () => {
   const values = new Set(stamps.map((s) => s.split(":")[1]));
   assert.equal(values.size, 1, "stamps differ across pages: " + [...new Set(stamps)].join(", "));
 });
+
+// ---------- grounding: both figures' soles are the bottom of the art ----------
+
+test("both figures end on the same sole line, and that line is the bottom of the view box", () => {
+  // the view box is cropped to the soles, so `bottom` on the figure is the
+  // ground line and nothing hovers or sinks (the bride used to end in two
+  // bare ankle lines well above it)
+  const soles = (svg) => [...svg.matchAll(/<path class="shoe" d="M([\d.]+) ([\d.]+) h[\d.]+ (?:l[-\d.]+ |v)([\d.]+) h/g)]
+    .map((m) => Math.round((Number(m[2]) + Number(m[3])) * 100) / 100);
+  for (const cls of ["fig-l", "fig-r"]) {
+    const svg = figure(cls);
+    const vb = svg.match(/viewBox="0 0 60 ([\d.]+)"/);
+    assert.ok(vb, cls + " lost its view box");
+    const s = soles(svg);
+    assert.equal(s.length, 2, cls + " needs two shoes");
+    for (const y of s) { assert.equal(y, Number(vb[1]), cls + " shoe bottom " + y + " is not the view-box bottom"); }
+  }
+  assert.match(figure("fig-r"), /<g class="step step-(?:lead|trail)"><path class="thin"[^>]*\/><path class="shoe"/, "bride's shoes ride on her ankles");
+  assert.match(decls(".figure"), /bottom:\s*5\.1vh/, "soles belong on the ground line");
+  assert.match(decls(".figure svg"), /display:\s*block/, "an inline svg leaves a baseline gap under the soles");
+});
+
+test("her gown reaches down to her shoes: the hem ends within a few units of the soles", () => {
+  const svg = figure("fig-r");
+  const gown = svg.match(/<g class="gown-sway">\s*<path class="gown" d="([^"]+)"/)[1];
+  const ys = [...gown.matchAll(/([\d.]+) ([\d.]+)/g)].map((m) => Number(m[2]));
+  const low = Math.max(...ys);
+  const sole = Number(svg.match(/viewBox="0 0 60 ([\d.]+)"/)[1]);
+  assert.ok(sole - low < 6, "hem at " + low + " is too far above the soles at " + sole);
+  assert.ok(low < sole - 2, "hem must leave room for the shoes");
+});
+
+// ---------- meeting: hands and heart ----------
+
+test("they stop close enough for the raised hands to meet, at every width", () => {
+  // the stop distance is a fraction of the figure width, so it scales with it
+  assert.match(decls(".story"), /--meet:\s*calc\(var\(--fig-w\)\s*\*\s*0\.\d+\)/);
+  assert.match(decls(".figure"), /width:\s*var\(--fig-w\)/);
+  const end = (name) => KF[name][KF[name].length - 1].body;
+  assert.match(end("walkL"), /translateX\(calc\(-50% - var\(--meet\)\)\)/);
+  assert.match(end("walkR"), /translateX\(calc\(-50% \+ var\(--meet\)\)\)/);
+  // hands, in view-box units from the middle of each 60-wide figure box: his reaches x=53.5, hers (mirrored) x=52
+  const f = Number(decls(".story").match(/--meet:[^;]*\*\s*(0\.\d+)\)/)[1]);
+  const gapUnits = 2 * f * 60 - ((53.5 - 30) + (52 - 30));
+  assert.ok(gapUnits >= 0 && gapUnits <= 4, "hands end " + gapUnits.toFixed(1) + " units apart");
+});
+
+test("the heart blooms just above their heads, sized from the same figure height", () => {
+  const from = html.indexOf(".meet-heart {");
+  const rule = html.slice(from, html.indexOf("}", from));
+  assert.match(rule, /bottom:\s*calc\([^;]*var\(--fig-h\)/);
+  assert.doesNotMatch(rule, /130px/);
+  assert.match(decls(".story"), /--fig-h:\s*calc\(var\(--fig-w\)\s*\*\s*1\.54\d*\)/);
+});
+
+// ---------- wide screens: ten steps ----------
+
+const wideCss = read("css/story-figures-wide.css");
+const wideFlat = wideCss.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\s+/g, " ");
+const KFW = (() => {
+  const out = {};
+  for (const m of wideFlat.matchAll(/@keyframes\s+([\w-]+)\s*\{((?:[^{}]*\{[^{}]*\})+)\s*\}/g)) {
+    out[m[1]] = [...m[2].matchAll(/([\d.]+%)\s*\{([^{}]*)\}/g)].map((s) => ({ stop: s[1], body: s[2].trim() }));
+  }
+  return out;
+})();
+const WIDE = ["bobW", "legLeadW", "legTrailW", "kneeLeadW", "kneeTrailW", "stepLeadW", "stepTrailW",
+  "armReachW", "armSwingW", "clothSwayW", "tailTrailW", "trainTrailW"];
+const rotW = (s) => Number(s.body.match(/rotate\(\s*([-\d.]+)deg\)/)[1]);
+
+test("the wide-screen stylesheet is linked for 1100px and up only, with the shared cache stamp", () => {
+  assert.match(html, /<link rel="stylesheet" media="\(min-width: 1100px\)" href="css\/story-figures-wide\.css\?v=\d+">/);
+  assert.ok(html.indexOf("story-figures-wide.css") > html.indexOf("css/story-figures.css"), "wide must load after the base");
+});
+
+test("wide screens: every ten-step keyframe set is wired, ends on the rest pose and starts on it (except the reach)", () => {
+  for (const name of WIDE) {
+    assert.ok(KFW[name] && KFW[name].length >= 5, "@keyframes " + name + " missing");
+    assert.match(wideFlat, new RegExp("animation(?:-name)?:\\s*" + name + "\\b"), name + " is never used");
+    const last = KFW[name][KFW[name].length - 1];
+    assert.equal(last.stop, "100%");
+    for (const n of amounts(last.body)) { assert.equal(n, 0, name + " ends on " + last.body); }
+    if (name !== "armReachW") {
+      assert.equal(KFW[name][0].stop, "0%");
+      for (const n of amounts(KFW[name][0].body)) { assert.equal(n, 0, name + " starts on " + KFW[name][0].body); }
+    }
+    for (const s of KFW[name]) { assert.match(s.body, /^transform:[^;]*;?$/, name + " animates more than transform"); }
+  }
+  // the walk itself keeps the shared duration and delay and holds both ends
+  assert.match(wideFlat, /\.fig-l \{ animation: walkL var\(--walk\) [^;]*var\(--walk-delay\) both; \}/);
+  assert.match(wideFlat, /\.fig-r \{ animation: walkR var\(--walk\) [^;]*var\(--walk-delay\) both; \}/);
+  assert.match(wideFlat, /\.fig-bob \{ animation: bobW var\(--walk\) var\(--stride\) var\(--walk-delay\) both; \}/);
+});
+
+test("wide screens: ten steps, feet and bob on the same twentieths, legs in opposition", () => {
+  const contacts = ["5%", "15%", "25%", "35%", "45%", "55%", "65%", "75%", "85%", "95%"];
+  for (const name of ["bobW", "legLeadW", "legTrailW"]) {
+    const stops = KFW[name].map((s) => s.stop);
+    for (const c of contacts) { assert.ok(stops.includes(c), name + " has no keyframe at foot contact " + c); }
+  }
+  KFW.legLeadW.forEach((s, i) => {
+    assert.equal(KFW.legTrailW[i].stop, s.stop);
+    assert.equal(rotW(s) + rotW(KFW.legTrailW[i]), 0, "legs not opposed at " + s.stop);
+  });
+  // ten alternating contacts: the lead leg changes direction every step from the second on
+  const lead = contacts.map((c) => rotW(KFW.legLeadW.find((s) => s.stop === c)));
+  for (let i = 2; i < lead.length; i++) { assert.ok(lead[i] * lead[i - 1] < 0, "lead leg does not alternate at contact " + (i + 1)); }
+  // the walk still starts and finishes gently
+  assert.ok(Math.abs(lead[0]) < Math.abs(lead[3]) / 4);
+  assert.ok(Math.abs(lead[9]) < Math.abs(lead[3]) / 4);
+});
+
+test("wide screens: the ankle swing keeps the bride's feet from crossing", () => {
+  const lines = [...figure("fig-r").matchAll(/<g class="step step-(lead|trail)"><path class="thin" d="M([\d.]+) [^"]* ([\d.]+)"/g)];
+  const gap = Math.abs(Number(lines[0][2]) - Number(lines[1][2]));
+  let reach = 0;
+  for (const m of lines) {
+    const pivotY = Number(decls(".step-" + m[1]).match(/transform-origin:\s*[\d.]+px\s+([\d.]+)px/)[1]);
+    const swing = Math.max(...KFW[m[1] === "lead" ? "stepLeadW" : "stepTrailW"].map((s) => Math.abs(rotW(s))));
+    reach += (Number(m[3]) - pivotY) * Math.sin(swing * Math.PI / 180);
+  }
+  assert.ok(reach < gap / 2, "feet travel " + reach.toFixed(1) + " towards each other with only " + gap + " between them");
+});
+
+test("the wide stylesheet only swaps animation names: no pivots, no paints, nothing that beats the reduced-motion guard", () => {
+  assert.doesNotMatch(wideFlat, /!important/);
+  assert.doesNotMatch(wideFlat, /url\(#/);
+  assert.doesNotMatch(wideFlat, /transform-origin/);
+});

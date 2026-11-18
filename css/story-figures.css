@@ -19,16 +19,26 @@
    (Firefox resolves fill-box percentages on a group differently).
    Only transform and opacity are animated.
    ============================================================ */
+/* the figures' size, defined once on the scene so the heart (inline in
+   index.html) can sit above their heads. The art's view box is 60 x 92.6:
+   its bottom edge is the soles of the shoes, so a figure's bottom offset is
+   the ground line. They stop 0.39 of a figure width either side of the
+   middle, which puts their raised hands a hair apart at every width. */
+.story {
+  --fig-w: clamp(60px, 16vw, 92px);
+  --fig-h: calc(var(--fig-w) * 1.5433);
+  --meet: calc(var(--fig-w) * 0.39);
+}
 .figure {
   --walk: 3.4s;
   --walk-delay: 0.9s;
   --stride: cubic-bezier(.37,0,.63,1);
   position: absolute;
-  bottom: 4.6vh; /* feet on the skyline ground line */
-  width: clamp(60px, 16vw, 92px);
+  bottom: 5.1vh; /* soles on the skyline ground line (drawn 5vh up, 1.6 thick) */
+  width: var(--fig-w);
   z-index: 3;
 }
-.figure svg { width: 100%; height: auto; overflow: visible; }
+.figure svg { display: block; width: 100%; height: auto; overflow: visible; } /* block: no baseline gap under the soles */
 .figure .sil { fill: #34425f; stroke: none; }
 .figure .hair { fill: #1b2436; }
 .figure .veil { fill: rgba(185,150,104,0.22); stroke: rgba(185,150,104,0.55); stroke-width: 0.6; }
@@ -42,7 +52,7 @@
 .fig-bob::after {
   content: "";
   position: absolute;
-  bottom: 2px; left: 50%;
+  bottom: -3px; left: 50%; /* centred on the soles */
   transform: translateX(-50%);
   width: 58%; height: 7px;
   background: radial-gradient(ellipse, rgba(34,48,73,0.2), transparent 70%);
@@ -55,12 +65,12 @@
 @keyframes walkL {
   0%   { transform: translateX(calc(-50% - 40.75vw)); opacity: 0; }
   10%  { transform: translateX(calc(-50% - 38.5vw)); opacity: 1; }
-  100% { transform: translateX(calc(-50% - 3.2rem)); opacity: 1; }
+  100% { transform: translateX(calc(-50% - var(--meet))); opacity: 1; }
 }
 @keyframes walkR {
   0%   { transform: translateX(calc(-50% + 37.5vw)) scaleX(-1); opacity: 0; }
   10%  { transform: translateX(calc(-50% + 35.3vw)) scaleX(-1); opacity: 1; }
-  100% { transform: translateX(calc(-50% + 3.2rem)) scaleX(-1); opacity: 1; }
+  100% { transform: translateX(calc(-50% + var(--meet))) scaleX(-1); opacity: 1; }
 }
 
 /* walking bob, in step with the feet: the body dips as a foot lands
@@ -157,31 +167,32 @@
 
 /* the bride's ankles step under the gown (hips hidden beneath it). The
    swing is kept small: the two lines are 12 units apart and each foot
-   moves under 3, so they can never cross or meet below the hem. */
+   moves under 3, so they can never cross or meet below the hem. The
+   pivot sits 35 units above the shoes. */
 .fig-r .step-lead  { transform-origin: 39.5px 56px; animation-name: stepLead; }
 .fig-r .step-trail { transform-origin: 27.5px 56px; animation-name: stepTrail; }
 @keyframes stepLead {
   0%     { transform: rotate(0deg); }
-  8.33%  { transform: rotate(-0.5deg); }
-  25%    { transform: rotate(7deg); }
-  33.33% { transform: rotate(3deg) translateY(-1.2px); }
-  41.67% { transform: rotate(-1deg); }
-  58.33% { transform: rotate(6deg); }
-  66.67% { transform: rotate(3.5deg) translateY(-0.9px); }
-  75%    { transform: rotate(1deg); }
-  91.67% { transform: rotate(2.5deg); }
+  8.33%  { transform: rotate(-0.35deg); }
+  25%    { transform: rotate(4.9deg); }
+  33.33% { transform: rotate(2.1deg) translateY(-1.2px); }
+  41.67% { transform: rotate(-0.7deg); }
+  58.33% { transform: rotate(4.2deg); }
+  66.67% { transform: rotate(2.45deg) translateY(-0.9px); }
+  75%    { transform: rotate(0.7deg); }
+  91.67% { transform: rotate(1.75deg); }
   100%   { transform: rotate(0deg); }
 }
 @keyframes stepTrail {
   0%     { transform: rotate(0deg); }
-  8.33%  { transform: rotate(0.5deg); }
-  16.67% { transform: rotate(-3.5deg) translateY(-1.2px); }
-  25%    { transform: rotate(-7deg); }
-  41.67% { transform: rotate(1deg); }
-  50%    { transform: rotate(-3deg) translateY(-1.2px); }
-  58.33% { transform: rotate(-6deg); }
-  75%    { transform: rotate(-1deg); }
-  91.67% { transform: rotate(-2.5deg); }
+  8.33%  { transform: rotate(0.35deg); }
+  16.67% { transform: rotate(-2.45deg) translateY(-1.2px); }
+  25%    { transform: rotate(-4.9deg); }
+  41.67% { transform: rotate(0.7deg); }
+  50%    { transform: rotate(-2.1deg) translateY(-1.2px); }
+  58.33% { transform: rotate(-4.2deg); }
+  75%    { transform: rotate(-0.7deg); }
+  91.67% { transform: rotate(-1.75deg); }
   100%   { transform: rotate(0deg); }
 }
 
@@ -251,17 +262,17 @@
 }
 @keyframes trainTrail {
   0%     { transform: rotate(0deg); }
-  8.33%  { transform: rotate(4deg); }
-  16.67% { transform: rotate(7.5deg); }
-  25%    { transform: rotate(5deg); }
-  33.33% { transform: rotate(8deg); }
-  41.67% { transform: rotate(5deg); }
-  50%    { transform: rotate(7.5deg); }
-  58.33% { transform: rotate(4deg); }
-  66.67% { transform: rotate(6deg); }
-  75%    { transform: rotate(2.5deg); }
-  83.33% { transform: rotate(3.5deg); }
-  91.67% { transform: rotate(-0.5deg); }
+  8.33%  { transform: rotate(3.2deg); }
+  16.67% { transform: rotate(6deg); }
+  25%    { transform: rotate(4deg); }
+  33.33% { transform: rotate(6.4deg); }
+  41.67% { transform: rotate(4deg); }
+  50%    { transform: rotate(6deg); }
+  58.33% { transform: rotate(3.2deg); }
+  66.67% { transform: rotate(4.8deg); }
+  75%    { transform: rotate(2deg); }
+  83.33% { transform: rotate(2.8deg); }
+  91.67% { transform: rotate(-0.4deg); }
   100%   { transform: rotate(0deg); }
 }
 /* veil: hangs from the crown, is pressed back by the walk and flutters;
@@ -290,8 +301,8 @@
 /* reduced motion: the story is hidden by the page; make sure nothing here
    runs regardless, leaving the couple standing where the walk ends */
 @media (prefers-reduced-motion: reduce) {
-  .fig-l { animation: none !important; transform: translateX(calc(-50% - 3.2rem)) !important; }
-  .fig-r { animation: none !important; transform: translateX(calc(-50% + 3.2rem)) scaleX(-1) !important; }
+  .fig-l { animation: none !important; transform: translateX(calc(-50% - var(--meet))) !important; }
+  .fig-r { animation: none !important; transform: translateX(calc(-50% + var(--meet))) scaleX(-1) !important; }
   .fig-bob,
   .figure .leg, .figure .shin, .figure .arm, .figure .step,
   .figure .coat-sway, .figure .coat-tail,

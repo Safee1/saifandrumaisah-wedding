@@ -26,19 +26,20 @@
 <style>@font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:300 500;font-display:swap;src:url(/fonts/cormorant-garamond-latin-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:400;font-display:swap;src:url(/fonts/cormorant-garamond-latin-italic-400.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'Pinyon Script';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/pinyon-script-latin-400.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}</style>
-<link rel="preload" as="script" fetchpriority="low" href="js/addressee.js?v=57">
-<link rel="preload" as="script" fetchpriority="low" href="js/net.js?v=57">
-<link rel="preload" as="script" fetchpriority="low" href="js/tree-data.js?v=57">
-<link rel="preload" as="script" fetchpriority="low" href="js/family-plan.js?v=57">
-<link rel="preload" as="script" fetchpriority="low" href="js/family-lines.js?v=57">
-<link rel="preload" as="script" fetchpriority="low" href="js/family-tree.js?v=57">
-<link rel="preload" as="script" fetchpriority="low" href="js/blessings-data.js?v=57">
-<link rel="preload" as="script" fetchpriority="low" href="js/config.js?v=57">
-<link rel="preload" as="script" fetchpriority="low" href="js/countdown.js?v=57">
-<link rel="preload" as="script" fetchpriority="low" href="js/travel.js?v=57">
-<link rel="stylesheet" href="css/envelope.css?v=57">
-<link rel="stylesheet" href="css/story-figures.css?v=57">
-<link rel="stylesheet" href="css/travel.css?v=57">
+<link rel="preload" as="script" fetchpriority="low" href="js/addressee.js?v=58">
+<link rel="preload" as="script" fetchpriority="low" href="js/net.js?v=58">
+<link rel="preload" as="script" fetchpriority="low" href="js/tree-data.js?v=58">
+<link rel="preload" as="script" fetchpriority="low" href="js/family-plan.js?v=58">
+<link rel="preload" as="script" fetchpriority="low" href="js/family-lines.js?v=58">
+<link rel="preload" as="script" fetchpriority="low" href="js/family-tree.js?v=58">
+<link rel="preload" as="script" fetchpriority="low" href="js/blessings-data.js?v=58">
+<link rel="preload" as="script" fetchpriority="low" href="js/config.js?v=58">
+<link rel="preload" as="script" fetchpriority="low" href="js/countdown.js?v=58">
+<link rel="preload" as="script" fetchpriority="low" href="js/travel.js?v=58">
+<link rel="stylesheet" href="css/envelope.css?v=58">
+<link rel="stylesheet" href="css/story-figures.css?v=58">
+<link rel="stylesheet" media="(min-width: 1100px)" href="css/story-figures-wide.css?v=58">
+<link rel="stylesheet" href="css/travel.css?v=58">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   :root {
@@ -172,7 +173,7 @@
   /* heart that blooms when they meet */
   .meet-heart {
     position: absolute;
-    bottom: calc(4.6vh + 130px);
+    bottom: calc(5.1vh + var(--fig-h) + 6px); /* just above their heads; --fig-h comes from css/story-figures.css */
     left: 50%;
     width: 22px; height: 22px;
     color: var(--seal);
@@ -1060,7 +1061,7 @@
     </svg></div>
 
     <!-- the couple -->
-    <div class="figure fig-l"><div class="fig-bob"><svg viewBox="0 0 60 100">
+    <div class="figure fig-l"><div class="fig-bob"><svg viewBox="0 0 60 92.6">
       <!-- back to front: swinging arm, legs and coat tail sit behind the coat -->
       <g class="arm arm-swing">
         <path class="coat" d="M28.6 23 L 31.6 23.4 L 30.5 44 L 27.5 44 Z"/>
@@ -1095,22 +1096,23 @@
         <path class="coat" d="M38.5 29 C 44 32.5, 49 37.5, 53.5 44 L 50.6 46.6 C 46.5 41, 41.8 37, 36.8 34.2 Z"/>
       </g>
     </svg></div></div>
-    <div class="figure fig-r"><div class="fig-bob"><svg viewBox="0 0 60 100">
-      <g class="veil-sway"><path class="veil" d="M26 6 C 30 -0.5, 39 0, 41 8 C 44 20, 47 40, 54 66 C 46 60, 42 44, 38.6 26 Z"/></g>
+    <div class="figure fig-r"><div class="fig-bob"><svg viewBox="0 0 60 92.6">
+      <g class="veil-sway"><path class="veil" d="M26 6 C 30 -0.5, 39 0, 41 8 C 44 20, 48 46, 56 78 C 47 70, 42 48, 38.6 26 Z"/></g>
       <ellipse class="sil" cx="33" cy="12" rx="6.8" ry="7.4"/>
       <path class="hair" d="M26.3 11.5 C 26 5.5, 29.8 4, 33.2 4 C 37.2 4.1, 40 6.8, 39.8 11 C 37.4 8, 33 7.6, 29.4 8.6 C 28 9.2, 27 10.2, 26.3 11.5 Z"/>
       <circle class="hair" cx="25.5" cy="8" r="3.4"/>
       <!-- ankles and the trailing under-layer of the hem sit behind the gown;
-           each ankle has a mid point because WebKit pixel-snaps a two-point path -->
-      <g class="step step-trail"><path class="thin" d="M27.5 66 L 27.5 72.5 L 27.5 80"/></g>
-      <g class="step step-lead"><path class="thin" d="M39.5 66 L 39.5 72.5 L 39.5 80"/></g>
+           each ankle has a mid point because WebKit pixel-snaps a two-point path.
+           The shoes ride on the ankle groups and land on the same line as his -->
+      <g class="step step-trail"><path class="thin" d="M27.5 84 L 27.5 87.5 L 27.5 91"/><path class="shoe" d="M25.2 91 h6.2 l0.6 1.6 h-6.8 Z"/></g>
+      <g class="step step-lead"><path class="thin" d="M39.5 84 L 39.5 87.5 L 39.5 91"/><path class="shoe" d="M37.2 91 h6.2 l0.6 1.6 h-6.8 Z"/></g>
       <g class="gown-train">
-        <path class="gown" d="M26.4 40 C 23.4 51, 19.4 60, 16 68.8 C 20.3 70.9, 26.6 72, 33.5 72 L 33.5 40 Z"/>
-        <path class="trim" d="M16.9 67.5 C 21.3 69.5, 27 70.7, 33 70.9"/>
+        <path class="gown" d="M26.4 40 C 23.9 54, 19 71, 14.2 86.2 C 19 88.2, 26.6 88.9, 33.5 88.9 L 33.5 40 Z"/>
+        <path class="trim" d="M15.2 84.5 C 19.6 86.5, 27 87.3, 33 87.4"/>
       </g>
       <g class="gown-sway">
-        <path class="gown" d="M30 19.5 C 29 26, 28 32, 26 40 C 23 51, 19 60, 15.5 69 C 25 73.5, 43 73.5, 51.5 69 C 46.5 58, 42.5 50, 40.5 40 C 38.5 32, 37.5 26, 36.5 19.5 C 34.4 18, 32.1 18, 30 19.5 Z"/>
-        <path class="trim" d="M16.4 67.6 C 25.5 72, 42 72, 50.6 67.6 M 27 38 C 31 39.4, 36 39.4, 40 38"/>
+        <path class="gown" d="M30 19.5 C 29 26, 28 32, 26 40 C 23.5 54, 18.5 70, 13.5 86 C 24 89.6, 43 89.6, 53.5 86 C 48 72, 43 55, 40.5 40 C 38.5 32, 37.5 26, 36.5 19.5 C 34.4 18, 32.1 18, 30 19.5 Z"/>
+        <path class="trim" d="M14.6 84.2 C 24.5 87.6, 42.5 87.6, 52.4 84.2 M 27 38 C 31 39.4, 36 39.4, 40 38"/>
       </g>
       <g class="arm arm-reach">
         <path class="sil" d="M37 29 C 42.5 32.5, 47.5 37.5, 52 44 L 49.1 46.6 C 45 41, 40.3 37, 35.3 34.2 Z"/>
@@ -1396,7 +1398,7 @@
 
   <footer><p class="footer">more details coming soon &middot; <a href="privacy.html">privacy</a></p></footer>
 
-  <script src="js/addressee.js?v=57"></script>
+  <script src="js/addressee.js?v=58"></script>
   <script>
     (function () {
       var root = document.documentElement;
@@ -1431,12 +1433,12 @@
       });
     })();
   </script>
-  <script src="js/net.js?v=57"></script>
-  <script src="js/tree-data.js?v=57"></script>
-  <script src="js/family-plan.js?v=57"></script>
-  <script src="js/family-lines.js?v=57"></script>
-  <script src="js/family-tree.js?v=57"></script>
-  <script src="js/blessings-data.js?v=57"></script>
+  <script src="js/net.js?v=58"></script>
+  <script src="js/tree-data.js?v=58"></script>
+  <script src="js/family-plan.js?v=58"></script>
+  <script src="js/family-lines.js?v=58"></script>
+  <script src="js/family-tree.js?v=58"></script>
+  <script src="js/blessings-data.js?v=58"></script>
   <script>
     // shared: content grows in as each part reaches the viewport
     function revealOnScroll(scope) {
@@ -1726,9 +1728,9 @@
       });
     })();
   </script>
-  <script src="js/config.js?v=57"></script>
-  <script src="js/countdown.js?v=57"></script>
-  <script src="js/travel.js?v=57"></script>
+  <script src="js/config.js?v=58"></script>
+  <script src="js/countdown.js?v=58"></script>
+  <script src="js/travel.js?v=58"></script>
   <script>
     // the wedding date and travel switch live in js/config.js
     // a missing or blocked js/config.js must not take the teaser and RSVP button with it

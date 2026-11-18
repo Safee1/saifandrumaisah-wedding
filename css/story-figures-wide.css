@@ -1,0 +1,250 @@
+/* ============================================================
+   The walk on wide screens (loaded for min-width: 1100px only;
+   phones and tablets never use any of this).
+
+   Over 1100px the figures have far more ground to cover (about
+   430px at 1280, 700px at 1920) than six steps of a 92px figure
+   can reach, so their feet skated. Here the same walk takes ten
+   steps in the same --walk, so each step covers less ground, and
+   the travel eases in and out a little less sharply so no single
+   step has to cover a huge stretch. Contacts sit on the odd
+   twentieths (5%, 15% ... 95%), the legs pass on the even ones.
+   Every animation still ends on the rest pose, so nothing snaps
+   when they arrive, and the bob stays in step with the feet.
+   Same groups, same pivots as css/story-figures.css; only the
+   keyframes and the timing differ. The reduced-motion guard in
+   that file (animation: none !important) still wins.
+   ============================================================ */
+.fig-l { animation: walkL var(--walk) cubic-bezier(.4,.2,.4,1) var(--walk-delay) both; }
+.fig-r { animation: walkR var(--walk) cubic-bezier(.4,.2,.4,1) var(--walk-delay) both; }
+.fig-bob { animation: bobW var(--walk) var(--stride) var(--walk-delay) both; }
+
+.fig-l .leg-lead  { animation-name: legLeadW; }
+.fig-l .leg-trail { animation-name: legTrailW; }
+.fig-l .leg-lead .shin  { animation-name: kneeLeadW; }
+.fig-l .leg-trail .shin { animation-name: kneeTrailW; }
+.fig-r .step-lead  { animation-name: stepLeadW; }
+.fig-r .step-trail { animation-name: stepTrailW; }
+.fig-l .arm-reach, .fig-r .arm-reach { animation-name: armReachW; }
+.fig-l .arm-swing { animation-name: armSwingW; }
+.fig-l .coat-sway, .fig-r .gown-sway { animation-name: clothSwayW; }
+.fig-l .coat-tail { animation-name: tailTrailW; }
+.fig-r .gown-train { animation-name: trainTrailW; }
+
+/* the body dips as a foot lands (odd twentieths) and rises as the legs pass */
+@keyframes bobW {
+  0%      { transform: translateY(0); }
+  5%      { transform: translateY(1.5px); }
+  10%     { transform: translateY(-2px); }
+  15%     { transform: translateY(1.5px); }
+  20%     { transform: translateY(-2px); }
+  25%     { transform: translateY(1.5px); }
+  30%     { transform: translateY(-2px); }
+  35%     { transform: translateY(1.5px); }
+  40%     { transform: translateY(-2px); }
+  45%     { transform: translateY(1.5px); }
+  50%     { transform: translateY(-2px); }
+  55%     { transform: translateY(1.5px); }
+  60%     { transform: translateY(-2px); }
+  65%     { transform: translateY(1.5px); }
+  70%     { transform: translateY(-2px); }
+  75%     { transform: translateY(1.3px); }
+  80%     { transform: translateY(-1.7px); }
+  85%     { transform: translateY(0.9px); }
+  90%     { transform: translateY(-1.2px); }
+  95%     { transform: translateY(0.5px); }
+  100%    { transform: translateY(0); }
+}
+/* legs: negative = foot forward; each contact swings as far as the ground that step covers */
+@keyframes legLeadW {
+  0%      { transform: rotate(0deg); }
+  5%      { transform: rotate(1.5deg); }
+  15%     { transform: rotate(14deg); }
+  25%     { transform: rotate(-26deg); }
+  35%     { transform: rotate(28deg); }
+  45%     { transform: rotate(-28deg); }
+  55%     { transform: rotate(28deg); }
+  65%     { transform: rotate(-24deg); }
+  75%     { transform: rotate(15deg); }
+  85%     { transform: rotate(-7deg); }
+  95%     { transform: rotate(2.5deg); }
+  100%    { transform: rotate(0deg); }
+}
+@keyframes legTrailW {
+  0%      { transform: rotate(0deg); }
+  5%      { transform: rotate(-1.5deg); }
+  15%     { transform: rotate(-14deg); }
+  25%     { transform: rotate(26deg); }
+  35%     { transform: rotate(-28deg); }
+  45%     { transform: rotate(28deg); }
+  55%     { transform: rotate(-28deg); }
+  65%     { transform: rotate(24deg); }
+  75%     { transform: rotate(-15deg); }
+  85%     { transform: rotate(7deg); }
+  95%     { transform: rotate(-2.5deg); }
+  100%    { transform: rotate(0deg); }
+}
+@keyframes kneeLeadW {
+  0%      { transform: rotate(0deg); }
+  2.5%    { transform: rotate(12deg); }
+  5%      { transform: rotate(0deg); }
+  15%     { transform: rotate(2deg); }
+  20%     { transform: rotate(25.2deg); }
+  25%     { transform: rotate(0deg); }
+  35%     { transform: rotate(2deg); }
+  40%     { transform: rotate(26deg); }
+  45%     { transform: rotate(0deg); }
+  55%     { transform: rotate(2deg); }
+  60%     { transform: rotate(26deg); }
+  65%     { transform: rotate(0deg); }
+  75%     { transform: rotate(2deg); }
+  80%     { transform: rotate(13.9deg); }
+  85%     { transform: rotate(0deg); }
+  100%    { transform: rotate(0deg); }
+}
+@keyframes kneeTrailW {
+  0%      { transform: rotate(0deg); }
+  5%      { transform: rotate(2deg); }
+  10%     { transform: rotate(9.8deg); }
+  15%     { transform: rotate(0deg); }
+  25%     { transform: rotate(2deg); }
+  30%     { transform: rotate(26deg); }
+  35%     { transform: rotate(0deg); }
+  45%     { transform: rotate(2deg); }
+  50%     { transform: rotate(26deg); }
+  55%     { transform: rotate(0deg); }
+  65%     { transform: rotate(2deg); }
+  70%     { transform: rotate(24.6deg); }
+  75%     { transform: rotate(0deg); }
+  85%     { transform: rotate(2deg); }
+  90%     { transform: rotate(6deg); }
+  95%     { transform: rotate(0deg); }
+  100%    { transform: rotate(0deg); }
+}
+/* the bride's ankles under the gown: small swings, a lift as each foot comes forward */
+@keyframes stepLeadW {
+  0%      { transform: rotate(0deg); }
+  5%      { transform: rotate(-0.6deg); }
+  15%     { transform: rotate(2.4deg); }
+  20%     { transform: rotate(1.1deg) translateY(-1.2px); }
+  25%     { transform: rotate(-0.6deg); }
+  35%     { transform: rotate(4.8deg); }
+  40%     { transform: rotate(2.1deg) translateY(-1.2px); }
+  45%     { transform: rotate(-0.6deg); }
+  55%     { transform: rotate(4.8deg); }
+  60%     { transform: rotate(2.1deg) translateY(-1.2px); }
+  65%     { transform: rotate(-0.6deg); }
+  75%     { transform: rotate(2.6deg); }
+  80%     { transform: rotate(1.1deg) translateY(-1.2px); }
+  85%     { transform: rotate(-0.6deg); }
+  95%     { transform: rotate(0.4deg); }
+  100%    { transform: rotate(0deg); }
+}
+@keyframes stepTrailW {
+  0%      { transform: rotate(0deg); }
+  5%      { transform: rotate(0.6deg); }
+  10%     { transform: rotate(-1.2deg) translateY(-1.2px); }
+  15%     { transform: rotate(-2.4deg); }
+  25%     { transform: rotate(0.6deg); }
+  30%     { transform: rotate(-2.4deg) translateY(-1.2px); }
+  35%     { transform: rotate(-4.8deg); }
+  45%     { transform: rotate(0.6deg); }
+  50%     { transform: rotate(-2.4deg) translateY(-1.2px); }
+  55%     { transform: rotate(-4.8deg); }
+  65%     { transform: rotate(0.6deg); }
+  70%     { transform: rotate(-1.3deg) translateY(-1.2px); }
+  75%     { transform: rotate(-2.6deg); }
+  85%     { transform: rotate(0.6deg); }
+  90%     { transform: rotate(-0.2deg) translateY(-1.2px); }
+  95%     { transform: rotate(-0.4deg); }
+  100%    { transform: rotate(0deg); }
+}
+/* the groom's back arm opposes the leg on its side */
+@keyframes armSwingW {
+  0%      { transform: rotate(0deg); }
+  5%      { transform: rotate(-14deg); }
+  15%     { transform: rotate(18deg); }
+  25%     { transform: rotate(-18deg); }
+  35%     { transform: rotate(20deg); }
+  45%     { transform: rotate(-18deg); }
+  55%     { transform: rotate(16deg); }
+  65%     { transform: rotate(-14deg); }
+  75%     { transform: rotate(10deg); }
+  85%     { transform: rotate(-6deg); }
+  95%     { transform: rotate(3deg); }
+  100%    { transform: rotate(0deg); }
+}
+/* the reaching arm swings, then rises into the reach over the last steps */
+@keyframes armReachW {
+  0%      { transform: rotate(38deg); }
+  5%      { transform: rotate(46deg); }
+  15%     { transform: rotate(28deg); }
+  25%     { transform: rotate(45deg); }
+  35%     { transform: rotate(30deg); }
+  45%     { transform: rotate(44deg); }
+  55%     { transform: rotate(30deg); }
+  65%     { transform: rotate(38deg); }
+  75%     { transform: rotate(22deg); }
+  88%     { transform: rotate(5deg); }
+  100%    { transform: rotate(0deg); }
+}
+/* cloth */
+@keyframes clothSwayW {
+  0%      { transform: skewX(0deg); }
+  10%     { transform: skewX(1.2deg); }
+  20%     { transform: skewX(-1.4deg); }
+  30%     { transform: skewX(1.4deg); }
+  40%     { transform: skewX(-1.3deg); }
+  50%     { transform: skewX(1.3deg); }
+  60%     { transform: skewX(-1.2deg); }
+  70%     { transform: skewX(1deg); }
+  80%     { transform: skewX(-0.8deg); }
+  90%     { transform: skewX(0.4deg); }
+  100%    { transform: skewX(0deg); }
+}
+@keyframes tailTrailW {
+  0%      { transform: rotate(0deg); }
+  5%      { transform: rotate(4deg); }
+  10%     { transform: rotate(7deg); }
+  15%     { transform: rotate(5deg); }
+  20%     { transform: rotate(8deg); }
+  25%     { transform: rotate(5deg); }
+  30%     { transform: rotate(8deg); }
+  35%     { transform: rotate(5deg); }
+  40%     { transform: rotate(8deg); }
+  45%     { transform: rotate(5deg); }
+  50%     { transform: rotate(8deg); }
+  55%     { transform: rotate(5deg); }
+  60%     { transform: rotate(7deg); }
+  65%     { transform: rotate(4deg); }
+  70%     { transform: rotate(6deg); }
+  75%     { transform: rotate(3deg); }
+  80%     { transform: rotate(4.5deg); }
+  85%     { transform: rotate(1.5deg); }
+  90%     { transform: rotate(3deg); }
+  95%     { transform: rotate(-0.3deg); }
+  100%    { transform: rotate(0deg); }
+}
+@keyframes trainTrailW {
+  0%      { transform: rotate(0deg); }
+  5%      { transform: rotate(3.2deg); }
+  10%     { transform: rotate(5.6deg); }
+  15%     { transform: rotate(4deg); }
+  20%     { transform: rotate(6.4deg); }
+  25%     { transform: rotate(4deg); }
+  30%     { transform: rotate(6.4deg); }
+  35%     { transform: rotate(4deg); }
+  40%     { transform: rotate(6.4deg); }
+  45%     { transform: rotate(4deg); }
+  50%     { transform: rotate(6.4deg); }
+  55%     { transform: rotate(4deg); }
+  60%     { transform: rotate(5.6deg); }
+  65%     { transform: rotate(3.2deg); }
+  70%     { transform: rotate(4.8deg); }
+  75%     { transform: rotate(2.4deg); }
+  80%     { transform: rotate(3.6deg); }
+  85%     { transform: rotate(1.2deg); }
+  90%     { transform: rotate(2.4deg); }
+  95%     { transform: rotate(-0.2deg); }
+  100%    { transform: rotate(0deg); }
+}

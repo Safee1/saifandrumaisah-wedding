@@ -109,6 +109,30 @@ test.describe("intro story: the walking figures", () => {
     });
   });
 
+  test("both figures stand on the ground line, and the raised hands meet under a heart", async ({ page }) => {
+    await openStory(page);
+    await seek(page, WALK_END + 1600);
+    const m = await page.evaluate(() => {
+      const box = (sel) => { const r = document.querySelector(sel).getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top, b: r.bottom }; };
+      const ground = box(".skyline .ground");
+      const soles = [...document.querySelectorAll(".figure .shoe")].map((e) => e.getBoundingClientRect().bottom);
+      return { ground: (ground.t + ground.b) / 2, soles, arm: [box(".fig-l .arm-reach"), box(".fig-r .arm-reach")],
+        heart: box(".meet-heart"), heads: [box(".fig-l svg"), box(".fig-r svg")] };
+    });
+    // soles within 2px of the ground line, for both figures (four shoes)
+    expect(m.soles).toHaveLength(4);
+    for (const y of m.soles) { expect(Math.abs(y - m.ground), "sole at " + y + ", ground at " + m.ground).toBeLessThan(2); }
+    // hands: the groom's arm ends where the bride's begins, to within a few pixels
+    const gap = m.arm[1].l - m.arm[0].r;
+    expect(gap, "hands " + gap + "px apart").toBeLessThan(5);
+    expect(gap, "hands cross by " + gap + "px").toBeGreaterThan(-5);
+    // the heart sits above both heads and between them
+    expect(m.heart.b).toBeLessThan(Math.min(m.heads[0].t, m.heads[1].t) + 4);
+    const mid = (m.heart.l + m.heart.r) / 2;
+    expect(mid).toBeGreaterThan(m.heads[0].l);
+    expect(mid).toBeLessThan(m.heads[1].r);
+  });
+
   test("under reduced motion the story is hidden and nothing in it animates", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await openStory(page);
