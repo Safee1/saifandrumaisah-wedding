@@ -12,9 +12,10 @@ test.describe("accessibility (axe-core)", () => {
     test(`${url} has no serious/critical axe violations`, async ({ page }) => {
       if (url.includes("index.html") || url.includes("add-to-tree")) {
         await mockTreeFetch(page);
-      }
-      if (url.includes("admin")) {
-        await mockSupabase(page, {});
+      } else {
+        // every other page too: rsvp.html asks for the public headcount on
+        // load, and without a mock that request went to the real backend
+        await mockSupabase(page, { "POST /rest/v1/rpc/rsvp_headcount": 12 });
       }
       await page.goto(url);
       await page.waitForTimeout(300); // let async tree/content render before scanning

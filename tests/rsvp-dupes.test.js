@@ -29,11 +29,11 @@ test("classifyContact: UK phone variants (44/0 prefixes) collapse to the same ke
   assert.equal(a.key, c.key);
 });
 
-test("groupDuplicates: same normalized name groups rows, keeper is latest created_at", () => {
+test("groupDuplicates: same normalized name AND same contact groups rows, keeper is latest created_at", () => {
   const rows = [
-    { id: "1", name: "Jane Doe", created_at: "2027-01-01T10:00:00Z" },
-    { id: "2", name: "jane   doe", created_at: "2027-01-03T10:00:00Z" },
-    { id: "3", name: "JANE, DOE!", created_at: "2027-01-02T10:00:00Z" }
+    { id: "1", name: "Jane Doe", contact: "jane@example.com", created_at: "2027-01-01T10:00:00Z" },
+    { id: "2", name: "jane   doe", contact: "JANE@example.com", created_at: "2027-01-03T10:00:00Z" },
+    { id: "3", name: "JANE, DOE!", contact: " jane@example.com ", created_at: "2027-01-02T10:00:00Z" }
   ];
   const entries = RsvpDupes.groupDuplicates(rows);
   assert.equal(entries[0].isKeeper, false);
@@ -43,21 +43,23 @@ test("groupDuplicates: same normalized name groups rows, keeper is latest create
   assert.equal(entries[1].groupSize, 3);
 });
 
-test("groupDuplicates: same email groups rows even with different names", () => {
+test("groupDuplicates: same email with different names is only flagged, both stay counted", () => {
   const rows = [
     { id: "1", name: "Alpha", contact: "same@example.com", created_at: "2027-01-01T10:00:00Z" },
     { id: "2", name: "Beta", contact: "SAME@Example.com", created_at: "2027-01-02T10:00:00Z" }
   ];
   const entries = RsvpDupes.groupDuplicates(rows);
-  assert.equal(entries[0].isKeeper, false);
+  assert.equal(entries[0].isKeeper, true);
   assert.equal(entries[1].isKeeper, true);
-  assert.equal(entries[0].duplicateOf.name, "Beta");
+  assert.equal(entries[0].duplicateOf, null);
+  assert.equal(entries[0].possibleDuplicateOf[0].name, "Beta");
+  assert.equal(entries[0].possibleDuplicateOf[0].sameContact, true);
 });
 
-test("groupDuplicates: same phone in different UK formats groups rows", () => {
+test("groupDuplicates: same name and same phone in different UK formats groups rows", () => {
   const rows = [
     { id: "1", name: "Alpha", contact: "07911123456", created_at: "2027-01-01T10:00:00Z" },
-    { id: "2", name: "Beta", contact: "+44 7911 123456", created_at: "2027-01-02T10:00:00Z" }
+    { id: "2", name: "alpha", contact: "+44 7911 123456", created_at: "2027-01-02T10:00:00Z" }
   ];
   const entries = RsvpDupes.groupDuplicates(rows);
   assert.equal(entries[0].isKeeper, false);

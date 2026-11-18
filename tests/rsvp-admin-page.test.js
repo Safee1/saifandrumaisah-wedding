@@ -28,7 +28,8 @@ test("each row can render contact, adults/children split and likelihood", () => 
 test("CSV export header includes the new fields", () => {
   const header = html.match(/var header = \[([^\]]+)\];/);
   assert.ok(header, "CSV header array not found");
-  for (const col of ["Contact", "Adults", "Children", "Likelihood"]) {
+  for (const col of ["Contact", "Adults", "Children", "Likelihood", "Counted in totals",
+    "Replaced by newer reply", "Possible duplicate (still counted)"]) {
     assert.ok(header[1].includes('"' + col + '"'), col + " missing from CSV header");
   }
 });
