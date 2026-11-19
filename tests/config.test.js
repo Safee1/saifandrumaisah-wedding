@@ -49,3 +49,44 @@ test("config: no page still carries its own copy of the settings", () => {
     assert.doesNotMatch(html, /var TRAVEL = \{/, f + " hard-codes the travel switch again");
   }
 });
+
+// Review finding (Nov 2026): once the reveal is on, the card prints the day
+// from reveal.day and reveal.month while the countdown counts to `date`. Three
+// settings, so a slip on reveal day shows guests two different dates. This
+// goes red if they disagree. It checks nothing while reveal.show is false.
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July",
+  "August", "September", "October", "November", "December"];
+function revealProblems(cfg) {
+  const rv = cfg.reveal || {};
+  if (rv.show !== true) { return []; }
+  const out = [];
+  const m = /^(\d{4})-(\d{2})-(\d{2})T/.exec(cfg.date || "");
+  if (!m) { return ["reveal.show is true but date is empty or not a full timestamp"]; }
+  if (!rv.country) { out.push("reveal.country is empty"); }
+  // the day and month as written in `date` (its own UTC offset = the local day at the venue)
+  const wantMonth = MONTHS[Number(m[2]) - 1] + " " + m[1];
+  if (String(rv.month || "") !== wantMonth) { out.push("reveal.month should be \"" + wantMonth + "\" to match date"); }
+  if (rv.day == null || String(Number(rv.day)) !== String(Number(m[3]))) {
+    out.push("reveal.day should be \"" + Number(m[3]) + "\" to match date");
+  }
+  return out;
+}
+
+test("config: once reveal.show is true, date, reveal.day and reveal.month name the same day", () => {
+  assert.deepEqual(revealProblems(Config), []);
+});
+
+test("config: the reveal check itself catches a mismatch (made-up values)", () => {
+  const ok = { date: "2099-01-15T12:00:00+00:00", reveal: { show: true, country: "Testland", month: "January 2099", day: "15" } };
+  assert.deepEqual(revealProblems(ok), []);
+  const with_ = (over) => ({ date: "date" in over ? over.date : ok.date, reveal: Object.assign({}, ok.reveal, over.reveal) });
+  assert.equal(revealProblems(with_({ date: "2099-03-04T12:00:00Z" })).length, 2, "date moved, day and month left behind");
+  assert.equal(revealProblems(with_({ reveal: { day: "16" } })).length, 1);
+  assert.equal(revealProblems(with_({ reveal: { day: null } })).length, 1);
+  assert.equal(revealProblems(with_({ reveal: { month: null } })).length, 1, "a bare day with no month");
+  assert.equal(revealProblems(with_({ reveal: { month: "Jan 2099" } })).length, 1);
+  assert.equal(revealProblems(with_({ reveal: { country: "" } })).length, 1);
+  assert.equal(revealProblems(with_({ date: "" })).length, 1);
+  assert.deepEqual(revealProblems(with_({ date: "2099-01-05T12:00:00Z", reveal: { day: "5" } })), [], "5 and 05 are the same day");
+  assert.deepEqual(revealProblems(with_({ date: "", reveal: { show: false } })), [], "nothing is checked before the reveal");
+});

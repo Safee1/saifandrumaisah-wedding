@@ -26,18 +26,20 @@
 <style>@font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:300 500;font-display:swap;src:url(/fonts/cormorant-garamond-latin-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:400;font-display:swap;src:url(/fonts/cormorant-garamond-latin-italic-400.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'Pinyon Script';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/pinyon-script-latin-400.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}</style>
-<link rel="preload" as="script" fetchpriority="low" href="js/addressee.js?v=56">
-<link rel="preload" as="script" fetchpriority="low" href="js/net.js?v=56">
-<link rel="preload" as="script" fetchpriority="low" href="js/tree-data.js?v=56">
-<link rel="preload" as="script" fetchpriority="low" href="js/family-plan.js?v=56">
-<link rel="preload" as="script" fetchpriority="low" href="js/family-lines.js?v=56">
-<link rel="preload" as="script" fetchpriority="low" href="js/family-tree.js?v=56">
-<link rel="preload" as="script" fetchpriority="low" href="js/blessings-data.js?v=56">
-<link rel="preload" as="script" fetchpriority="low" href="js/config.js?v=56">
-<link rel="preload" as="script" fetchpriority="low" href="js/countdown.js?v=56">
-<link rel="preload" as="script" fetchpriority="low" href="js/travel.js?v=56">
-<link rel="stylesheet" href="css/envelope.css?v=56">
-<link rel="stylesheet" href="css/travel.css?v=56">
+<link rel="preload" as="script" fetchpriority="low" href="js/addressee.js?v=59">
+<link rel="preload" as="script" fetchpriority="low" href="js/net.js?v=59">
+<link rel="preload" as="script" fetchpriority="low" href="js/tree-data.js?v=59">
+<link rel="preload" as="script" fetchpriority="low" href="js/family-plan.js?v=59">
+<link rel="preload" as="script" fetchpriority="low" href="js/family-lines.js?v=59">
+<link rel="preload" as="script" fetchpriority="low" href="js/family-tree.js?v=59">
+<link rel="preload" as="script" fetchpriority="low" href="js/blessings-data.js?v=59">
+<link rel="preload" as="script" fetchpriority="low" href="js/config.js?v=59">
+<link rel="preload" as="script" fetchpriority="low" href="js/countdown.js?v=59">
+<link rel="preload" as="script" fetchpriority="low" href="js/travel.js?v=59">
+<link rel="stylesheet" href="css/envelope.css?v=59">
+<link rel="stylesheet" href="css/story-figures.css?v=59">
+<link rel="stylesheet" media="(min-width: 1100px)" href="css/story-figures-wide.css?v=59">
+<link rel="stylesheet" href="css/travel.css?v=59">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   :root {
@@ -163,54 +165,15 @@
   @keyframes fadeIn { to { opacity: 1; } }
 
   /* ---------- the couple ---------- */
-  .figure {
-    position: absolute;
-    bottom: 4.6vh; /* feet on the skyline ground line */
-    width: clamp(60px, 16vw, 92px);
-    z-index: 3;
-  }
-  .figure svg { width: 100%; height: auto; overflow: visible; }
-  .figure .sil { fill: #34425f; stroke: none; }
-  .figure .hair { fill: #1b2436; }
+  /* figures + walk cycle live in css/story-figures.css; these two stay here
+     because url(#...) paints must resolve against this page */
   .figure .coat { fill: url(#g-coat); }
   .figure .gown { fill: url(#g-gown); }
-  .figure .veil { fill: rgba(185,150,104,0.22); stroke: rgba(185,150,104,0.55); stroke-width: 0.6; }
-  .figure .trim { fill: none; stroke: var(--gold); stroke-width: 0.9; stroke-linecap: round; opacity: 0.9; }
-  .figure .btn  { fill: var(--gold); }
-  .figure .shoe { fill: #1b2436; }
-  .figure .thin { fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; opacity: 0.75; }
-  /* soft ground shadow that travels with each figure */
-  .fig-bob::after {
-    content: "";
-    position: absolute;
-    bottom: 2px; left: 50%;
-    transform: translateX(-50%);
-    width: 58%; height: 7px;
-    background: radial-gradient(ellipse, rgba(34,48,73,0.2), transparent 70%);
-    border-radius: 50%;
-  }
-  .fig-bob { position: relative; }
-  /* they step OUT of their front doors (door centres: 9.25vw and 87.5vw) and walk the line */
-  .fig-l { left: 50%; animation: walkL 3.4s cubic-bezier(.3,.05,.25,1) 0.9s both; }
-  .fig-r { left: 50%; animation: walkR 3.4s cubic-bezier(.3,.05,.25,1) 0.9s both; }
-  @keyframes walkL {
-    0%   { transform: translateX(calc(-50% - 40.75vw)); opacity: 0; }
-    10%  { transform: translateX(calc(-50% - 38.5vw)); opacity: 1; }
-    100% { transform: translateX(calc(-50% - 3.2rem)); opacity: 1; }
-  }
-  @keyframes walkR {
-    0%   { transform: translateX(calc(-50% + 37.5vw)) scaleX(-1); opacity: 0; }
-    10%  { transform: translateX(calc(-50% + 35.3vw)) scaleX(-1); opacity: 1; }
-    100% { transform: translateX(calc(-50% + 3.2rem)) scaleX(-1); opacity: 1; }
-  }
-  /* gentle walking bob that stops when they meet */
-  .fig-bob { animation: bob 0.55s ease-in-out 0.8s 6 alternate; }
-  @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-4px); } }
 
   /* heart that blooms when they meet */
   .meet-heart {
     position: absolute;
-    bottom: calc(4.6vh + 130px);
+    bottom: calc(5.1vh + var(--fig-h) + 6px); /* just above their heads; --fig-h comes from css/story-figures.css */
     left: 50%;
     width: 22px; height: 22px;
     color: var(--seal);
@@ -1098,28 +1061,63 @@
     </svg></div>
 
     <!-- the couple -->
-    <div class="figure fig-l"><div class="fig-bob"><svg viewBox="0 0 60 100">
+    <div class="figure fig-l"><div class="fig-bob"><svg viewBox="0 0 60 92.6">
+      <!-- back to front: swinging arm, legs and coat tail sit behind the coat -->
+      <g class="arm arm-swing">
+        <path class="coat" d="M28.6 23 L 31.6 23.4 L 30.5 44 L 27.5 44 Z"/>
+        <ellipse class="sil" cx="29" cy="45" rx="1.6" ry="1.9"/>
+      </g>
+      <g class="leg leg-trail">
+        <path class="sil" d="M29.07 50 L 26.89 70 L 30.89 70 L 33.26 50 Z"/>
+        <circle class="sil" cx="28.89" cy="70" r="2"/>
+        <g class="shin">
+          <path class="sil" d="M27 69 L 24.6 91 L 28.4 91 L 31 69 Z"/>
+          <path class="shoe" d="M22.6 91 h6.2 v1.6 h-6.8 Z"/>
+        </g>
+      </g>
+      <g class="leg leg-lead">
+        <path class="sil" d="M36.93 50 L 39.11 70 L 35.11 70 L 32.74 50 Z"/>
+        <circle class="sil" cx="37.11" cy="70" r="2"/>
+        <g class="shin">
+          <path class="sil" d="M39 69 L 41.4 91 L 37.6 91 L 35 69 Z"/>
+          <path class="shoe" d="M37.2 91 h6.2 l0.6 1.6 h-6.8 Z"/>
+        </g>
+      </g>
+      <g class="coat-tail"><path class="coat" d="M26.4 45 L 29.6 45 L 28.6 63.6 L 24.5 63.6 Z"/></g>
       <ellipse class="sil" cx="33" cy="12" rx="6.8" ry="7.4"/>
       <path class="hair" d="M26.3 11 C 26 5, 30 3.8, 33.4 4 C 37.6 4.2, 40.2 6.6, 39.8 11 C 38 8.4, 35 7.6, 31 8 C 29 8.2, 27.4 9.2, 26.3 11 Z"/>
       <path class="sil" d="M31 19.4 L 35 19.4 L 35.4 22 L 30.6 22 Z"/>
-      <path class="coat" d="M28 21 C 27.2 26, 26.6 31, 26 37 L 24.2 64 L 41.8 64 L 40 37 C 39.4 31, 38.8 26, 38 21 C 35 19.6, 31 19.6, 28 21 Z"/>
-      <path class="coat" d="M38.5 29 C 44 32.5, 49 37.5, 53.5 44 L 50.6 46.6 C 46.5 41, 41.8 37, 36.8 34.2 Z"/>
-      <path class="trim" d="M33 21.4 L 33 64 M 24.4 63.2 L 41.6 63.2"/>
-      <circle class="btn" cx="33" cy="27" r="0.75"/><circle class="btn" cx="33" cy="33" r="0.75"/><circle class="btn" cx="33" cy="39" r="0.75"/><circle class="btn" cx="33" cy="45" r="0.75"/>
-      <path class="sil" d="M27.6 63.5 L 24.6 91 L 28.4 91 L 31.6 64 Z"/>
-      <path class="sil" d="M38.4 63.5 L 41.4 91 L 37.6 91 L 34.4 64 Z"/>
-      <path class="shoe" d="M22.6 91 h6.2 v1.6 h-6.8 Z M37.2 91 h6.2 l0.6 1.6 h-6.8 Z"/>
+      <g class="coat-sway">
+        <path class="coat" d="M28 21 C 27.2 26, 26.6 31, 26 37 L 24.2 64 L 41.8 64 L 40 37 C 39.4 31, 38.8 26, 38 21 C 35 19.6, 31 19.6, 28 21 Z"/>
+        <path class="trim" d="M33 21.4 L 33 64 M 24.4 63.2 L 41.6 63.2"/>
+        <circle class="btn" cx="33" cy="27" r="0.75"/><circle class="btn" cx="33" cy="33" r="0.75"/><circle class="btn" cx="33" cy="39" r="0.75"/><circle class="btn" cx="33" cy="45" r="0.75"/>
+      </g>
+      <g class="arm arm-reach">
+        <path class="coat" d="M38.5 29 C 44 32.5, 49 37.5, 53.5 44 L 50.6 46.6 C 46.5 41, 41.8 37, 36.8 34.2 Z"/>
+      </g>
     </svg></div></div>
-    <div class="figure fig-r"><div class="fig-bob"><svg viewBox="0 0 60 100">
-      <path class="veil" d="M26 6 C 30 -0.5, 39 0, 41 8 C 44 20, 47 40, 54 66 C 46 60, 42 44, 38.6 26 Z"/>
+    <div class="figure fig-r"><div class="fig-bob"><svg viewBox="0 0 60 92.6">
+      <g class="veil-sway"><path class="veil" d="M26 6 C 30 -0.5, 39 0, 41 8 C 44 20, 48 46, 56 78 C 47 70, 42 48, 38.6 26 Z"/></g>
       <ellipse class="sil" cx="33" cy="12" rx="6.8" ry="7.4"/>
       <path class="hair" d="M26.3 11.5 C 26 5.5, 29.8 4, 33.2 4 C 37.2 4.1, 40 6.8, 39.8 11 C 37.4 8, 33 7.6, 29.4 8.6 C 28 9.2, 27 10.2, 26.3 11.5 Z"/>
       <circle class="hair" cx="25.5" cy="8" r="3.4"/>
-      <path class="gown" d="M30 19.5 C 29 26, 28 32, 26 40 C 23 51, 19 60, 15.5 69 C 25 73.5, 43 73.5, 51.5 69 C 46.5 58, 42.5 50, 40.5 40 C 38.5 32, 37.5 26, 36.5 19.5 C 34.4 18, 32.1 18, 30 19.5 Z"/>
-      <path class="trim" d="M16.4 67.6 C 25.5 72, 42 72, 50.6 67.6 M 27 38 C 31 39.4, 36 39.4, 40 38"/>
-      <path class="sil" d="M37 29 C 42.5 32.5, 47.5 37.5, 52 44 L 49.1 46.6 C 45 41, 40.3 37, 35.3 34.2 Z"/>
-      <circle class="btn" cx="50.5" cy="45.6" r="1"/>
-      <path class="thin" d="M27.5 72.5 L 27.5 80 M 39.5 72.5 L 39.5 80"/>
+      <!-- ankles and the trailing under-layer of the hem sit behind the gown;
+           each ankle has a mid point because WebKit pixel-snaps a two-point path.
+           The shoes ride on the ankle groups and land on the same line as his -->
+      <g class="step step-trail"><path class="thin" d="M27.5 84 L 27.5 87.5 L 27.5 91"/><path class="shoe" d="M25.2 91 h6.2 l0.6 1.6 h-6.8 Z"/></g>
+      <g class="step step-lead"><path class="thin" d="M39.5 84 L 39.5 87.5 L 39.5 91"/><path class="shoe" d="M37.2 91 h6.2 l0.6 1.6 h-6.8 Z"/></g>
+      <g class="gown-train">
+        <path class="gown" d="M26.4 40 C 23.9 54, 19 71, 14.2 86.2 C 19 88.2, 26.6 88.9, 33.5 88.9 L 33.5 40 Z"/>
+        <path class="trim" d="M15.2 84.5 C 19.6 86.5, 27 87.3, 33 87.4"/>
+      </g>
+      <g class="gown-sway">
+        <path class="gown" d="M30 19.5 C 29 26, 28 32, 26 40 C 23.5 54, 18.5 70, 13.5 86 C 24 89.6, 43 89.6, 53.5 86 C 48 72, 43 55, 40.5 40 C 38.5 32, 37.5 26, 36.5 19.5 C 34.4 18, 32.1 18, 30 19.5 Z"/>
+        <path class="trim" d="M14.6 84.2 C 24.5 87.6, 42.5 87.6, 52.4 84.2 M 27 38 C 31 39.4, 36 39.4, 40 38"/>
+      </g>
+      <g class="arm arm-reach">
+        <path class="sil" d="M37 29 C 42.5 32.5, 47.5 37.5, 52 44 L 49.1 46.6 C 45 41, 40.3 37, 35.3 34.2 Z"/>
+        <circle class="btn" cx="50.5" cy="45.6" r="1"/>
+      </g>
     </svg></div></div>
 
     <svg class="meet-heart" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -1225,7 +1223,7 @@
           <span class="cd-sep" aria-hidden="true"></span>
           <div class="cd-cell"><span class="cd-num" id="rv-secs">00</span><span class="cd-lab">seconds</span></div>
         </div>
-        <p class="reveal-teaser">Tell us you&rsquo;re coming &mdash; the full reveal goes to those on the list first.</p>
+        <p class="reveal-teaser" id="revealTeaser">Tell us you&rsquo;re coming &mdash; the full reveal goes to those on the list first.</p>
         <p class="rsvp-cta-wrap"><a class="rsvp-cta" href="rsvp.html">RSVP</a></p>
       </div>
       <p class="when st d5" id="dateTbc">date to be confirmed</p>
@@ -1400,7 +1398,7 @@
 
   <footer><p class="footer">more details coming soon &middot; <a href="privacy.html">privacy</a></p></footer>
 
-  <script src="js/addressee.js?v=56"></script>
+  <script src="js/addressee.js?v=59"></script>
   <script>
     (function () {
       var root = document.documentElement;
@@ -1435,12 +1433,12 @@
       });
     })();
   </script>
-  <script src="js/net.js?v=56"></script>
-  <script src="js/tree-data.js?v=56"></script>
-  <script src="js/family-plan.js?v=56"></script>
-  <script src="js/family-lines.js?v=56"></script>
-  <script src="js/family-tree.js?v=56"></script>
-  <script src="js/blessings-data.js?v=56"></script>
+  <script src="js/net.js?v=59"></script>
+  <script src="js/tree-data.js?v=59"></script>
+  <script src="js/family-plan.js?v=59"></script>
+  <script src="js/family-lines.js?v=59"></script>
+  <script src="js/family-tree.js?v=59"></script>
+  <script src="js/blessings-data.js?v=59"></script>
   <script>
     // shared: content grows in as each part reaches the viewport
     function revealOnScroll(scope) {
@@ -1730,9 +1728,9 @@
       });
     })();
   </script>
-  <script src="js/config.js?v=56"></script>
-  <script src="js/countdown.js?v=56"></script>
-  <script src="js/travel.js?v=56"></script>
+  <script src="js/config.js?v=59"></script>
+  <script src="js/countdown.js?v=59"></script>
+  <script src="js/travel.js?v=59"></script>
   <script>
     // the wedding date and travel switch live in js/config.js
     // a missing or blocked js/config.js must not take the teaser and RSVP button with it
@@ -1741,14 +1739,17 @@
     var TRAVEL = CFG.travel || { show: false, destination: "", country: "" };
     var REVEAL = CFG.reveal || { at: null, show: false };
 
-    // While the date/destination aren't revealed yet, replace the plain
-    // "date to be confirmed" line with a teaser (optionally counting down
-    // to the reveal moment). Nothing here ever prints the real date/venue —
-    // once REVEAL.show is true this block steps aside and the ordinary
-    // WEDDING_DATE countdown below takes over.
+    // The details block on the card (country, month, day, venue, RSVP button)
+    // shows in every state. While the reveal is off it is the teaser: the
+    // day and venue stay sealed unless filled in, optionally counting down
+    // to the reveal moment. Once REVEAL.show is true the same block prints
+    // the full date and venue from config, the teaser-only lines step aside
+    // and the ordinary WEDDING_DATE countdown below takes over.
     (function () {
-      if (REVEAL.show === true) { return; }
-      document.getElementById("dateTbc").hidden = true;
+      var revealed = REVEAL.show === true;
+      var wrap = document.getElementById("revealWrap");
+      var dateTbc = document.getElementById("dateTbc");
+      dateTbc.hidden = true;
       document.getElementById("revealWrap").hidden = false;
       // the teaser prints the country itself, so the plain line steps aside
       document.getElementById("whereLine").hidden = true;
@@ -1772,6 +1773,11 @@
         dayEl.textContent = REVEAL.day;
         dayEl.classList.remove("redact-day");
         dayEl.classList.add("reveal-day-known");
+        dayEl.removeAttribute("aria-hidden");
+      } else if (revealed) {
+        // revealed without a day: leave it out, never show a sealed tile
+        dayEl.classList.remove("redact-day");
+        dayEl.hidden = true;
       } else {
         dayEl.textContent = "2?";
         dayEl.setAttribute("aria-label", "exact day still sealed");
@@ -1780,10 +1786,26 @@
       if (REVEAL.venue) {
         venueEl.textContent = REVEAL.venue;
         venueEl.classList.remove("redact-bar");
+        venueEl.removeAttribute("aria-hidden");
+      } else if (revealed) {
+        venueLine.hidden = true;
       } else {
         venueLine.setAttribute("role", "group");
         venueLine.setAttribute("aria-label", "venue still sealed, revealing soon");
       }
+
+      if (revealed) {
+        // nothing is sealed any more: drop the teaser-only lines, and bring
+        // the wedding countdown up above the RSVP button
+        var teaser = document.getElementById("revealTeaser");
+        document.getElementById("revealText").hidden = true;
+        teaser.hidden = true;
+        wrap.insertBefore(dateTbc, teaser);
+        wrap.insertBefore(document.getElementById("countdown"), teaser);
+      }
+
+      // the countdown to the reveal moment is teaser-only
+      if (REVEAL.show === true) { return; }
 
       Countdown.attach(REVEAL.at, {
         getNow: function () { return Date.now(); },
@@ -1818,7 +1840,13 @@
 
     (function () {
       var section = document.getElementById("travel");
-      if (REVEAL.show !== true || !Travel.visible(TRAVEL.show, location.search)) { return; }
+      // Guests only get the checklist once the reveal is on. The private
+      // preview link (?travel=preview) works before that too, but then it
+      // prints no date and no destination, so it cannot leak anything.
+      var sealedPreview = REVEAL.show !== true && Travel.visible(false, location.search);
+      if (!sealedPreview && (REVEAL.show !== true || !Travel.visible(TRAVEL.show, location.search))) { return; }
+      var travelDate = sealedPreview ? "" : WEDDING_DATE;
+      var travelDestination = sealedPreview ? "" : TRAVEL.destination;
       var list = document.getElementById("travelList");
       var bar = document.getElementById("travelBar");
       var count = document.getElementById("travelCount");
@@ -1826,9 +1854,9 @@
       var store = null;
       try { store = window.localStorage; } catch (e) {}
       var ticks = Travel.load(store);
-      var items = Travel.items(WEDDING_DATE, TRAVEL.destination, TRAVEL.country);
-      if (TRAVEL.destination) {
-        document.getElementById("travelSub").textContent = "a little list to get you to " + TRAVEL.destination + ", stress-free";
+      var items = Travel.items(travelDate, travelDestination, sealedPreview ? "" : TRAVEL.country);
+      if (travelDestination) {
+        document.getElementById("travelSub").textContent = "a little list to get you to " + travelDestination + ", stress-free";
       }
 
       function refresh() {
@@ -1885,6 +1913,8 @@
 
       refresh();
       section.hidden = false;
+      // the section was hidden when the browser looked for #travel, so go there now
+      if (location.hash === "#travel" && section.scrollIntoView) { section.scrollIntoView(); }
     })();
   </script>
 </body>

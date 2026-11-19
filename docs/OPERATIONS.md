@@ -171,6 +171,25 @@ login.
 - `admin_purge_guest_data` (SQL editor only) deletes all rsvps, blessings and email_log rows. It leaves `people`, `relationships` and `activity_log`; clear the activity log by hand (`docs/RUNBOOKS.md` R6).
 - The free Supabase plan has no automatic backups or point-in-time recovery. Only your own CSV exports can be recovered.
 
+### Drafts waiting for the owner (November 2026 bug hunt, NOT applied)
+
+Until these are run in the SQL editor, the lines above describe what was intended, not what happens.
+
+- `migrations/drafts/20261116100000_admin_login_counts_and_soft_lock.sql`: today, wrong passwords typed at the three admin login gates are not counted or logged (the "invalid password" error undoes the record), while anyone can trigger the 15-minute lock through the open paths. The draft counts every wrong password, shows them in the activity log (at most 5 lines per 15 minutes, so a stranger cannot fill the log) and lets the correct password through at all times. It does **not** limit how fast someone can guess: the only protection is a long random admin password. Its header explains the trade-off and the hard-lock option.
+- `migrations/drafts/20261116110000_rsvp_headcount_latest_reply.sql`: today the public headcount adds up every reply marked as coming, so a re-sent reply counts again and a later "can't make it" never lowers it. The draft counts each guest once, by their latest reply (same name and same contact). Its header lists one privacy point the owner must decide before applying.
+
+Neither draft has been run on any database. Trial them on a spare Supabase project (not bare Postgres), and save the live definitions first: each header starts with a "DO THIS FIRST" step. Rollbacks are in `migrations/rollbacks/` under the same names. After applying, update the admin-password line above and `AGENTS.md`, and promote the files out of `drafts/`.
+
+What the drafts add to the schema (for the PR text): sequences `admin_fail_window`, `admin_fail_total`, `admin_fail_last_at`, `admin_fail_alarm`; table `admin_login_ledger` (one row, RLS on, no policies); new functions `admin_login_log_flush()`, `rsvp_name_key(text)`, `rsvp_contact_keys(text)` (none callable from the browser); `admin_check(text)` and `rsvp_headcount()` replaced with the same names, arguments and return types.
+
+Two things only the owner can check, both read-only in the SQL editor:
+
+- Blessing **Reject** on `tree-admin.html` now sends `hidden`, which is right for the four-argument `admin_set_blessing_status`. If an older three-argument copy is also live, the page would reach that one instead. This must return exactly one row, with four arguments:
+  `select oid::regprocedure from pg_proc where proname = 'admin_set_blessing_status';`
+- After applying the headcount draft, run step 2 of its "HOW TO CHECK IT WORKED" (it includes a capital letter with an accent).
+
+On the RSVP admin page, a newer reply with the same name and the same contact replaces the earlier one, which then shows as "Earlier reply, not counted". Give those rows a glance: an unexpected "cannot come", or one relative who replied twice under their own name for two households, looks the same.
+
 ## Security notes
 
 - `activity_log`, like every other admin-only table in this project, has

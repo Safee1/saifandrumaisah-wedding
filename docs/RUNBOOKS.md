@@ -50,6 +50,8 @@ Supabase Free has no automatic backups and no point-in-time recovery, so anythin
 Do this in one change, never in pieces, and do not push early.
 1. A week before: rehearse on a local copy with dummy values. Run `npm test`. Do not push.
 2. In `js/config.js` set the date and switch the reveal on in the same edit.
+   `date`, `reveal.day` and `reveal.month` must name the same day: the card prints the day and
+   month, the countdown uses `date`. `npm test` fails if they disagree.
 3. Update the three meta descriptions in `index.html` (they say the rest is sealed).
 4. Update the sealed sentence in the email templates, and redeploy the notify function.
 5. If the share picture changes, give it a new file name and update every tag that uses it.

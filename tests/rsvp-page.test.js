@@ -40,9 +40,9 @@ test("the form posts through RsvpData.submitInterest, not the old yes\\/no submi
 // Regression (26 Sep 2026): "Email or phone" accepted any text, e.g. "yes",
 // leaving no way to reach the guest. Extract the check and exercise it.
 test("contact must look like an email or a phone number", () => {
-  const m = html.match(/var looksEmail = (.*?);\s*var looksPhone = (.*?);/s);
+  const m = html.match(/function contactReachable\(contact\) \{[\s\S]*?\r?\n      \}\r?\n/);
   assert.ok(m, "contact check missing");
-  const check = new Function("contact", "var looksEmail = " + m[1] + "; var looksPhone = " + m[2] + "; return looksEmail || looksPhone;");
+  const check = new Function("return " + m[0])();
   for (const ok of ["zainab@example.com", "07700 900123", "+44 7700 900123", "(0121) 555-0199", "0044-7700-900123"]) {
     assert.equal(check(ok), true, ok);
   }

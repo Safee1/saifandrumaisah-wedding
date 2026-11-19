@@ -81,17 +81,17 @@ test.describe("rsvp-admin.html", () => {
     await expect(page.locator("#gateErr")).toContainText("Too many attempts");
   });
 
-  test("duplicate detection: by name, by email, by phone variants, keeper is latest, totals exclude, CSV column", async ({ page }) => {
+  test("duplicates: a re-send (same name AND contact) is left out, name-only or contact-only matches are flagged but counted, CSV agrees", async ({ page }) => {
     const rows = [
-      // name-dupe group: "Jane Doe" vs "jane   doe" vs "JANE, DOE!" — keeper is r2 (latest)
-      { id: "r1", name: "Jane Doe", attending: true, contact: "j1@example.com", adults: 1, children: 0, guest_count: 1, likelihood: "definitely", dietary: null, message: null, created_at: "2027-01-01T10:00:00Z" },
-      { id: "r2", name: "jane   doe", attending: true, contact: "j2@example.com", adults: 1, children: 0, guest_count: 1, likelihood: "definitely", dietary: null, message: null, created_at: "2027-01-03T10:00:00Z" },
-      { id: "r3", name: "JANE, DOE!", attending: true, contact: "j3@example.com", adults: 1, children: 0, guest_count: 1, likelihood: "definitely", dietary: null, message: null, created_at: "2027-01-02T10:00:00Z" },
-      // email-dupe group: same email, different names — keeper is r5 (latest)
+      // re-send group: same name and same email three times, r2 is the latest and the only one counted
+      { id: "r1", name: "Jane Doe", attending: true, contact: "jane@example.com", adults: 1, children: 0, guest_count: 1, likelihood: "definitely", dietary: null, message: null, created_at: "2027-01-01T10:00:00Z" },
+      { id: "r2", name: "jane   doe", attending: true, contact: "JANE@example.com", adults: 1, children: 0, guest_count: 1, likelihood: "definitely", dietary: null, message: null, created_at: "2027-01-03T10:00:00Z" },
+      { id: "r3", name: "JANE, DOE!", attending: true, contact: "jane@example.com", adults: 1, children: 0, guest_count: 1, likelihood: "definitely", dietary: null, message: null, created_at: "2027-01-02T10:00:00Z" },
+      // same email, different names: flagged, both counted
       { id: "r4", name: "Alpha Guest", attending: true, contact: "SAME@Example.com", adults: 1, children: 0, guest_count: 1, likelihood: "hoping_to", dietary: null, message: null, created_at: "2027-02-01T10:00:00Z" },
       { id: "r5", name: "Beta Guest", attending: true, contact: "same@example.com", adults: 1, children: 0, guest_count: 1, likelihood: "hoping_to", dietary: null, message: null, created_at: "2027-02-02T10:00:00Z" },
-      // phone-dupe group (UK variants) — keeper is r7 (latest)
-      { id: "r6", name: "Gamma Guest", attending: true, contact: "07911123456", adults: 1, children: 0, guest_count: 1, likelihood: "very_likely", dietary: null, message: null, created_at: "2027-03-01T10:00:00Z" },
+      // same phone (UK variants incl. 0044), different names: flagged, both counted
+      { id: "r6", name: "Gamma Guest", attending: true, contact: "0044 7911 123456", adults: 1, children: 0, guest_count: 1, likelihood: "very_likely", dietary: null, message: null, created_at: "2027-03-01T10:00:00Z" },
       { id: "r7", name: "Delta Guest", attending: true, contact: "+44 7911 123456", adults: 1, children: 0, guest_count: 1, likelihood: "very_likely", dietary: null, message: null, created_at: "2027-03-02T10:00:00Z" },
       // unique row, no dupes
       { id: "r8", name: "Solo Guest", attending: true, contact: "solo@example.com", adults: 2, children: 1, guest_count: 3, likelihood: "definitely", dietary: null, message: null, created_at: "2027-04-01T10:00:00Z" }
@@ -102,24 +102,30 @@ test.describe("rsvp-admin.html", () => {
     await page.locator("#pwSubmit").click();
     await expect(page.locator("#app")).toHaveClass(/show/);
 
-    // 4 groups collapse to 4 keepers: r2, r5, r7, r8 -> adults 1+1+1+2=5, children 0+0+0+1=1, total 6
-    await expect(page.locator("#statTotal")).toHaveText("4");
-    await expect(page.locator("#statAdults")).toHaveText("5");
+    // counted: r2, r4, r5, r6, r7, r8 -> adults 1+1+1+1+1+2=7, children 1, total 8
+    await expect(page.locator("#statTotal")).toHaveText("6");
+    await expect(page.locator("#statAdults")).toHaveText("7");
     await expect(page.locator("#statChildren")).toHaveText("1");
-    await expect(page.locator("#statAttending")).toHaveText("6");
+    await expect(page.locator("#statAttending")).toHaveText("8");
 
-    // note: 8 rows total, 4 excluded as non-keeper duplicates
-    await expect(page.locator("#dupeNote")).toContainText("4 possible duplicates excluded");
+    // the note gives both numbers: 2 left out as re-sends, 4 flagged but counted
+    await expect(page.locator("#dupeNote")).toContainText("2 earlier replies are left out of the totals");
+    await expect(page.locator("#dupeNote")).toContainText("4 replies share a name or a contact with another reply");
+    await expect(page.locator("#dupeNote")).toContainText("still counted");
 
-    // badges: non-keeper rows show "Possible duplicate", keeper of a >1 group shows "latest"
     const itemFor = (exactName) => page.locator(".item").filter({ has: page.locator(".item-main", { hasText: new RegExp("^" + exactName + "$") }) });
 
-    await expect(page.locator(".item.is-dupe")).toHaveCount(4);
-    await expect(itemFor("Jane Doe").locator(".dupe-badge")).toContainText("Possible duplicate");
-    await expect(itemFor("jane   doe").locator(".latest-badge")).toContainText("latest");
+    await expect(page.locator(".item.is-dupe")).toHaveCount(2);
+    await expect(itemFor("Jane Doe").locator(".dupe-badge")).toContainText("Earlier reply, not counted");
+    await expect(itemFor("jane   doe").locator(".latest-badge")).toContainText("Latest reply, counted");
     await expect(itemFor("Solo Guest").locator(".latest-badge")).toHaveCount(0);
+    await expect(page.locator(".flag-badge")).toHaveCount(4);
+    await expect(itemFor("Alpha Guest").locator(".flag-badge")).toContainText("Possible duplicate, still counted");
+    await expect(itemFor("Alpha Guest")).toContainText("same contact as Beta Guest");
+    await expect(itemFor("Gamma Guest")).toContainText("same contact as Delta Guest");
+    await expect(itemFor("Alpha Guest")).not.toHaveClass(/is-dupe/);
 
-    // CSV: duplicate_of column populated for non-keepers, empty for keepers/unique
+    // CSV: same story as the page, row by row
     const [download] = await Promise.all([
       page.waitForEvent("download"),
       page.locator("#exportBtn").click()
@@ -145,16 +151,25 @@ test.describe("rsvp-admin.html", () => {
       return out;
     }
     const lines = csv.trim().split("\r\n");
-    expect(lines[0]).toContain("duplicate_of");
     const header = parseCsvLine(lines[0]);
-    const dupIdx = header.length - 1;
+    const countedIdx = header.indexOf("Counted in totals");
+    const replacedIdx = header.indexOf("Replaced by newer reply");
+    const flagIdx = header.indexOf("Possible duplicate (still counted)");
+    expect(countedIdx).toBeGreaterThan(-1);
+    expect(replacedIdx).toBeGreaterThan(-1);
+    expect(flagIdx).toBeGreaterThan(-1);
     const byId = {};
     for (let i = 1; i < lines.length; i++) {
       const cols = parseCsvLine(lines[i]);
-      byId[cols[0]] = cols[dupIdx];
+      byId[cols[0]] = { counted: cols[countedIdx], replaced: cols[replacedIdx], flag: cols[flagIdx] };
     }
-    expect(byId["Jane Doe"]).toContain("jane");
-    expect(byId["Solo Guest"]).toBe("");
+    expect(byId["Jane Doe"].counted).toBe("No");
+    expect(byId["Jane Doe"].replaced).toContain("jane");
+    expect(byId["jane   doe"].counted).toBe("Yes");
+    expect(byId["Alpha Guest"]).toEqual({ counted: "Yes", replaced: "", flag: "same contact as Beta Guest" });
+    expect(byId["Solo Guest"]).toEqual({ counted: "Yes", replaced: "", flag: "" });
+    // the counted rows in the CSV match the "total responses" figure on the page
+    expect(Object.values(byId).filter((r) => r.counted === "Yes").length).toBe(6);
   });
 
   test("500-row dataset renders without failure", async ({ page }) => {

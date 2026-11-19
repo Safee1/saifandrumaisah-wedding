@@ -1,0 +1,313 @@
+/* ============================================================
+   The couple in the intro story: silhouettes, their walk to the
+   centre, and the walk cycle (legs, arms, coat, gown, veil).
+   Moved out of index.html's inline <style>. Two paint rules stay
+   inline there (.coat / .gown use url(#...) gradients, which must
+   resolve against the page, not against this stylesheet).
+
+   Timing: the walk lasts --walk starting at --walk-delay. Every
+   limb and cloth animation spans exactly that window, takes six
+   steps (one every --walk / 6) and ends on the standing pose, so
+   nothing snaps when they arrive. Keyframes sit on twelfths:
+   odd twelfths (8.33%, 25% ...) are foot contacts, even twelfths
+   (16.67%, 33.33% ...) are the legs passing. Strides shrink
+   towards the end because the travel itself eases out.
+
+   Every moving group pivots on a user-unit origin (transform-box:
+   view-box): a moving child (the shin) can then never shift its
+   parent's pivot, and all engines agree on where the pivot is
+   (Firefox resolves fill-box percentages on a group differently).
+   Only transform and opacity are animated.
+   ============================================================ */
+/* the figures' size, defined once on the scene so the heart (inline in
+   index.html) can sit above their heads. The art's view box is 60 x 92.6:
+   its bottom edge is the soles of the shoes, so a figure's bottom offset is
+   the ground line. They stop 0.39 of a figure width either side of the
+   middle, which puts their raised hands a hair apart at every width. */
+.story {
+  --fig-w: clamp(60px, 16vw, 92px);
+  --fig-h: calc(var(--fig-w) * 1.5433);
+  --meet: calc(var(--fig-w) * 0.39);
+}
+.figure {
+  --walk: 3.4s;
+  --walk-delay: 0.9s;
+  --stride: cubic-bezier(.37,0,.63,1);
+  position: absolute;
+  bottom: 5.1vh; /* soles on the skyline ground line (drawn 5vh up, 1.6 thick) */
+  width: var(--fig-w);
+  z-index: 3;
+}
+.figure svg { display: block; width: 100%; height: auto; overflow: visible; } /* block: no baseline gap under the soles */
+.figure .sil { fill: #34425f; stroke: none; }
+.figure .hair { fill: #1b2436; }
+.figure .veil { fill: rgba(185,150,104,0.22); stroke: rgba(185,150,104,0.55); stroke-width: 0.6; }
+.figure .trim { fill: none; stroke: var(--gold); stroke-width: 0.9; stroke-linecap: round; opacity: 0.9; }
+.figure .btn  { fill: var(--gold); }
+.figure .shoe { fill: #1b2436; }
+.figure .thin { fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; opacity: 0.75; }
+
+/* soft ground shadow that travels with each figure */
+.fig-bob { position: relative; }
+.fig-bob::after {
+  content: "";
+  position: absolute;
+  bottom: -3px; left: 50%; /* centred on the soles */
+  transform: translateX(-50%);
+  width: 58%; height: 7px;
+  background: radial-gradient(ellipse, rgba(34,48,73,0.2), transparent 70%);
+  border-radius: 50%;
+}
+
+/* they step OUT of their front doors (door centres: 9.25vw and 87.5vw) and walk the line */
+.fig-l { left: 50%; animation: walkL var(--walk) cubic-bezier(.3,.05,.25,1) var(--walk-delay) both; }
+.fig-r { left: 50%; animation: walkR var(--walk) cubic-bezier(.3,.05,.25,1) var(--walk-delay) both; }
+@keyframes walkL {
+  0%   { transform: translateX(calc(-50% - 40.75vw)); opacity: 0; }
+  10%  { transform: translateX(calc(-50% - 38.5vw)); opacity: 1; }
+  100% { transform: translateX(calc(-50% - var(--meet))); opacity: 1; }
+}
+@keyframes walkR {
+  0%   { transform: translateX(calc(-50% + 37.5vw)) scaleX(-1); opacity: 0; }
+  10%  { transform: translateX(calc(-50% + 35.3vw)) scaleX(-1); opacity: 1; }
+  100% { transform: translateX(calc(-50% + var(--meet))) scaleX(-1); opacity: 1; }
+}
+
+/* walking bob, in step with the feet: the body dips as a foot lands
+   and rises as the legs pass; it stops when they meet */
+.fig-bob { animation: bob var(--walk) var(--stride) var(--walk-delay) both; }
+@keyframes bob {
+  0%     { transform: translateY(0); }
+  8.33%  { transform: translateY(1.5px); }
+  16.67% { transform: translateY(-2px); }
+  25%    { transform: translateY(1.5px); }
+  33.33% { transform: translateY(-2px); }
+  41.67% { transform: translateY(1.5px); }
+  50%    { transform: translateY(-2px); }
+  58.33% { transform: translateY(1.2px); }
+  66.67% { transform: translateY(-1.5px); }
+  75%    { transform: translateY(1px); }
+  83.33% { transform: translateY(-1px); }
+  91.67% { transform: translateY(0.5px); }
+  100%   { transform: translateY(0); }
+}
+
+/* ---------- walk cycle: shared wiring ---------- */
+.figure .leg, .figure .shin, .figure .arm, .figure .step,
+.figure .coat-sway, .figure .coat-tail,
+.figure .gown-sway, .figure .gown-train, .figure .veil-sway {
+  transform-box: view-box;
+  animation-duration: var(--walk);
+  animation-timing-function: var(--stride);
+  animation-delay: var(--walk-delay);
+  /* hold the first frame through the delay, but let go at the end: every
+     cycle ends on the pose as drawn, so once they have met nothing here is
+     still applied and the art renders exactly as it does standing still */
+  animation-fill-mode: backwards;
+}
+
+/* ---------- legs: swing from the hip, in opposition ---------- */
+.fig-l .leg-lead  { transform-origin: 34.8px 50px; animation-name: legLead; }
+.fig-l .leg-trail { transform-origin: 31.2px 50px; animation-name: legTrail; }
+.fig-l .leg-lead .shin  { transform-origin: 37.1px 70px; animation-name: kneeLead; }
+.fig-l .leg-trail .shin { transform-origin: 28.9px 70px; animation-name: kneeTrail; }
+/* negative = foot forward. The standing pose has the feet apart, so the
+   swing carries a small bias that brings them under the body mid-walk.
+   Strides follow the travel: it starts slowly, is fastest in the second
+   and third steps and then eases out, so the first swing is small (a big
+   one drags the planted foot backwards) and the middle ones are longest. */
+@keyframes legLead {
+  0%     { transform: rotate(0deg); }
+  8.33%  { transform: rotate(1deg); }
+  16.67% { transform: rotate(6deg); }
+  25%    { transform: rotate(22deg); }
+  41.67% { transform: rotate(-16deg); }
+  58.33% { transform: rotate(19deg); }
+  75%    { transform: rotate(1deg); }
+  91.67% { transform: rotate(6deg); }
+  100%   { transform: rotate(0deg); }
+}
+@keyframes legTrail {
+  0%     { transform: rotate(0deg); }
+  8.33%  { transform: rotate(-1deg); }
+  16.67% { transform: rotate(-6deg); }
+  25%    { transform: rotate(-22deg); }
+  41.67% { transform: rotate(16deg); }
+  58.33% { transform: rotate(-19deg); }
+  75%    { transform: rotate(-1deg); }
+  91.67% { transform: rotate(-6deg); }
+  100%   { transform: rotate(0deg); }
+}
+/* the knee bends only while its own leg swings forward, lifting the shoe */
+@keyframes kneeLead {
+  0%     { transform: rotate(0deg); }
+  4%     { transform: rotate(12deg); }
+  8.33%  { transform: rotate(0deg); }
+  25%    { transform: rotate(2deg); }
+  33.33% { transform: rotate(24deg); }
+  41.67% { transform: rotate(0deg); }
+  58.33% { transform: rotate(2deg); }
+  66.67% { transform: rotate(18deg); }
+  75%    { transform: rotate(0deg); }
+  100%   { transform: rotate(0deg); }
+}
+@keyframes kneeTrail {
+  0%     { transform: rotate(0deg); }
+  8.33%  { transform: rotate(2deg); }
+  16.67% { transform: rotate(24deg); }
+  25%    { transform: rotate(0deg); }
+  41.67% { transform: rotate(2deg); }
+  50%    { transform: rotate(22deg); }
+  58.33% { transform: rotate(0deg); }
+  75%    { transform: rotate(1deg); }
+  83.33% { transform: rotate(9deg); }
+  91.67% { transform: rotate(0deg); }
+  100%   { transform: rotate(0deg); }
+}
+
+/* the bride's ankles step under the gown (hips hidden beneath it). The
+   swing is kept small: the two lines are 12 units apart and each foot
+   moves under 3, so they can never cross or meet below the hem. The
+   pivot sits 35 units above the shoes. */
+.fig-r .step-lead  { transform-origin: 39.5px 56px; animation-name: stepLead; }
+.fig-r .step-trail { transform-origin: 27.5px 56px; animation-name: stepTrail; }
+@keyframes stepLead {
+  0%     { transform: rotate(0deg); }
+  8.33%  { transform: rotate(-0.35deg); }
+  25%    { transform: rotate(4.9deg); }
+  33.33% { transform: rotate(2.1deg) translateY(-1.2px); }
+  41.67% { transform: rotate(-0.7deg); }
+  58.33% { transform: rotate(4.2deg); }
+  66.67% { transform: rotate(2.45deg) translateY(-0.9px); }
+  75%    { transform: rotate(0.7deg); }
+  91.67% { transform: rotate(1.75deg); }
+  100%   { transform: rotate(0deg); }
+}
+@keyframes stepTrail {
+  0%     { transform: rotate(0deg); }
+  8.33%  { transform: rotate(0.35deg); }
+  16.67% { transform: rotate(-2.45deg) translateY(-1.2px); }
+  25%    { transform: rotate(-4.9deg); }
+  41.67% { transform: rotate(0.7deg); }
+  50%    { transform: rotate(-2.1deg) translateY(-1.2px); }
+  58.33% { transform: rotate(-4.2deg); }
+  75%    { transform: rotate(-0.7deg); }
+  91.67% { transform: rotate(-1.75deg); }
+  100%   { transform: rotate(0deg); }
+}
+
+/* ---------- arms ---------- */
+/* the reaching arm hangs and swings while they walk, then rises into
+   the reach (0deg = the reach as drawn) over the last steps */
+.fig-l .arm-reach { transform-origin: 37.7px 31.4px; animation-name: armReach; }
+.fig-r .arm-reach { transform-origin: 36.2px 31.4px; animation-name: armReach; }
+@keyframes armReach {
+  0%     { transform: rotate(38deg); }
+  8.33%  { transform: rotate(46deg); }
+  25%    { transform: rotate(28deg); }
+  41.67% { transform: rotate(45deg); }
+  58.33% { transform: rotate(31deg); }
+  75%    { transform: rotate(22deg); }
+  88%    { transform: rotate(5deg); }
+  100%   { transform: rotate(0deg); }
+}
+/* the groom's other arm rests behind the coat (hidden when standing)
+   and shows on each back-swing, opposite the leg on its side */
+.fig-l .arm-swing { transform-origin: 30px 24px; animation-name: armSwing; }
+@keyframes armSwing {
+  0%     { transform: rotate(0deg); }
+  8.33%  { transform: rotate(-14deg); }
+  25%    { transform: rotate(20deg); }
+  41.67% { transform: rotate(-14deg); }
+  58.33% { transform: rotate(16deg); }
+  75%    { transform: rotate(-8deg); }
+  91.67% { transform: rotate(4deg); }
+  100%   { transform: rotate(0deg); }
+}
+
+/* ---------- cloth ---------- */
+/* coat: the whole coat leans a touch with each step (pivot: the top of
+   the collar; the gown's is the top of her bodice); a tail behind it
+   trails back while he moves and tucks away again when he stops */
+.fig-l .coat-sway { transform-origin: 33px 20px; animation-name: clothSway; }
+.fig-l .coat-tail { transform-origin: 27.6px 45px; animation-name: tailTrail; }
+/* gown: the skirt sways from the shoulders; an under-layer of the hem
+   trails and ripples behind her and settles back under the gown */
+.fig-r .gown-sway  { transform-origin: 33.5px 18.4px; animation-name: clothSway; }
+.fig-r .gown-train { transform-origin: 30px 40px; animation-name: trainTrail; }
+@keyframes clothSway {
+  0%   { transform: skewX(0deg); }
+  11%  { transform: skewX(1.2deg); }
+  28%  { transform: skewX(-1.4deg); }
+  45%  { transform: skewX(1.3deg); }
+  61%  { transform: skewX(-1.1deg); }
+  78%  { transform: skewX(0.8deg); }
+  94%  { transform: skewX(-0.3deg); }
+  100% { transform: skewX(0deg); }
+}
+@keyframes tailTrail {
+  0%     { transform: rotate(0deg); }
+  8.33%  { transform: rotate(5deg); }
+  16.67% { transform: rotate(8deg); }
+  25%    { transform: rotate(5deg); }
+  33.33% { transform: rotate(8deg); }
+  41.67% { transform: rotate(5deg); }
+  50%    { transform: rotate(7deg); }
+  58.33% { transform: rotate(4deg); }
+  66.67% { transform: rotate(5.5deg); }
+  75%    { transform: rotate(2deg); }
+  83.33% { transform: rotate(3deg); }
+  91.67% { transform: rotate(-0.5deg); }
+  100%   { transform: rotate(0deg); }
+}
+@keyframes trainTrail {
+  0%     { transform: rotate(0deg); }
+  8.33%  { transform: rotate(3.2deg); }
+  16.67% { transform: rotate(6deg); }
+  25%    { transform: rotate(4deg); }
+  33.33% { transform: rotate(6.4deg); }
+  41.67% { transform: rotate(4deg); }
+  50%    { transform: rotate(6deg); }
+  58.33% { transform: rotate(3.2deg); }
+  66.67% { transform: rotate(4.8deg); }
+  75%    { transform: rotate(2deg); }
+  83.33% { transform: rotate(2.8deg); }
+  91.67% { transform: rotate(-0.4deg); }
+  100%   { transform: rotate(0deg); }
+}
+/* veil: hangs from the crown, is pressed back by the walk and flutters;
+   it runs 1.5s past the walk so it swings on and settles after she stops
+   (the walk ends at 69.39% of this animation) */
+.fig-r .veil-sway {
+  transform-origin: 34px 3px;
+  animation-name: veilFlutter;
+  animation-duration: calc(var(--walk) + 1.5s);
+}
+@keyframes veilFlutter {
+  0%     { transform: rotate(0deg) skewX(0deg); }
+  7%     { transform: rotate(3deg) skewX(-1deg); }
+  17%    { transform: rotate(6deg) skewX(-2.5deg); }
+  29%    { transform: rotate(3.5deg) skewX(1deg); }
+  40%    { transform: rotate(6deg) skewX(-2deg); }
+  51%    { transform: rotate(3deg) skewX(1deg); }
+  61%    { transform: rotate(4deg) skewX(-1deg); }
+  69.39% { transform: rotate(1deg) skewX(0deg); }
+  77%    { transform: rotate(-3deg) skewX(1.5deg); }
+  85%    { transform: rotate(1.5deg) skewX(-0.8deg); }
+  93%    { transform: rotate(-0.6deg) skewX(0.3deg); }
+  100%   { transform: rotate(0deg) skewX(0deg); }
+}
+
+/* reduced motion: the story is hidden by the page; make sure nothing here
+   runs regardless, leaving the couple standing where the walk ends */
+@media (prefers-reduced-motion: reduce) {
+  .fig-l { animation: none !important; transform: translateX(calc(-50% - var(--meet))) !important; }
+  .fig-r { animation: none !important; transform: translateX(calc(-50% + var(--meet))) scaleX(-1) !important; }
+  .fig-bob,
+  .figure .leg, .figure .shin, .figure .arm, .figure .step,
+  .figure .coat-sway, .figure .coat-tail,
+  .figure .gown-sway, .figure .gown-train, .figure .veil-sway {
+    animation: none !important;
+    transform: none !important;
+  }
+}
